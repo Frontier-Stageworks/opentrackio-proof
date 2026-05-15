@@ -4,12 +4,15 @@ defaultTargets = ["DistortionConversion", "PrincipalPointConversion", "PixelEqui
 
 [[lean_lib]]
 name = "DistortionConversion"
+srcDir = "opencv_opentrackio_proofs"
 
 [[lean_lib]]
 name = "PrincipalPointConversion"
+srcDir = "opencv_opentrackio_proofs"
 
 [[lean_lib]]
 name = "PixelEquivalence"
+srcDir = "opencv_opentrackio_proofs"
 
 [[require]]
 name = "mathlib"
