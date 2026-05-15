@@ -1,0 +1,17 @@
+name = "opentrackio-proof"
+version = "0.1.0"
+defaultTargets = ["DistortionConversion", "PrincipalPointConversion", "PixelEquivalence"]
+
+[[lean_lib]]
+name = "DistortionConversion"
+
+[[lean_lib]]
+name = "PrincipalPointConversion"
+
+[[lean_lib]]
+name = "PixelEquivalence"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.29.0"
