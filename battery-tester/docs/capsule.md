@@ -25,7 +25,7 @@ Protocol engineers or contributors evaluating whether parser implementations agr
 - CAP-CONSTRAINT-001: No authentication. No user concept.
 - CAP-CONSTRAINT-002: No background jobs, queues, or scheduled tasks.
 - CAP-CONSTRAINT-003: No external infrastructure (no Redis, no S3, no message brokers).
-- CAP-CONSTRAINT-004: Fixtures are the 4 canonical JSON files shipped with camdkit. No live device, no generated data.
+- CAP-CONSTRAINT-004: Fixtures are either the 4 canonical camdkit JSON files or outputs of generate_fixtures.py using the camdkit Python model. No live device input, no hand-edited JSON.
 - CAP-CONSTRAINT-005: Single Python process. C++ adapters are subprocesses, not services.
 - CAP-CONSTRAINT-006: Maximum 20 smoke specs total.
 - CAP-CONSTRAINT-007: No multi-tenancy, permissions systems, or role logic.

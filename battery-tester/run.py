@@ -182,9 +182,19 @@ def main():
         "--fixture",
         help="Run a single fixture by name stem (e.g. complete_static_example)",
     )
+    parser.add_argument(
+        "--generated",
+        action="store_true",
+        help="Run against all fixtures in fixtures/generated/ (produced by generate_fixtures.py)",
+    )
     args = parser.parse_args()
 
-    if args.fixture:
+    if args.generated:
+        fixture_paths = sorted((FIXTURES_DIR / "generated").glob("*.json"))
+        if not fixture_paths:
+            print("ERROR: fixtures/generated/ is empty. Run generate_fixtures.py first.", file=sys.stderr)
+            sys.exit(1)
+    elif args.fixture:
         stem = args.fixture
         if not stem.endswith(".json"):
             stem += ".json"

@@ -80,3 +80,36 @@ subsequent run on the same day, such that up to 10 runs on the same day produce
 distinct filenames battery-tester-YYYY-MM-DD-1.txt through
 battery-tester-YYYY-MM-DD-10.txt
 Verification: ✅
+
+CAPS-GEN-001
+WHEN generate_fixtures.py is run
+THE SYSTEM SHALL write at least 50 valid OpenTrackIO v1.0.1 JSON fixture files
+to fixtures/generated/, each parseable by both adapters without error
+Verification: ✅
+
+CAPS-GEN-002
+WHEN generate_fixtures.py is run
+THE SYSTEM SHALL produce fixtures that cover boundary values (zero, minimum,
+maximum, and at least one mid-range value) for each numeric comparison field,
+and at least one fixture where each optional comparison field is absent
+Verification: ✅
+
+CAPS-GEN-003
+WHEN run.py is invoked with --generated
+THE SYSTEM SHALL run both adapters against every file in fixtures/generated/
+and include all results in the report aggregate
+Verification: ✅
+
+CAPS-PROP-001
+WHEN compare_samples() is called with Hypothesis-generated adapter output
+covering all verdict cases
+THE SYSTEM SHALL produce PASS when both values agree, DIVERGE when values
+disagree or one side is null, and MISSING when both sides are null
+Verification: ✅
+
+CAPS-PROP-002
+WHEN compare_samples() is called across a Hypothesis-generated set of fixture
+results
+THE SYSTEM SHALL produce aggregate counts where pass + diverge + missing equals
+fixtures × fields for every generated combination
+Verification: ✅

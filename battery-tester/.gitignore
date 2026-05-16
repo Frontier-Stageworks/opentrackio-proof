@@ -1,0 +1,4 @@
+fixtures/generated/
+battery-tester-*.txt
+__pycache__/
+.hypothesis/

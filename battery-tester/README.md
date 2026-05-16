@@ -22,7 +22,7 @@ Runs a Python adapter and a C++ adapter against the same canonical JSON fixtures
 ### Python dependencies
 
 ```sh
-pip install cbor2 jsonschema
+pip install cbor2 jsonschema hypothesis pytest
 ```
 
 ### Build — Mo-Sys C++ adapter (dump_sample)
@@ -47,14 +47,36 @@ Binary lands at: `build/tools/dump_sample/dump_sample`
 From `battery-tester/`:
 
 ```sh
-# Single fixture
+# Single canonical fixture
 python run.py --fixture complete_static_example
 
-# All four fixtures
+# All four canonical fixtures
 python run.py
 ```
 
 Each run writes a dated sequential report file: `battery-tester-YYYY-MM-DD-N.txt`
+
+## Generated corpus
+
+A parametric corpus of 76 fixtures can be generated to exercise the full value space of all 18 comparison fields — boundary values, mid-range values, and optional-field presence/absence combinations:
+
+```sh
+# Generate fixtures (writes to fixtures/generated/, not committed to git)
+python generate_fixtures.py
+
+# Run both adapters against the full corpus
+python run.py --generated
+```
+
+The generated corpus covers: translation ±100 m, rotation ±179.999°, 5 sample rates, all timecode boundary values, epoch 0 through realistic timestamps, 4 sensor resolutions, 6 focal lengths, and one fixture each where `sampleTimestamp`, `activeSensorResolution`, `serialNumber`, and `pinholeFocalLength` are absent.
+
+## Property tests
+
+Hypothesis property tests verify the comparison logic invariants (PASS/DIVERGE/MISSING verdict rules, aggregate count correctness) without subprocesses:
+
+```sh
+python -m pytest tests/test_properties.py -v
+```
 
 ## Demo walkthrough
 
