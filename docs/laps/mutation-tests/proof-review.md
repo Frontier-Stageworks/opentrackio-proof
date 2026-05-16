@@ -26,6 +26,50 @@ It does not claim `False`; it claims a necessary equality on cx.
 is strong enough to derive the ΔPx formula from consistency alone, without baking
 the formula into a definition.
 
+### buggy_projection_offset_missing_center_inconsistent
+
+**Classification:** Direct contradiction
+
+**Existing theorem used:** `buggy_principal_point_conversion_inconsistent` (PrincipalPointConversion)
+
+**Anti-degeneracy assumptions:** `w ≠ 0`, `w_shader ≠ 0` (sufficient for unconditional contradiction)
+
+**Overclaims?** No — the existing theorem already established this is unconditional.
+
+---
+
+### wrong_projection_offset_unscaled_inconsistent
+
+**Classification:** Contradiction under anti-degeneracy
+
+**Anti-degeneracy assumption:** `cx ≠ (w / w_shader) * (cx - w_shader / 2)` — exactly the negation of the layer-1 forced equality.
+
+**Proof:** Calls layer-1 theorem, applies `hnot`. No algebra.
+
+**Overclaims?** No.
+
+---
+
+### wrong_projection_offset_minus_half_forces_degenerate_relation
+
+**Classification:** Forces degeneracy
+
+**Existing iff theorem used:** `principal_point_conversion_necessary`
+
+**What is forced:** `cx - w_shader / 2 = (w / w_shader) * (cx - w_shader / 2)` — the principal-point offset must be a fixed point of the scale factor.
+
+**Overclaims?** No — wrong formula is satisfiable (e.g. w = w_shader makes it trivially true). Correctly does not claim `False`.
+
+---
+
+### wrong_projection_offset_minus_half_inconsistent
+
+**Classification:** Contradiction under anti-degeneracy
+
+**Anti-degeneracy assumption:** `cx - w_shader / 2 ≠ (w / w_shader) * (cx - w_shader / 2)` — single minimal negation.
+
+**Overclaims?** No.
+
 ---
 
 ## Pending review (deferred)

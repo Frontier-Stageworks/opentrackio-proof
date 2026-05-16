@@ -29,6 +29,38 @@ linarith
 
 ---
 
+## Run 2 — buggy_projection_offset_missing_center_inconsistent
+
+**Attempt 1:** Term-mode delegation to `buggy_principal_point_conversion_inconsistent`.
+
+**Result:** PASS (clean).
+
+---
+
+## Run 3 — wrong_projection_offset_unscaled_inconsistent
+
+**Attempt 1:** Term-mode: `hnot (wrong_projection_offset_unscaled_forces_degenerate_relation ...)`.
+
+**Result:** PASS (clean).
+
+---
+
+## Run 4 — wrong_projection_offset_minus_half_forces_degenerate_relation
+
+**Attempt 1:** `obtain ⟨_, hΔPx⟩ := principal_point_conversion_necessary ...` then `linarith`.
+
+**Result:** PASS (clean).
+
+---
+
+## Run 5 — wrong_projection_offset_minus_half_inconsistent
+
+**Attempt 1:** Term-mode: `hnot (wrong_projection_offset_minus_half_forces_degenerate_relation ...)`.
+
+**Result:** PASS (clean).
+
+---
+
 ## Pending theorems (deferred — do not start without authorization)
 
 - B layer 2: `wrong_projection_offset_unscaled_inconsistent`
