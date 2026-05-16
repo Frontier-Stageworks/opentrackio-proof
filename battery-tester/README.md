@@ -7,7 +7,7 @@ Runs a Python adapter and a C++ adapter against the same canonical JSON fixtures
 ## What it demonstrates
 
 - Both implementations agree on 17 of 18 comparison fields
-- The Python parser (`opentrackio_lib.py`) reads `lens.focalLength` instead of `lens.pinholeFocalLength` — a real key-name bug exposed by the harness
+- The Python parser (`opentrackio_lib.py`) reads `lens.focalLength` instead of `lens.pinholeFocalLength` — a real key-name bug exposed by the harness. This divergence is reproducible against the upstream SMPTE repo at [`5861818`](https://github.com/SMPTE/ris-osvp-metadata-camdkit/commit/5861818760d50b9ba984cef4e7b99c025396f874) (the last commit before the fix). Clone from upstream `main` before [PR#210](https://github.com/SMPTE/ris-osvp-metadata-camdkit/pull/210) merges and the `DIVERGE` will appear.
 - The harness degrades gracefully when the C++ adapter binary is not yet built
 
 ## What it does not do
@@ -102,4 +102,4 @@ from the camdkit test resources (which are v0.9.3 and rejected by the Mo-Sys lib
 | `transforms.Camera.translation.{x,y,z}` | Meters, float tolerance 1e-9 |
 | `transforms.Camera.rotation.{pan,tilt,roll}` | Degrees, float tolerance 1e-9 |
 | `lens.focusDistance` | Raw from JSON |
-| `lens.pinholeFocalLength` | **Expected DIVERGE** — Python reads wrong key |
+| `lens.pinholeFocalLength` | **Expected DIVERGE** — Python reads wrong key ([PR#210](https://github.com/SMPTE/ris-osvp-metadata-camdkit/pull/210)) |
