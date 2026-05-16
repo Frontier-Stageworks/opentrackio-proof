@@ -1,11 +1,11 @@
 # Demo Script — battery-tester
 
 ## Demo Goal
-Prove that a field-by-field differential harness catches real divergences between Python and C++ OpenTrackIO parser implementations on identical input.
+Prove that a field-by-field differential harness catches real divergences between the Python and C++ OpenTrackIO parser implementations on identical input.
 
 ## Before You Start
 
-- **Setup:** Build both C++ adapters (see README.md — two `cmake --build` commands)
+- **Setup:** Build the Mo-Sys C++ adapter (see README.md — one `cmake --build` command)
 - **Python deps:** `pip install cbor2 jsonschema` in your Python environment
 - **Starting state:** Clean terminal, `battery-tester/` as working directory, no `battery-tester-*.txt` files present
 - **Reset:** Delete any `battery-tester-*.txt` files to restart the sequential numbering
@@ -22,33 +22,35 @@ python run.py --fixture complete_static_example
 ```
 
 **Expected Visible Outcome**
-Terminal prints: `Writing report to: battery-tester-2026-05-16-1.txt` then `Done. N pass, M diverge, 0 missing across 1 fixture(s).`
-The file `battery-tester-2026-05-16-1.txt` appears in the working directory.
+Terminal prints: `Writing report to: battery-tester-YYYY-MM-DD-1.txt` then `Done. 17 pass, 1 diverge, 0 missing across 1 fixture(s).`
+The file appears in the working directory.
 
 **What the Audience Should Notice**
-Open the file. A column-aligned table appears with ~18 rows — one per field. The `python`, `cpp-camdkit`, and `cpp-mosys` columns are visible side by side.
+Open the file. A column-aligned table appears with 18 rows — one per field. The `python` and `cpp-mosys` columns are visible side by side.
 
 **What This Proves**
-All three adapters ran, parsed the same canonical fixture, and produced comparable output. The harness infrastructure works end-to-end.
+Both adapters ran, parsed the same canonical fixture, and produced comparable output across 17 of 18 fields.
 
 **Failure Signal**
-File not created, or terminal shows `0 pass, 0 diverge` with all MISSING (means C++ binaries not found — check build step).
+File not created, or terminal shows all MISSING (means the C++ binary was not found — check build step).
 
 ---
 
 ### Step 2 — Point to the divergence
 
 **Action**
-Scroll to the `lens.pinholeFocalLength` row in the open report file (no new command needed).
+Scroll to the `lens.pinholeFocalLength` row in the open report file (already visible from Step 1).
 
 **Expected Visible Outcome**
-The row shows: `lens.pinholeFocalLength | null | 24.305 | 24.305 | DIVERGE`
+```
+lens.pinholeFocalLength    null    24.305    DIVERGE
+```
 
 **What the Audience Should Notice**
-Python returns `null`; both C++ adapters return `24.305`. The `DIVERGE` verdict in the final column is the signal.
+Python returns `null`; the C++ adapter returns `24.305`. The `DIVERGE` verdict is the signal.
 
 **What This Proves**
-The Python parser's `get_focal_length()` reads the key `lens.focalLength`, which does not exist in the current schema. The correct key is `lens.pinholeFocalLength`. This is a real defect in `opentrackio_lib.py` — and the harness caught it automatically by comparing parsers on identical input.
+The Python parser's `get_focal_length()` reads the key `lens.focalLength`, which does not exist in the v1.0.1 schema. The correct key is `lens.pinholeFocalLength`. This is a real defect in `opentrackio_lib.py` — caught automatically by comparing two parsers on identical input.
 
 **Failure Signal**
 Row shows `PASS` (Python accidentally found a value) or the row is absent entirely.
@@ -63,13 +65,13 @@ python run.py
 ```
 
 **Expected Visible Outcome**
-Terminal prints: `Writing report to: battery-tester-2026-05-16-2.txt` then `Done. N pass, M diverge, 0 missing across 4 fixture(s).`
+Terminal prints: `Writing report to: battery-tester-YYYY-MM-DD-2.txt` then `Done. N pass, 4 diverge, M missing across 4 fixture(s).`
 
 **What the Audience Should Notice**
-Open `battery-tester-2026-05-16-2.txt`. Four fixture tables appear, followed by an AGGREGATE section. The `lens.pinholeFocalLength` divergence appears in each fixture that includes that field, accumulating in the DIVERGE count.
+Open the second report file. Four fixture tables appear, followed by an AGGREGATE section. The `lens.pinholeFocalLength` divergence appears in each fixture that contains that field, accumulating in the DIVERGE count. MISSING entries are expected — the "recommended" fixtures intentionally omit many fields.
 
 **What This Proves**
-The harness scales across the full canonical fixture suite. The single key-name bug in the Python parser surfaces consistently across every fixture that contains `lens.pinholeFocalLength`.
+The bug propagates consistently across the full fixture suite. MISSING is not a bug — it reflects the intended minimal coverage of the recommended fixture set.
 
 **Failure Signal**
 Aggregate counts don't sum to total fields tested, or a fixture table is missing entirely.
@@ -78,7 +80,7 @@ Aggregate counts don't sum to total fields tested, or a fixture table is missing
 
 ## Reset / Recovery
 
-Delete any `battery-tester-*.txt` files to reset sequential numbering. No other state to clear — each run is fully independent.
+Delete any `battery-tester-*.txt` files to reset sequential numbering. No other state to clear.
 
 ## Demo Completion Criteria
 

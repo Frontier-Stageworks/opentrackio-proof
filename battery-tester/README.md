@@ -2,24 +2,20 @@
 
 Differential test harness for OpenTrackIO parser implementations.
 
-Runs three parser adapters against the same canonical JSON fixtures and compares their output field-by-field. Divergences indicate real defects — the parser implementations disagree on what the same input means.
+Runs a Python adapter and a C++ adapter against the same canonical JSON fixtures and compares their output field-by-field. Divergences indicate real defects — the two implementations disagree on what the same input means.
 
 ## What it demonstrates
 
-- All three parser surfaces agree on transform, timing, tracker, protocol, and lens fields
+- Both implementations agree on 17 of 18 comparison fields
 - The Python parser (`opentrackio_lib.py`) reads `lens.focalLength` instead of `lens.pinholeFocalLength` — a real key-name bug exposed by the harness
-- The harness degrades gracefully when a C++ adapter binary is not yet built
+- The harness degrades gracefully when the C++ adapter binary is not yet built
 
 ## What it does not do
 
 - CBOR or UDP input (JSON fixtures only)
-- Full schema field coverage (18 comparison fields)
+- Full schema field coverage (18 comparison fields from the intersection)
 - CI integration or machine-readable output
 - Unit conversion (all values are raw from the JSON fixture)
-
-## Architecture note
-
-The CamDKit C++ adapter (`cpp-camdkit`) wraps the Mo-Sys opentrackio-cpp library — it is not an independent parse path. Both C++ adapters use `OpenTrackIOSample` under the hood. The Python adapter is the only truly independent implementation.
 
 ## Setup
 
@@ -31,29 +27,20 @@ pip install cbor2 jsonschema
 
 ### Build — Mo-Sys C++ adapter (dump_sample)
 
-Requires Conan 2 and CMake ≥ 3.15. From `opentrackio-cpp/`:
+Requires CMake ≥ 3.15 and nlohmann-json. On macOS:
 
 ```sh
-pip install conan
-conan profile detect          # first time only
-conan install . --build=missing -s compiler.cppstd=20 -s build_type=Release
+brew install nlohmann-json
+```
+
+From `opentrackio-cpp/`:
+
+```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DOPENTRACKIO_BUILD_TOOLS=ON
 cmake --build build --target dump_sample --config Release
 ```
 
 Binary lands at: `build/tools/dump_sample/dump_sample`
-
-### Build — CamDKit C++ adapter
-
-Requires Conan 2 and CMake ≥ 3.30. From `ris-osvp-metadata-camdkit/src/test/cpp/opentrackio-parser/`:
-
-```sh
-conan install . --build=missing -s compiler.cppstd=20 -s build_type=Release
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target opentrackio-parser --config Release
-```
-
-Binary lands at: `build/opentrackio-parser`
 
 ## Run
 
@@ -75,31 +62,37 @@ Each run writes a dated sequential report file: `battery-tester-YYYY-MM-DD-N.txt
 ```
 python run.py --fixture complete_static_example
 ```
-Open `battery-tester-YYYY-MM-DD-1.txt`. See 18 fields compared across three adapters.
+Open the report file. See 18 fields compared across both adapters.
 
 **Flow 2 — the divergence**
 Find the `lens.pinholeFocalLength` row:
 ```
-lens.pinholeFocalLength        null               24.305             24.305             DIVERGE
+lens.pinholeFocalLength    null    24.305    DIVERGE
 ```
 Python returns `null` because `opentrackio_lib.py:get_focal_length()` reads `lens.focalLength`,
-which is not a key in the current schema. Both C++ adapters correctly read `lens.pinholeFocalLength`.
+which is not a key in the v1.0.1 schema. The C++ adapter correctly reads `lens.pinholeFocalLength`.
 
 **Flow 3 — aggregate**
 ```
 python run.py
 ```
-Open `battery-tester-YYYY-MM-DD-2.txt`. Four fixture tables plus an aggregate showing cumulative
-pass/diverge/missing counts.
+Four fixture tables plus an aggregate. The divergence appears in every fixture that contains
+`lens.pinholeFocalLength`. MISSING entries are expected for the "recommended" fixtures, which
+intentionally omit many fields.
+
+## Fixtures
+
+Generated from camdkit at v1.0.1 and stored in `fixtures/`. They are not the "classic" examples
+from the camdkit test resources (which are v0.9.3 and rejected by the Mo-Sys library).
 
 ## Comparison fields
 
 | Field | Notes |
 |---|---|
 | `protocol.name` | String equality |
-| `protocol.version` | String equality (e.g. `"0.9.3"`) |
+| `protocol.version` | String equality (`"1.0.1"`) |
 | `tracker.slate` | String equality |
-| `tracker.serialNumber` | Read from `static.tracker` by Python; from `sample.tracker` by C++ |
+| `tracker.serialNumber` | Read from `static.tracker` by Python; from merged `sample.tracker` by C++ |
 | `timing.timecode` | Zero-padded `HH:MM:SS:FF` |
 | `timing.sampleTimestamp.seconds` | Epoch seconds (integer) |
 | `timing.sampleTimestamp.nanoseconds` | Integer |

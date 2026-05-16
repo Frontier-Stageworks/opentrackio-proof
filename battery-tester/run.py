@@ -34,13 +34,6 @@ ADAPTERS = [
         "cmd": [sys.executable, str(_HERE / "adapters/python_adapter.py"), "{fixture}"],
     },
     {
-        "name": "cpp-camdkit",
-        "cmd": [
-            str(_CAMDKIT / "src/test/cpp/opentrackio-parser/build/opentrackio-parser"),
-            "--json", "-f", "{fixture}",
-        ],
-    },
-    {
         "name": "cpp-mosys",
         "cmd": [
             str(_CPP_FORK / "build/tools/dump_sample/dump_sample"),
