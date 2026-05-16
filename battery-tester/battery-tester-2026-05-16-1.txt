@@ -1,0 +1,32 @@
+OpenTrackIO Battery Tester
+Date:              2026-05-16
+Adapters:          python, cpp-camdkit, cpp-mosys
+Float tolerance:   1e-09
+Units:             translation=meters  rotation=degrees  distances=raw-from-JSON
+
+================================================================================
+FIXTURE: complete_static_example
+================================================================================
+
+FIELD                                       python              cpp-camdkit         cpp-mosys           VERDICT
+---------------------------------------------------------------------------------------------------------------
+protocol.name                               OpenTrackIO         OpenTrackIO         OpenTrackIO         PASS
+protocol.version                            1.0.1               1.0.1               1.0.1               PASS
+tracker.slate                               A101_A_4            A101_A_4            A101_A_4            PASS
+tracker.serialNumber                        1234567890A         1234567890A         1234567890A         PASS
+timing.timecode                             01:02:03:04         01:02:03:04         01:02:03:04         PASS
+timing.sampleTimestamp.seconds              1718806554          1718806554          1718806554          PASS
+timing.sampleTimestamp.nanoseconds          500000000           500000000           500000000           PASS
+timing.sampleRate                           24                  24                  24                  PASS
+camera.activeSensorResolution.width         3840                3840                3840                PASS
+camera.activeSensorResolution.height        2160                2160                2160                PASS
+transforms.Camera.translation.x             1                   1                   1                   PASS
+transforms.Camera.translation.y             2                   2                   2                   PASS
+transforms.Camera.translation.z             3                   3                   3                   PASS
+transforms.Camera.rotation.pan              180                 180                 180                 PASS
+transforms.Camera.rotation.tilt             90                  90                  90                  PASS
+transforms.Camera.rotation.roll             45                  45                  45                  PASS
+lens.focusDistance                          10                  10                  10                  PASS
+lens.pinholeFocalLength                     null                24.305              24.305              DIVERGE
+
+  pass=17  diverge=1  missing=0
