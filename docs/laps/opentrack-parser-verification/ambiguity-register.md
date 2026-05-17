@@ -8,25 +8,37 @@ affected slice can open.
 
 ## A1 — JSON numeric representation for rational values
 
-**Status:** UNRESOLVED  
-**Blocks:** Slice 5 (Rational Decoder)
+**Status:** RESOLVED (2026-05-17)  
+**Blocks:** Slice 5 — unblocked.
 
-**What is unknown:**  
-How are rational-typed fields (e.g., `sampleRate`, `focalLength`) encoded in
-the OpenTrackIO JSON? Options include:
-- JSON number (decimal or integer literal)
-- JSON object `{ "num": ..., "den": ... }`
-- JSON string `"num/den"`
-- JSON integer only (for integer-valued rationals)
+**Resolution:**  
+Rational-typed fields are JSON objects with exactly two required fields:
 
-**Why it matters:**  
-`decodePositiveRational` must pattern-match on a specific JSON constructor.
-A wrong assumption here means the decoder and its soundness theorem describe
-a format that the real protocol does not use.
+```json
+{ "num": 24000, "denom": 1001 }
+```
 
-**Resolution needed:**  
-Inspect the canonical OpenTrackIO schema / camdkit Python source for at least
-one rational-typed field and confirm which JSON form it uses.
+Normative key names: `"num"` and `"denom"` (not `"den"`, not `"denominator"`).
+
+Schema constraints per field:
+- `num`: integer, minimum 1, maximum 2147483647
+- `denom`: integer, minimum 1, maximum 4294967295
+- `required: ["num", "denom"]`, `additionalProperties: false`
+
+Fields using this shape: `static.duration`, `static.camera.captureFrameRate`,
+`static.camera.anamorphicSqueeze`, `timing.sampleRate`,
+`timing.synchronization.frequency`, `timing.timecode.frameRate`.
+
+**Important clarification:** focal length fields (`lens.pinholeFocalLength`,
+`static.lens.nominalFocalLength`) are plain JSON numbers (not rational objects).
+They have `exclusiveMinimum: 0.0` and are handled separately (Slice 10).
+
+**Lean impact:**  
+`decodePositiveRational` pattern-matches on `.object _`, looks up `"num"` and
+`"denom"`, parses each as a `Nat` via `s.toNat?`, and checks `0 < n` and
+`0 < d` to satisfy `PositiveRational.num_pos` and `PositiveRational.den_pos`.
+The maximum bounds (2147483647 / 4294967295) are not encoded in the decoder
+for Slice 5 — they are a future constraint if needed.
 
 ---
 

@@ -42,6 +42,10 @@ srcDir = "opentrackio_parser"
 name = "ProtocolDecoder"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "RationalDecoder"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

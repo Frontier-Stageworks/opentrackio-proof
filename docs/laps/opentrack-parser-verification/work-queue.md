@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 5 — rational-decoder-soundness** (blocked on A1)
+Current slice: **Slice 6 — fixed-length-array-decoder** (blocked on A6) / **Slice 7 — enum-field-decoder** (blocked on A5)
 
 ---
 
@@ -16,7 +16,7 @@ Current slice: **Slice 5 — rational-decoder-soundness** (blocked on A1)
 | 4A | `version-model` | 1 | Small | **COMPLETE** | — |
 | 4B | `version-value-decoder` | 1 | Small | **COMPLETE** | — |
 | 4C | `protocol-version-field-decoder` | 1 | Small | **COMPLETE** | — |
-| 5 | `rational-decoder-soundness` | 1 | Medium | Queued | Slice 1, 2, 3; **A1** |
+| 5 | `rational-decoder-soundness` | 1 | Medium | **COMPLETE** | — |
 | 6 | `fixed-length-array-decoder` | 1 | Small–Med | Queued | Slice 2, 3; **A6** |
 | 7 | `enum-field-decoder` | 1 | Small | Queued | Slice 2, 3; **A5** |
 | 8 | `transform-model-decoder` | 2 | Medium | Queued | Slices 5, 6; **A9** |
@@ -60,6 +60,7 @@ Current slice: **Slice 5 — rational-decoder-soundness** (blocked on A1)
 | 4A | `version-model` | 2026-05-17 | `Fin 10` for digit bound; `protocolVersion_valid` by omega; lake build clean |
 | 4B | `version-value-decoder` | 2026-05-17 | `decodeVersionValue` + soundness; `_h` unused per type-invariant proof; lake build clean |
 | 4C | `protocol-version-field-decoder` | 2026-05-17 | `ProtocolInfo` struct + `decodeProtocol`; `_h` unused per same type-invariant reasoning; lake build clean |
+| 5 | `rational-decoder-soundness` | 2026-05-17 | `decodePositiveRational`; decision proofs `hn`/`hd` become struct fields; `_h` unused; lake build clean |
 
 ---
 
