@@ -134,15 +134,35 @@ Layer 2: term-mode `hne (layer-1 ...)`.
 
 **I.2** Numeric witness (w=2, w_shader=1, fx=3, cx=4 → F=6, ΔPx=7): `⟨6, 7, by norm_num, by norm_num, fun x => by ring⟩`
 
-**Final full check:** `lake env lean opencv_opentrackio_proofs/MutationTests.lean` — clean (no output).
+**Full check after runs 1–34:** `lake env lean opencv_opentrackio_proofs/MutationTests.lean` — clean (no output).
 
-**Total theorems:** 32 named theorems + 2 anonymous examples = 34 items. All clean. No sorry.
+---
 
-- B layer 2: `wrong_projection_offset_unscaled_inconsistent`
-- C: `wrong_projection_offset_minus_half_*`
-- D: `wrong_focal_length_identity_*`
-- E: `wrong_focal_length_inverted_inconsistent`
-- F: radial wrong-power (numerator and denominator)
-- G: tangential wrong-power
-- H: coefficient swaps
-- I: sanity examples
+## Runs 35–36 — LAPS review: H.3 gap closure (2026-05-16)
+
+**Gap identified:** LAPS review found that the tangential swap `q2 = p1/F^2` (p1 used
+as q2's numerator) was missing. H.2 covered `q1 = p2/F^2` only. The "other half is
+symmetric" comment applied to within-parameter direction symmetry, not this cross-parameter
+case.
+
+**Theorem added:** `wrong_q2_swapped_p1_forces_equal_coefficients` (H.3 layer 1)
+
+```lean
+obtain ⟨_, hq2⟩ := (whole_tangential_field_iff p1 p2 q1 q2 F hF).mp hpoly
+have hF2 : F ^ 2 ≠ 0 := pow_ne_zero _ hF
+have heq : p2 / F ^ 2 = p1 / F ^ 2 := by linarith
+exact (mul_right_cancel₀ hF2 ((div_eq_div_iff hF2 hF2).mp heq)).symm
+```
+
+Uses second conjunct `hq2` (vs H.2 which uses `hq1`). `.symm` needed because
+`mul_right_cancel₀` gives `p2 = p1` and conclusion is `p1 = p2`.
+
+**Theorem added:** `wrong_q2_swapped_p1_inconsistent` (H.3 layer 2)
+
+Term-mode: `hne (wrong_q2_swapped_p1_forces_equal_coefficients ...)`.
+
+**Check command:** `lake env lean opencv_opentrackio_proofs/MutationTests.lean`
+
+**Result:** PASS — clean (no output).
+
+**Total theorems after H.3:** 34 named theorems + 2 anonymous examples = 36 items. All clean. No sorry.

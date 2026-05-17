@@ -55,10 +55,10 @@ Each theorem is classified as one of:
 | I.2 | `example` (numeric witness) | **PS** | — |
 
 **Confirmation: No theorem is classified DC where only degeneracy is forced.**
-- All DC theorems (A, and E once anti-degeneracy is included) genuinely produce `False`.
+- The only unconditional direct-contradiction theorem is A.
+- E is a contradiction theorem under explicit positivity and anti-degeneracy assumptions (`hw_pos`, `hw_s_pos`, `hne : w ≠ w_shader`), so it is classified CD, not DC.
 - All FD theorems conclude with an equality, never `False`.
 - All CD theorems explicitly carry the negation of their FD equality as a hypothesis.
-- Theorem E is classified CD, not DC: it requires `hne : w ≠ w_shader` to reach `False`.
 
 ---
 
@@ -67,7 +67,6 @@ Each theorem is classified as one of:
 | Theorem | Why unconditional |
 |---------|------------------|
 | `buggy_projection_offset_missing_center_inconsistent` | Missing centering term is incompatible with any nonzero w and w_shader; delegates to `buggy_principal_point_conversion_inconsistent` |
-| `wrong_focal_length_inverted_inconsistent` | Under positivity (`w > 0`, `w_shader > 0`) and `w ≠ w_shader`, the inverted scale forces `w² = w_shader²` which implies `w = w_shader`, contradiction; positivity excludes the `w = -w_shader` escape |
 
 ---
 

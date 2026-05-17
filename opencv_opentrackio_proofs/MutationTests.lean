@@ -100,7 +100,7 @@ theorem wrong_projection_offset_minus_half_inconsistent
 /-
   D — Wrong focal length: F = fx (identity, missing the w/w_shader scale factor).
 
-  Layer 1 (forces degeneracy): consistency + F = fx + fx ≠ 0 forces w = w_shader.
+  Layer 1 (forces degeneracy): consistency + F = fx and fx ≠ 0 forces w = w_shader.
 -/
 theorem wrong_focal_length_identity_forces_degeneracy
     (w w_shader fx cx F ΔPx : ℝ)
