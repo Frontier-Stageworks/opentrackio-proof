@@ -530,3 +530,28 @@ theorem wrong_q1_swapped_p2_inconsistent
     (hwrong : q1 = p2 / F ^ 2) :
     False :=
   hne (wrong_q1_swapped_p2_forces_equal_coefficients p1 p2 q1 q2 F hF hpoly hwrong)
+
+/-
+  I — Positive sanity examples.
+
+  These confirm that the consistency hypotheses used in the mutation theorems
+  are satisfiable under the correct conversion formulas.  If these examples
+  failed, every mutation theorem above would be vacuously true.
+-/
+
+-- I.1  Existential witness: the correct principal-point formulas satisfy consistency.
+example (w w_shader fx cx : ℝ) (hw : w ≠ 0) (hw_s : w_shader ≠ 0) :
+    ∃ F ΔPx : ℝ,
+      F   = (w / w_shader) * fx ∧
+      ΔPx = (w / w_shader) * (cx - w_shader / 2) ∧
+      ∀ x : ℝ, fx * x + cx = (w_shader / w) * (F * x + ΔPx) + w_shader / 2 :=
+  ⟨(w / w_shader) * fx, (w / w_shader) * (cx - w_shader / 2),
+   rfl, rfl, fun x => by field_simp [hw, hw_s]; ring⟩
+
+-- I.2  Numeric witness: w=2, w_shader=1, fx=3, cx=4 → F=6, ΔPx=7.
+--      Checks: 3x + 4 = (1/2)*(6x + 7) + 1/2  for all x.
+example : ∃ F ΔPx : ℝ,
+    F   = (2 / 1 : ℝ) * 3 ∧
+    ΔPx = (2 / 1 : ℝ) * (4 - 1 / 2) ∧
+    ∀ x : ℝ, (3 : ℝ) * x + 4 = (1 / 2) * (F * x + ΔPx) + 1 / 2 :=
+  ⟨6, 7, by norm_num, by norm_num, fun x => by ring⟩

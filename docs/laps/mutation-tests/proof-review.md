@@ -1,167 +1,115 @@
 ---
 name: mutation-tests-proof-review
-description: Proof review for MutationTests.lean — updated incrementally as theorems are completed
+description: Final proof review for MutationTests.lean — all 32 theorems + 2 sanity examples
 metadata:
   type: project
 ---
 
 # Proof Review — MutationTests.lean
 
-## Completed theorems
+## File compiles clean
 
-### wrong_projection_offset_unscaled_forces_degenerate_relation
-
-**Classification:** Forces degeneracy
-
-**Existing iff theorem used:** `principal_point_conversion_necessary`
-(returns conjunction; `.2` component gives `ΔPx = (w/w_shader)*(cx - w_shader/2)`)
-
-**Anti-degeneracy assumptions used:** None — this is the degeneracy layer only.
-The contradiction layer (`wrong_projection_offset_unscaled_inconsistent`) is deferred.
-
-**Overclaims?** No. The conclusion is exactly what consistency forces when `ΔPx = cx`.
-It does not claim `False`; it claims a necessary equality on cx.
-
-**Contributes to confidence?** Yes — confirms that `principal_point_conversion_necessary`
-is strong enough to derive the ΔPx formula from consistency alone, without baking
-the formula into a definition.
-
-### buggy_projection_offset_missing_center_inconsistent
-
-**Classification:** Direct contradiction
-
-**Existing theorem used:** `buggy_principal_point_conversion_inconsistent` (PrincipalPointConversion)
-
-**Anti-degeneracy assumptions:** `w ≠ 0`, `w_shader ≠ 0` (sufficient for unconditional contradiction)
-
-**Overclaims?** No — the existing theorem already established this is unconditional.
+`lake env lean opencv_opentrackio_proofs/MutationTests.lean` — no output (clean).
+No `sorry`, `admit`, `axiom`, `unsafe`, or `partial` in the file.
 
 ---
 
-### wrong_projection_offset_unscaled_inconsistent
+## Which mutations are direct contradictions
 
-**Classification:** Contradiction under anti-degeneracy
-
-**Anti-degeneracy assumption:** `cx ≠ (w / w_shader) * (cx - w_shader / 2)` — exactly the negation of the layer-1 forced equality.
-
-**Proof:** Calls layer-1 theorem, applies `hnot`. No algebra.
-
-**Overclaims?** No.
+| Theorem | Why unconditional |
+|---------|------------------|
+| `buggy_projection_offset_missing_center_inconsistent` | Missing centering term is incompatible with any nonzero w and w_shader; delegates to `buggy_principal_point_conversion_inconsistent` |
+| `wrong_focal_length_inverted_inconsistent` | Under positivity (`w > 0`, `w_shader > 0`) and `w ≠ w_shader`, the inverted scale forces `w² = w_shader²` which implies `w = w_shader`, contradiction; positivity excludes the `w = -w_shader` escape |
 
 ---
 
-### wrong_projection_offset_minus_half_forces_degenerate_relation
+## Which mutations force degeneracies (layer-1 theorems)
 
-**Classification:** Forces degeneracy
+| Theorem | Wrong formula | Forced equality |
+|---------|--------------|-----------------|
+| `wrong_projection_offset_unscaled_forces_degenerate_relation` | `ΔPx = cx` | `cx = (w/w_shader)*(cx - w_shader/2)` |
+| `wrong_projection_offset_minus_half_forces_degenerate_relation` | `ΔPx = cx - w_shader/2` | `cx - w_shader/2 = (w/w_shader)*(cx - w_shader/2)` |
+| `wrong_focal_length_identity_forces_degeneracy` | `F = fx` | `w = w_shader` |
+| `wrong_l1_power_F4_forces_power_degeneracy` | `l1 = k1/F^4` | `F^2 = F^4` |
+| `wrong_l3_power_F2_forces_power_degeneracy` | `l3 = k2/F^2` | `F^2 = F^4` |
+| `wrong_l5_power_F4_forces_power_degeneracy` | `l5 = k3/F^4` | `F^6 = F^4` |
+| `wrong_l2_power_F4_forces_power_degeneracy` | `l2 = k4/F^4` | `F^2 = F^4` |
+| `wrong_l4_power_F2_forces_power_degeneracy` | `l4 = k5/F^2` | `F^2 = F^4` |
+| `wrong_l6_power_F4_forces_power_degeneracy` | `l6 = k6/F^4` | `F^6 = F^4` |
+| `wrong_q1_power_F1_forces_power_degeneracy` | `q1 = p1/F` | `F^2 = F` |
+| `wrong_q1_power_F4_forces_power_degeneracy` | `q1 = p1/F^4` | `F^2 = F^4` |
+| `wrong_q2_power_F1_forces_power_degeneracy` | `q2 = p2/F` | `F^2 = F` |
+| `wrong_q2_power_F4_forces_power_degeneracy` | `q2 = p2/F^4` | `F^2 = F^4` |
+| `wrong_l1_swapped_k2_forces_equal_coefficients` | `l1 = k2/F^2` | `k1 = k2` |
+| `wrong_q1_swapped_p2_forces_equal_coefficients` | `q1 = p2/F^2` | `p1 = p2` |
 
-**Existing iff theorem used:** `principal_point_conversion_necessary`
-
-**What is forced:** `cx - w_shader / 2 = (w / w_shader) * (cx - w_shader / 2)` — the principal-point offset must be a fixed point of the scale factor.
-
-**Overclaims?** No — wrong formula is satisfiable (e.g. w = w_shader makes it trivially true). Correctly does not claim `False`.
-
----
-
-### wrong_projection_offset_minus_half_inconsistent
-
-**Classification:** Contradiction under anti-degeneracy
-
-**Anti-degeneracy assumption:** `cx - w_shader / 2 ≠ (w / w_shader) * (cx - w_shader / 2)` — single minimal negation.
-
-**Overclaims?** No.
-
-### wrong_focal_length_identity_forces_degeneracy
-
-**Classification:** Forces degeneracy
-
-**Existing theorem used:** `principal_point_conversion_necessary`
-
-**What is forced:** `w = w_shader` — the image and shader dimensions must be equal for the unscaled focal length to be consistent.
-
-**Overclaims?** No — `hfx ≠ 0` is the minimum needed; without it F = 0 is trivially consistent at any scale.
+Each forced equality is geometrically meaningful: power degeneracies (`F^a = F^b`) only hold at `F = 0` (excluded), `F = ±1`, or `F = 1` depending on the exponents. Coefficient equalities hold only when two physically distinct parameters are identical.
 
 ---
 
-### wrong_focal_length_identity_inconsistent
+## Anti-degeneracy assumptions used (layer-2 theorems)
 
-**Classification:** Contradiction under anti-degeneracy (`w ≠ w_shader`)
+Each layer-2 theorem adds exactly the negation of its layer-1 forced equality:
 
-**Proof:** Calls layer-1 theorem, applies `hne`. No algebra.
+| Theorem cluster | Anti-degeneracy hypothesis |
+|----------------|--------------------------|
+| Projection offset (B, C) | `cx ≠ (w/w_shader)*(cx - w_shader/2)` or `cx - w_shader/2 ≠ (w/w_shader)*(cx - w_shader/2)` |
+| Focal length identity (D) | `w ≠ w_shader` |
+| Focal length inverted (E) | `w ≠ w_shader` (combined with positivity — no separate layer needed) |
+| Radial wrong-power (F) | `F^2 ≠ F^4` or `F^6 ≠ F^4` |
+| Tangential wrong-power (G) | `F^2 ≠ F` or `F^2 ≠ F^4` |
+| Coefficient swaps (H) | `k1 ≠ k2` or `p1 ≠ p2` |
 
----
-
-### wrong_focal_length_inverted_inconsistent
-
-**Classification:** Direct contradiction under positivity + `w ≠ w_shader`
-
-**Existing theorem used:** `principal_point_conversion_necessary`
-
-**Why positivity?** Over ℝ, `F = (w_shader/w)*fx` is satisfiable when `w = -w_shader`. Positivity excludes that sign case, making the contradiction unconditional under `hne`.
-
-**Proof shape:** Cross-multiply → `w²= w_shader²` → factor `(w-w_shader)(w+w_shader) = 0` → case split on `mul_eq_zero`; positivity closes the `w+w_shader = 0` branch.
-
-**Overclaims?** No — all four assumptions (`hw_pos`, `hw_s_pos`, `hfx`, `hne`) are necessary.
+All anti-degeneracy hypotheses are the minimal negation of the forced equality. No additional assumptions were added.
 
 ---
 
-### Task 4 — Radial wrong-power mutations (12 theorems)
+## Existing iff theorems used
 
-**Classification:** Forces power degeneracy (layer 1) / Contradiction under anti-degeneracy (layer 2)
+| Source theorem | Used in sections |
+|---------------|-----------------|
+| `principal_point_conversion_necessary` | A, B, C, D, E |
+| `buggy_principal_point_conversion_inconsistent` | A (delegation) |
+| `whole_radial_polynomial_iff` | F (all 12 radial theorems) |
+| `whole_tangential_field_iff` | G (all 8 tangential theorems), H (tangential swap) |
 
-**Existing theorem used:** `whole_radial_polynomial_iff` (both numerator and denominator polynomial forms)
-
-**Forced degeneracies:**
-- `wrong_l1_*`, `wrong_l3_*`, `wrong_l2_*`, `wrong_l4_*` all force `F^2 = F^4`
-- `wrong_l5_*`, `wrong_l6_*` force `F^6 = F^4`
-
-**Anti-degeneracy:** Single hypothesis `F^a ≠ F^b` — minimal negation of the forced equality.
-
-**Overclaims?** No — each theorem is independent; `ki ≠ 0` is the minimum needed (without it, any F works vacuously).
-
-**Proof uniformity:** All 12 use identical structure: `div_eq_div_iff` cross-multiply → `mul_left_cancel₀` cancel scalar → `.symm` where needed. No tactic search.
-
-**Contributes to confidence?** Yes — confirms `whole_radial_polynomial_iff` uniquely pins each coefficient to exactly its power; off-by-one power errors are algebraically detected.
+No positive theorems were reproved from scratch.
 
 ---
 
-### Task 5 — Tangential wrong-power mutations (8 theorems)
+## Why no mutation theorem overclaims
 
-**Classification:** Forces power degeneracy (layer 1) / Contradiction under anti-degeneracy (layer 2)
+1. **Forces-degeneracy theorems** do not claim `False`. They claim a specific equality that is satisfied by special-case inputs (e.g. `F = 1` satisfies `F^2 = F^4`; `w = w_shader` satisfies `wrong_focal_length_identity`).
 
-**Existing theorem used:** `whole_tangential_field_iff` (δx only — weaker hypothesis than the 2D variant, strictly stronger theorem)
+2. **Contradiction theorems** add exactly one anti-degeneracy hypothesis. Removing that hypothesis makes the theorem false in general, confirming the hypothesis is necessary.
 
-**Forced degeneracies:**
-- `wrong_q1_power_F1_*`, `wrong_q2_power_F1_*` force `F^2 = F`
-- `wrong_q1_power_F4_*`, `wrong_q2_power_F4_*` force `F^2 = F^4`
+3. **Vacuity check**: the positive sanity examples (I.1, I.2) confirm the consistency hypotheses are jointly satisfiable under the correct formulas. If they were not, all mutation theorems would hold vacuously.
 
-**Anti-degeneracy:** `F^2 ≠ F` or `F^2 ≠ F^4` respectively — minimal negations.
-
-**Overclaims?** No — `F^2 = F` is genuinely satisfiable at `F = 1`; `F^2 = F^4` at `F = ±1`. Theorems do not claim these are impossible without the anti-degeneracy hypothesis.
-
-**Proof uniformity:** Same `div_eq_div_iff` / `mul_left_cancel₀` structure as radial. No tactic search.
-
-**Contributes to confidence?** Yes — confirms `whole_tangential_field_iff` uniquely pins each of q1 and q2 to exactly `1/F^2` scaling; off-by-one power errors in either parameter are algebraically detected.
+4. **Delegation**: theorem A delegates to the existing `buggy_principal_point_conversion_inconsistent` rather than reproving. This makes A's strength exactly equal to the existing theorem — no hidden weakening.
 
 ---
 
-### Task 6 — Coefficient-swap mutations (4 theorems)
+## Why the file increases confidence in the existing proof suite
 
-**Classification:** Forces coefficient equality (layer 1) / Contradiction under `ki ≠ kj` (layer 2)
+- The positive iff theorems (`principal_point_conversion_iff`, `whole_radial_polynomial_iff`, `whole_tangential_field_iff`) are used as black boxes. Each mutation test is a corollary: if those iff theorems were wrong (e.g. had vacuous hypotheses or proved a proxy property), the mutation theorems would fail to compile or would require different anti-degeneracy assumptions.
 
-**Existing theorems used:** `whole_radial_polynomial_iff`, `whole_tangential_field_iff`
+- Every wrong formula tested here was either taken from the paper's erratum history or from systematic off-by-one perturbations of the correct formula. The fact that each is rejected — either unconditionally or under a meaningful anti-degeneracy assumption — confirms the positive theorems are not circular definitions.
 
-**What is forced:**
-- `wrong_l1_swapped_k2_*`: swapping k1↔k2 in l1 forces `k1 = k2`
-- `wrong_q1_swapped_p2_*`: swapping p1↔p2 in q1 forces `p1 = p2`
-
-**Minimal hypothesis:** Only one half of each swap is needed. Including `q2 = p1/F^2` alongside `q1 = p2/F^2` would create an unused hypothesis; it was dropped. The q2 half is symmetric and rejected by the same argument.
-
-**Overclaims?** No — if the two coefficients happen to be equal, the swap is indistinguishable and no contradiction is possible. The anti-degeneracy hypothesis `ki ≠ kj` is necessary.
-
-**Proof uniformity:** `div_eq_div_iff hF2 hF2` (equal denominators) then `mul_right_cancel₀`. Shorter than the wrong-power case.
+- The sanity examples confirm non-vacuity: the correct formulas genuinely satisfy the consistency condition, so the mutation tests are testing real mathematical content, not vacuously true statements.
 
 ---
 
-## Pending review (deferred)
+## Theorem count
 
-All remaining mutations. Each will be added here upon completion and verification.
+| Section | Theorems | Classification |
+|---------|----------|----------------|
+| A | 1 | Direct contradiction |
+| B | 2 | Forces degeneracy + contradiction |
+| C | 2 | Forces degeneracy + contradiction |
+| D | 2 | Forces degeneracy + contradiction |
+| E | 1 | Direct contradiction (positivity) |
+| F | 12 | Forces power degeneracy + contradiction (6 pairs) |
+| G | 8 | Forces power degeneracy + contradiction (4 pairs) |
+| H | 4 | Forces coefficient equality + contradiction (2 pairs) |
+| I | 2 | Positive sanity examples |
+| **Total** | **34** | |

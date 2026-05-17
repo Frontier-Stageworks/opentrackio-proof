@@ -128,7 +128,15 @@ Layer 2: term-mode `hne (layer-1 ...)`.
 
 ---
 
-## Pending theorems (deferred — do not start without authorization)
+## Runs 33–34 — Task 7: Positive sanity examples
+
+**I.1** Existential witness (parametric): `⟨(w/w_shader)*fx, (w/w_shader)*(cx-w_shader/2), rfl, rfl, fun x => by field_simp [hw, hw_s]; ring⟩`
+
+**I.2** Numeric witness (w=2, w_shader=1, fx=3, cx=4 → F=6, ΔPx=7): `⟨6, 7, by norm_num, by norm_num, fun x => by ring⟩`
+
+**Final full check:** `lake env lean opencv_opentrackio_proofs/MutationTests.lean` — clean (no output).
+
+**Total theorems:** 32 named theorems + 2 anonymous examples = 34 items. All clean. No sorry.
 
 - B layer 2: `wrong_projection_offset_unscaled_inconsistent`
 - C: `wrong_projection_offset_minus_half_*`
