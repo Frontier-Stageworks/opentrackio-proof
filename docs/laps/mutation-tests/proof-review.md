@@ -70,6 +70,38 @@ the formula into a definition.
 
 **Overclaims?** No.
 
+### wrong_focal_length_identity_forces_degeneracy
+
+**Classification:** Forces degeneracy
+
+**Existing theorem used:** `principal_point_conversion_necessary`
+
+**What is forced:** `w = w_shader` — the image and shader dimensions must be equal for the unscaled focal length to be consistent.
+
+**Overclaims?** No — `hfx ≠ 0` is the minimum needed; without it F = 0 is trivially consistent at any scale.
+
+---
+
+### wrong_focal_length_identity_inconsistent
+
+**Classification:** Contradiction under anti-degeneracy (`w ≠ w_shader`)
+
+**Proof:** Calls layer-1 theorem, applies `hne`. No algebra.
+
+---
+
+### wrong_focal_length_inverted_inconsistent
+
+**Classification:** Direct contradiction under positivity + `w ≠ w_shader`
+
+**Existing theorem used:** `principal_point_conversion_necessary`
+
+**Why positivity?** Over ℝ, `F = (w_shader/w)*fx` is satisfiable when `w = -w_shader`. Positivity excludes that sign case, making the contradiction unconditional under `hne`.
+
+**Proof shape:** Cross-multiply → `w²= w_shader²` → factor `(w-w_shader)(w+w_shader) = 0` → case split on `mul_eq_zero`; positivity closes the `w+w_shader = 0` branch.
+
+**Overclaims?** No — all four assumptions (`hw_pos`, `hw_s_pos`, `hfx`, `hne`) are necessary.
+
 ---
 
 ## Pending review (deferred)

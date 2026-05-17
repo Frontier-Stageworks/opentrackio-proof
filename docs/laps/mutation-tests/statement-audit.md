@@ -176,3 +176,96 @@ theorem wrong_projection_offset_minus_half_inconsistent
 ## Authorization
 
 All four section A/B/C statements approved. No clarification needed.
+
+---
+
+# Statement Audit — wrong_focal_length_identity_forces_degeneracy (D layer 1)
+
+## Theorem text
+
+```lean
+theorem wrong_focal_length_identity_forces_degeneracy
+    (w w_shader fx cx F ΔPx : ℝ)
+    (hw   : w ≠ 0)  (hw_s : w_shader ≠ 0)  (hfx  : fx ≠ 0)
+    (hconsist : ∀ x : ℝ, fx * x + cx = (w_shader / w) * (F * x + ΔPx) + w_shader / 2)
+    (hbug : F = fx) :
+    w = w_shader
+```
+
+## Classification
+
+**Forces degeneracy** — consistency forces `F = (w/w_shader)*fx`; combined with `F = fx`
+and `fx ≠ 0`, the scale `w/w_shader` must equal 1, i.e. `w = w_shader`.
+
+## Audit
+
+| Check | Result |
+|-------|--------|
+| Vacuous? | No — satisfiable when w = w_shader |
+| Over-strong hypotheses? | `hfx` needed: without it, F = fx = 0 is consistent at any scale |
+| Unused hypotheses? | None |
+| Proxy? | No — conclusion is exactly the degenerate condition |
+
+## Derivation
+
+`obtain ⟨hF, _⟩` from `principal_point_conversion_necessary` → `hF : F = (w/w_shader)*fx`.
+`rw [hbug] at hF` → `hF : fx = (w/w_shader)*fx`.
+`mul_right_cancel₀ hfx` → `w/w_shader = 1`.
+`div_eq_iff hw_s` → `w = w_shader`. ✓
+
+---
+
+# Statement Audit — wrong_focal_length_identity_inconsistent (D layer 2)
+
+```lean
+theorem wrong_focal_length_identity_inconsistent
+    ... (hne : w ≠ w_shader) ... : False
+```
+
+**Classification:** Contradiction under anti-degeneracy. Calls layer 1. ✓
+
+---
+
+# Statement Audit — wrong_focal_length_inverted_inconsistent (E)
+
+## Theorem text
+
+```lean
+theorem wrong_focal_length_inverted_inconsistent
+    (w w_shader fx cx F ΔPx : ℝ)
+    (hw_pos : 0 < w)  (hw_s_pos : 0 < w_shader)
+    (hfx : fx ≠ 0)  (hne : w ≠ w_shader)
+    (hconsist : ∀ x : ℝ, fx * x + cx = (w_shader / w) * (F * x + ΔPx) + w_shader / 2)
+    (hbug : F = (w_shader / w) * fx) :
+    False
+```
+
+## Classification
+
+**Direct contradiction under positivity** — over ℝ, `F = (w_shader/w)*fx` is satisfiable
+when `w = -w_shader` (then `w/w_shader = -1 = w_shader/w`). Positivity rules that out,
+making the contradiction unconditional under the listed assumptions.
+
+## Audit
+
+| Check | Result |
+|-------|--------|
+| Vacuous? | No — positivity + hne makes hypotheses satisfiable; they can't all hold simultaneously |
+| Over-strong? | Positivity is the minimum needed to exclude `w = -w_shader` case |
+| Unused? | None |
+| Proxy? | No |
+
+## Derivation
+
+`hw = ne_of_gt hw_pos`, `hw_s = ne_of_gt hw_s_pos`.
+`obtain ⟨hF, _⟩` → `hF : F = (w/w_shader)*fx`.
+`rw [hbug] at hF` → `hF : (w_shader/w)*fx = (w/w_shader)*fx`.
+`mul_right_cancel₀ hfx` → `w_shader/w = w/w_shader`.
+`div_eq_div_iff hw hw_s` → `w_shader*w_shader = w*w`.
+Factor `(w - w_shader)*(w + w_shader) = 0`. Case split on `mul_eq_zero`:
+  - `w - w_shader = 0` → `hne` contradiction.
+  - `w + w_shader = 0` → contradicts `hw_pos + hw_s_pos > 0`. ✓
+
+## Authorization
+
+All Task 3 statements approved.

@@ -61,6 +61,31 @@ linarith
 
 ---
 
+## Run 6 — wrong_focal_length_identity_forces_degeneracy
+
+**Attempt 1:** `obtain ⟨hF, _⟩`, `rw [hbug] at hF`, `mul_right_cancel₀ hfx`, `div_eq_iff`, `linarith`.
+
+**Result:** PASS (clean).
+
+---
+
+## Run 7 — wrong_focal_length_identity_inconsistent
+
+**Attempt 1:** Term-mode: `hne (wrong_focal_length_identity_forces_degeneracy ...)`.
+
+**Result:** PASS (clean).
+
+---
+
+## Run 8 — wrong_focal_length_inverted_inconsistent
+
+**Attempt 1:** `obtain`, `rw [hbug]`, `mul_right_cancel₀`, `div_eq_div_iff`, `nlinarith`
+for the factor, `rcases mul_eq_zero` case split, `linarith` on each branch.
+
+**Result:** PASS (clean).
+
+---
+
 ## Pending theorems (deferred — do not start without authorization)
 
 - B layer 2: `wrong_projection_offset_unscaled_inconsistent`
