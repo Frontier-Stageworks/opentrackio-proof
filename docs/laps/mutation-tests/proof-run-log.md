@@ -99,6 +99,20 @@ All 12 theorems (l1, l3, l5 numerator; l2, l4, l6 denominator; layers 1 and 2 ea
 
 ---
 
+## Runs 21–28 — Task 5: Tangential wrong-power mutations
+
+All 8 theorems (q1/F, q1/F^4, q2/F, q2/F^4; layers 1 and 2 each).
+
+**Proof shape (uniform):**
+`obtain ⟨hqi, _⟩` or `obtain ⟨_, hqi⟩` from `whole_tangential_field_iff.mp`,
+`linarith` to equate correct and wrong formula,
+`div_eq_div_iff` cross-multiply, `mul_left_cancel₀` cancel `hpi ≠ 0`, `.symm` as needed.
+Layer 2: term-mode `hpow (layer-1 ...)`.
+
+**Results:** All PASS (clean). Checked after each pair of layer-1 + layer-2 theorems.
+
+---
+
 ## Pending theorems (deferred — do not start without authorization)
 
 - B layer 2: `wrong_projection_offset_unscaled_inconsistent`

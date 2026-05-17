@@ -344,3 +344,128 @@ theorem wrong_l6_power_F4_inconsistent
     (hwrong : l6 = k6 / F ^ 4) :
     False :=
   hpow (wrong_l6_power_F4_forces_power_degeneracy k4 k5 k6 l2 l4 l6 F hF hk6 hpoly hwrong)
+
+/-
+  G — Tangential wrong-power mutations.
+
+  Uses whole_tangential_field_iff (δx only) — the weaker hypothesis that gives
+  q1 = p1/F^2 ∧ q2 = p2/F^2.  Wrong power forces a power degeneracy on F.
+-/
+
+-- G.1 q1 = p1/F  (correct: F^2)  forces  F^2 = F
+theorem wrong_q1_power_F1_forces_power_degeneracy
+    (p1 p2 q1 q2 F : ℝ)
+    (hF  : F ≠ 0)
+    (hp1 : p1 ≠ 0)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q1 = p1 / F) :
+    F ^ 2 = F := by
+  obtain ⟨hq1, _⟩ := (whole_tangential_field_iff p1 p2 q1 q2 F hF).mp hpoly
+  have hF2 : F ^ 2 ≠ 0 := pow_ne_zero _ hF
+  have heq : p1 / F ^ 2 = p1 / F := by linarith
+  exact (mul_left_cancel₀ hp1 (div_eq_div_iff hF2 hF |>.mp heq)).symm
+
+theorem wrong_q1_power_F1_inconsistent
+    (p1 p2 q1 q2 F : ℝ)
+    (hF   : F ≠ 0)
+    (hp1  : p1 ≠ 0)
+    (hpow : F ^ 2 ≠ F)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q1 = p1 / F) :
+    False :=
+  hpow (wrong_q1_power_F1_forces_power_degeneracy p1 p2 q1 q2 F hF hp1 hpoly hwrong)
+
+-- G.2 q1 = p1/F^4  (correct: F^2)  forces  F^2 = F^4
+theorem wrong_q1_power_F4_forces_power_degeneracy
+    (p1 p2 q1 q2 F : ℝ)
+    (hF  : F ≠ 0)
+    (hp1 : p1 ≠ 0)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q1 = p1 / F ^ 4) :
+    F ^ 2 = F ^ 4 := by
+  obtain ⟨hq1, _⟩ := (whole_tangential_field_iff p1 p2 q1 q2 F hF).mp hpoly
+  have hF2 : F ^ 2 ≠ 0 := pow_ne_zero _ hF
+  have hF4 : F ^ 4 ≠ 0 := pow_ne_zero _ hF
+  have heq : p1 / F ^ 2 = p1 / F ^ 4 := by linarith
+  exact (mul_left_cancel₀ hp1 (div_eq_div_iff hF2 hF4 |>.mp heq)).symm
+
+theorem wrong_q1_power_F4_inconsistent
+    (p1 p2 q1 q2 F : ℝ)
+    (hF   : F ≠ 0)
+    (hp1  : p1 ≠ 0)
+    (hpow : F ^ 2 ≠ F ^ 4)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q1 = p1 / F ^ 4) :
+    False :=
+  hpow (wrong_q1_power_F4_forces_power_degeneracy p1 p2 q1 q2 F hF hp1 hpoly hwrong)
+
+-- G.3 q2 = p2/F  (correct: F^2)  forces  F^2 = F
+theorem wrong_q2_power_F1_forces_power_degeneracy
+    (p1 p2 q1 q2 F : ℝ)
+    (hF  : F ≠ 0)
+    (hp2 : p2 ≠ 0)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q2 = p2 / F) :
+    F ^ 2 = F := by
+  obtain ⟨_, hq2⟩ := (whole_tangential_field_iff p1 p2 q1 q2 F hF).mp hpoly
+  have hF2 : F ^ 2 ≠ 0 := pow_ne_zero _ hF
+  have heq : p2 / F ^ 2 = p2 / F := by linarith
+  exact (mul_left_cancel₀ hp2 (div_eq_div_iff hF2 hF |>.mp heq)).symm
+
+theorem wrong_q2_power_F1_inconsistent
+    (p1 p2 q1 q2 F : ℝ)
+    (hF   : F ≠ 0)
+    (hp2  : p2 ≠ 0)
+    (hpow : F ^ 2 ≠ F)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q2 = p2 / F) :
+    False :=
+  hpow (wrong_q2_power_F1_forces_power_degeneracy p1 p2 q1 q2 F hF hp2 hpoly hwrong)
+
+-- G.4 q2 = p2/F^4  (correct: F^2)  forces  F^2 = F^4
+theorem wrong_q2_power_F4_forces_power_degeneracy
+    (p1 p2 q1 q2 F : ℝ)
+    (hF  : F ≠ 0)
+    (hp2 : p2 ≠ 0)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q2 = p2 / F ^ 4) :
+    F ^ 2 = F ^ 4 := by
+  obtain ⟨_, hq2⟩ := (whole_tangential_field_iff p1 p2 q1 q2 F hF).mp hpoly
+  have hF2 : F ^ 2 ≠ 0 := pow_ne_zero _ hF
+  have hF4 : F ^ 4 ≠ 0 := pow_ne_zero _ hF
+  have heq : p2 / F ^ 2 = p2 / F ^ 4 := by linarith
+  exact (mul_left_cancel₀ hp2 (div_eq_div_iff hF2 hF4 |>.mp heq)).symm
+
+theorem wrong_q2_power_F4_inconsistent
+    (p1 p2 q1 q2 F : ℝ)
+    (hF   : F ≠ 0)
+    (hp2  : p2 ≠ 0)
+    (hpow : F ^ 2 ≠ F ^ 4)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q2 = p2 / F ^ 4) :
+    False :=
+  hpow (wrong_q2_power_F4_forces_power_degeneracy p1 p2 q1 q2 F hF hp2 hpoly hwrong)

@@ -314,3 +314,31 @@ mul_left_cancel₀ hki: F^b = F^a (or .symm for F^a = F^b)
 ## Authorization
 
 All 12 Task 4 statements approved.
+
+---
+
+# Statement Audit — Task 5: Tangential Wrong-Power Mutations
+
+## Pattern (all 8 theorems)
+
+`whole_tangential_field_iff` gives `q1 = p1/F^2` and `q2 = p2/F^2`.
+Each wrong formula forces a power degeneracy by the same `div_eq_div_iff` / `mul_left_cancel₀` step as the radial case.
+
+Using `whole_tangential_field_iff` (δx only) rather than the 2D variant — δx alone suffices and using δx only is the weaker hypothesis, making each theorem strictly stronger.
+
+| Theorem | Wrong formula | Forced degeneracy |
+|---------|--------------|-------------------|
+| `wrong_q1_power_F1_*` | `q1 = p1/F` (correct: F^2) | `F^2 = F` |
+| `wrong_q1_power_F4_*` | `q1 = p1/F^4` (correct: F^2) | `F^2 = F^4` |
+| `wrong_q2_power_F1_*` | `q2 = p2/F` (correct: F^2) | `F^2 = F` |
+| `wrong_q2_power_F4_*` | `q2 = p2/F^4` (correct: F^2) | `F^2 = F^4` |
+
+## Audit (all 8)
+
+- Vacuous? No — `F^2 = F` when F = 0 or F = 1; excluded by `F ≠ 0` (F = 1 remains a genuine satisfying case).
+- Over-strong hypotheses? `hpi ≠ 0` is minimal; `F ≠ 0` required for the division formulas.
+- Proxy? No.
+
+## Authorization
+
+All 8 Task 5 statements approved.

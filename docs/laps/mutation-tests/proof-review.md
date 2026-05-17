@@ -124,6 +124,26 @@ the formula into a definition.
 
 ---
 
+### Task 5 — Tangential wrong-power mutations (8 theorems)
+
+**Classification:** Forces power degeneracy (layer 1) / Contradiction under anti-degeneracy (layer 2)
+
+**Existing theorem used:** `whole_tangential_field_iff` (δx only — weaker hypothesis than the 2D variant, strictly stronger theorem)
+
+**Forced degeneracies:**
+- `wrong_q1_power_F1_*`, `wrong_q2_power_F1_*` force `F^2 = F`
+- `wrong_q1_power_F4_*`, `wrong_q2_power_F4_*` force `F^2 = F^4`
+
+**Anti-degeneracy:** `F^2 ≠ F` or `F^2 ≠ F^4` respectively — minimal negations.
+
+**Overclaims?** No — `F^2 = F` is genuinely satisfiable at `F = 1`; `F^2 = F^4` at `F = ±1`. Theorems do not claim these are impossible without the anti-degeneracy hypothesis.
+
+**Proof uniformity:** Same `div_eq_div_iff` / `mul_left_cancel₀` structure as radial. No tactic search.
+
+**Contributes to confidence?** Yes — confirms `whole_tangential_field_iff` uniquely pins each of q1 and q2 to exactly `1/F^2` scaling; off-by-one power errors in either parameter are algebraically detected.
+
+---
+
 ## Pending review (deferred)
 
 All remaining mutations. Each will be added here upon completion and verification.
