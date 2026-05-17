@@ -26,6 +26,10 @@ srcDir = "opentrackio_parser"
 name = "JsonRawModel"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "DecodeError"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
