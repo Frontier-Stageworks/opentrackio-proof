@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 6 — fixed-length-array-decoder** (blocked on A6) / **Slice 7 — enum-field-decoder** (blocked on A5)
+Current slice: **Slice 7 — timing-enum-decoders**
 
 ---
 
@@ -17,8 +17,8 @@ Current slice: **Slice 6 — fixed-length-array-decoder** (blocked on A6) / **Sl
 | 4B | `version-value-decoder` | 1 | Small | **COMPLETE** | — |
 | 4C | `protocol-version-field-decoder` | 1 | Small | **COMPLETE** | — |
 | 5 | `rational-decoder-soundness` | 1 | Medium | **COMPLETE** | — |
-| 6 | `fixed-length-array-decoder` | 1 | Small–Med | Queued | Slice 2, 3; **A6** |
-| 7 | `enum-field-decoder` | 1 | Small | Queued | Slice 2, 3; **A5** |
+| 6 | `nonempty-array-decoder` | 1 | Small | **COMPLETE** | — |
+| 7 | `timing-enum-decoders` | 1 | Small | Queued | Slice 2, 3; — |
 | 8 | `transform-model-decoder` | 2 | Medium | Queued | Slices 5, 6; **A9** |
 | 9 | `camera-model-decoder` | 2 | Med–Large | Queued | Slices 5, 6, 7; **A4**, **A8** |
 | 10 | `lens-model-decoder` | 2 | Med–Large | Queued | Slices 5, 6, 7; **A4**, **A6**, **A8** |
@@ -41,7 +41,7 @@ Current slice: **Slice 6 — fixed-length-array-decoder** (blocked on A6) / **Sl
 | A3 | Unknown-field policy | [A3](ambiguity-register.md#a3--unknown-field-policy) |
 | A4 | Optional and default field behavior | [A4](ambiguity-register.md#a4--optional-and-default-field-behavior) |
 | A5 | Enum spelling | [A5](ambiguity-register.md#a5--enum-spelling-and-canonicalization) |
-| A6 | Exact array lengths | [A6](ambiguity-register.md#a6--exact-array-lengths-for-lens-coefficient-arrays) |
+| A6 | Lens coefficient array lengths | [A6](ambiguity-register.md#a6--lens-coefficient-array-lengths) |
 | A8 | Protocol field names and version policy | [A8](ambiguity-register.md#a8--protocol-field-names-and-version-policy) |
 | A9 | Quaternion normalization | [A9](ambiguity-register.md#a9--quaternion-normalization-requirement) |
 | A11 | Version arity: 2-tuple vs. 3-tuple | [A11](ambiguity-register.md#a11--version-arity-majorminor-vs-majorminorpatch) |
@@ -61,6 +61,7 @@ Current slice: **Slice 6 — fixed-length-array-decoder** (blocked on A6) / **Sl
 | 4B | `version-value-decoder` | 2026-05-17 | `decodeVersionValue` + soundness; `_h` unused per type-invariant proof; lake build clean |
 | 4C | `protocol-version-field-decoder` | 2026-05-17 | `ProtocolInfo` struct + `decodeProtocol`; `_h` unused per same type-invariant reasoning; lake build clean |
 | 5 | `rational-decoder-soundness` | 2026-05-17 | `decodePositiveRational`; decision proofs `hn`/`hd` become struct fields; `_h` unused; lake build clean |
+| 6 | `nonempty-array-decoder` | 2026-05-17 | `NonemptyArray α` + `decodeNonemptyArray`; `cons_ne_nil` is load-bearing construction; `_h` unused; lake build clean |
 
 ---
 

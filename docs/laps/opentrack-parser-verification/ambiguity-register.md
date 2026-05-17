@@ -103,47 +103,90 @@ fields are normatively required and what the default is for each optional field.
 
 ## A5 — Enum spelling and canonicalization
 
-**Status:** UNRESOLVED  
-**Blocks:** Slice 7 (Enum-Like Fields)
+**Status:** RESOLVED (2026-05-17) — with important corrections to scope.  
+**Blocks:** Slice 7 — unblocked (scope corrected; see below).
 
-**What is unknown:**  
-What are the normative string values for each enum field? Examples:
-- coordinate system: `"opencv"` vs `"OpenCV"` vs `"OPENCV"`
-- projection type: `"pinhole"` vs `"perspective"`
-- distortion model name: exact string
+**Resolution:**  
+The schema has exactly four enum fields. All use exact string match; no case
+folding is specified. Unknown values are rejected.
 
-Is case folding applied? Are unknown enum values rejected or passed through?
+```
+timing.mode:
+  "internal"
+  "external"
 
-**Why it matters:**  
-`decodeCoordinateSystem` must match exact strings. Any canonicalization must
-be proved correct.
+timing.synchronization.source:
+  "genlock"
+  "videoIn"
+  "ptp"
+  "ntp"
 
-**Resolution needed:**  
-List the exact normative strings for each enum from the spec. Record whether
-case folding is applied.
+timing.synchronization.ptp.profile:
+  "IEEE Std 1588-2019"
+  "IEEE Std 802.1AS-2020"
+  "SMPTE ST2059-2:2021"
+
+timing.synchronization.ptp.leaderTimeSource:
+  "GNSS"
+  "Atomic clock"
+  "NTP"
+```
+
+**Scope corrections (fields that are NOT enums):**
+- Coordinate system: no JSON enum field. Fixed by protocol text (right-handed,
+  Z up, Y forward). Not decoded from JSON.
+- Projection type: no JSON enum field. Protocol uses `lens.pinholeFocalLength`
+  and `projectionOffset` fields, not a projection-type enum.
+- `distortion.model`: not a closed enum. It is an optional string
+  (`minLength: 1`, `maxLength: 1023`). Typical values are `"Brown-Conrady D-U"`
+  and `"Brown-Conrady U-D"`, but these are not the only legal values. Default
+  when omitted: `"Brown-Conrady D-U"`. Must be decoded as a plain string.
+
+**Lean impact — Slice 7 rescoped:**  
+`decodeTimingMode`, `decodeSyncSource`, `decodePtpProfile`, and
+`decodePtpLeaderTimeSource` are the four enum decoders. Each pattern-matches
+on exact strings. `distortion.model` is decoded as `Option String` in a later
+slice, not here.
 
 ---
 
-## A6 — Exact array lengths for lens coefficient arrays
+## A6 — Lens coefficient array lengths
 
-**Status:** UNRESOLVED  
-**Blocks:** Slice 6 (Fixed-Length Array Decoder), Slice 10 (Lens Model)
+**Status:** RESOLVED (2026-05-17)  
+**Blocks:** Slice 6 — unblocked (but slice is renamed; see below). Slice 10 — partially unblocked.
 
-**What is unknown:**  
-OpenCV uses up to 6 radial coefficients (k1–k6) and 2 tangential (p1, p2).
-OpenTrackIO uses l1, l3, l5, l2, l4, l6 and q1, q2.
-Questions:
-- Are all 8 coefficients always required, or is a shorter array allowed?
-- Is an array of exactly 3 radial numerator coefficients required?
-- Are the arrays indexed positionally?
+**Resolution:**  
+There is no fixed length in the OpenTrackIO JSON schema. Schema constraints:
 
-**Why it matters:**  
-`decodeVec3` or a specialized `decodeRadialCoeffs` must check the exact length.
-The soundness theorem must state the length invariant.
+```
+lens.distortion[*]:
+  radial     : required, array of numbers, minItems = 1, no maxItems
+  tangential : optional, array of numbers, minItems = 1 if present, no maxItems
+  overscan   : optional number, minimum = 1.0
+  model      : optional string
+```
 
-**Resolution needed:**  
-Check the spec for array-length constraints on `radialDistortion` and
-`tangentialDistortion` fields.
+The distortion list itself has `minItems: 1`. Inside each distortion object,
+only `radial` is required. `tangential` is optional.
+
+**Lean impact — Slice 6 renamed:**  
+Slice 6 is reframed from "fixed-length array decoder" to "nonempty numeric-array
+decoder". The normative Lean model is:
+
+```lean
+structure NonemptyArray (α : Type) where
+  values  : List α
+  nonempty : values ≠ []
+
+structure Distortion where
+  radial     : NonemptyArray RealValue
+  tangential : Option (NonemptyArray RealValue)
+```
+
+**Not encoded:** The OpenLensIO rendering convention (6 radial + 2 tangential
+coefficients, alternating numerator/denominator) is a semantic layer above the
+schema. A future OpenLensIO-specific slice may add a `decodeOpenLensDistortion`
+that enforces exact lengths, but that is out of scope for Slices 6 and 10.
 
 ---
 
