@@ -104,6 +104,26 @@ the formula into a definition.
 
 ---
 
+### Task 4 — Radial wrong-power mutations (12 theorems)
+
+**Classification:** Forces power degeneracy (layer 1) / Contradiction under anti-degeneracy (layer 2)
+
+**Existing theorem used:** `whole_radial_polynomial_iff` (both numerator and denominator polynomial forms)
+
+**Forced degeneracies:**
+- `wrong_l1_*`, `wrong_l3_*`, `wrong_l2_*`, `wrong_l4_*` all force `F^2 = F^4`
+- `wrong_l5_*`, `wrong_l6_*` force `F^6 = F^4`
+
+**Anti-degeneracy:** Single hypothesis `F^a ≠ F^b` — minimal negation of the forced equality.
+
+**Overclaims?** No — each theorem is independent; `ki ≠ 0` is the minimum needed (without it, any F works vacuously).
+
+**Proof uniformity:** All 12 use identical structure: `div_eq_div_iff` cross-multiply → `mul_left_cancel₀` cancel scalar → `.symm` where needed. No tactic search.
+
+**Contributes to confidence?** Yes — confirms `whole_radial_polynomial_iff` uniquely pins each coefficient to exactly its power; off-by-one power errors are algebraically detected.
+
+---
+
 ## Pending review (deferred)
 
 All remaining mutations. Each will be added here upon completion and verification.

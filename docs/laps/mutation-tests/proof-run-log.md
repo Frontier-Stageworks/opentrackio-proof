@@ -86,6 +86,19 @@ for the factor, `rcases mul_eq_zero` case split, `linarith` on each branch.
 
 ---
 
+## Runs 9–20 — Task 4: Radial wrong-power mutations
+
+All 12 theorems (l1, l3, l5 numerator; l2, l4, l6 denominator; layers 1 and 2 each).
+
+**Proof shape (uniform):**
+`obtain` correct coefficient from `whole_radial_polynomial_iff.mp`, `linarith` to equate correct and wrong formula, `div_eq_div_iff` to cross-multiply, `mul_left_cancel₀` to cancel `ki ≠ 0`, `.symm` where needed.
+
+**Layer 2 (all):** Term-mode `hpow (layer-1 ...)`.
+
+**Results:** All PASS (clean). Each checked individually after insertion.
+
+---
+
 ## Pending theorems (deferred — do not start without authorization)
 
 - B layer 2: `wrong_projection_offset_unscaled_inconsistent`

@@ -269,3 +269,48 @@ Factor `(w - w_shader)*(w + w_shader) = 0`. Case split on `mul_eq_zero`:
 ## Authorization
 
 All Task 3 statements approved.
+
+---
+
+# Statement Audit — Task 4: Radial Wrong-Power Mutations
+
+## Pattern (all 12 theorems)
+
+For each coefficient `li` with correct power `F^a` and wrong power `F^b`:
+- Layer 1: `whole_radial_polynomial_iff` gives correct `li = ki/F^a`; combined with `li = ki/F^b` and `ki ≠ 0`, forces `F^a = F^b`.
+- Layer 2: contradiction under `F^a ≠ F^b`.
+
+## Numerator coefficients (k1 k2 k3, l1 l3 l5)
+
+| Theorem | Wrong formula | Forced degeneracy |
+|---------|--------------|-------------------|
+| `wrong_l1_power_F4_*` | `l1 = k1/F^4` (correct: F^2) | `F^2 = F^4` |
+| `wrong_l3_power_F2_*` | `l3 = k2/F^2` (correct: F^4) | `F^2 = F^4` |
+| `wrong_l5_power_F4_*` | `l5 = k3/F^4` (correct: F^6) | `F^6 = F^4` |
+
+## Denominator coefficients (k4 k5 k6, l2 l4 l6)
+
+| Theorem | Wrong formula | Forced degeneracy |
+|---------|--------------|-------------------|
+| `wrong_l2_power_F4_*` | `l2 = k4/F^4` (correct: F^2) | `F^2 = F^4` |
+| `wrong_l4_power_F2_*` | `l4 = k5/F^2` (correct: F^4) | `F^2 = F^4` |
+| `wrong_l6_power_F4_*` | `l6 = k6/F^4` (correct: F^6) | `F^6 = F^4` |
+
+## Proof shape (uniform across all 12)
+
+```
+obtain correct formula from whole_radial_polynomial_iff.mp
+linarith: correct_formula = wrong_formula → ki/F^a = ki/F^b
+div_eq_div_iff: ki * F^b = ki * F^a
+mul_left_cancel₀ hki: F^b = F^a (or .symm for F^a = F^b)
+```
+
+## Audit (all theorems)
+
+- Vacuous? No — satisfiable when F = ±1 (F^2 = F^4 case) or F = ±1 (F^6 = F^4 case at F=1)
+- Over-strong? `hki ≠ 0` is minimal (without it, any F works)
+- Proxy? No — the forced power equality is the exact algebraic consequence
+
+## Authorization
+
+All 12 Task 4 statements approved.
