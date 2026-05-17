@@ -30,6 +30,18 @@ srcDir = "opentrackio_parser"
 name = "DecodeError"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "ProtocolVersion"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "VersionDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "ProtocolDecoder"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
