@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 7 — timing-enum-decoders**
+Current slice: **Slice 8 — transform-model-decoder** (blocked on A9)
 
 ---
 
@@ -18,7 +18,7 @@ Current slice: **Slice 7 — timing-enum-decoders**
 | 4C | `protocol-version-field-decoder` | 1 | Small | **COMPLETE** | — |
 | 5 | `rational-decoder-soundness` | 1 | Medium | **COMPLETE** | — |
 | 6 | `nonempty-array-decoder` | 1 | Small | **COMPLETE** | — |
-| 7 | `timing-enum-decoders` | 1 | Small | Queued | Slice 2, 3; — |
+| 7 | `timing-enum-decoders` | 1 | Small | **COMPLETE** | — |
 | 8 | `transform-model-decoder` | 2 | Medium | Queued | Slices 5, 6; **A9** |
 | 9 | `camera-model-decoder` | 2 | Med–Large | Queued | Slices 5, 6, 7; **A4**, **A8** |
 | 10 | `lens-model-decoder` | 2 | Med–Large | Queued | Slices 5, 6, 7; **A4**, **A6**, **A8** |
@@ -62,6 +62,7 @@ Current slice: **Slice 7 — timing-enum-decoders**
 | 4C | `protocol-version-field-decoder` | 2026-05-17 | `ProtocolInfo` struct + `decodeProtocol`; `_h` unused per same type-invariant reasoning; lake build clean |
 | 5 | `rational-decoder-soundness` | 2026-05-17 | `decodePositiveRational`; decision proofs `hn`/`hd` become struct fields; `_h` unused; lake build clean |
 | 6 | `nonempty-array-decoder` | 2026-05-17 | `NonemptyArray α` + `decodeNonemptyArray`; `cons_ne_nil` is load-bearing construction; `_h` unused; lake build clean |
+| 7 | `timing-enum-decoders` | 2026-05-17 | 4 enums + `toStr` + decoders + soundness; `cases m` before `split at h` to avoid orientation issue; lake build clean |
 
 ---
 

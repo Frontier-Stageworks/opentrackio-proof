@@ -50,6 +50,10 @@ srcDir = "opentrackio_parser"
 name = "NonemptyArrayDecoder"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "TimingEnumDecoders"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
