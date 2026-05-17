@@ -47,8 +47,11 @@ Consistency means both assign the same pixel `u` to every normalised coordinate 
 ## Dependency order
 
 ```
-1 (necessary) ← 2 (iff) ← 3 (2d_iff) ← 4 (compatibility)
-1 (necessary) ← 5 (buggy)
+principal_point_conversion_necessary
+  ├─ principal_point_conversion_iff
+  │    └─ principal_point_conversion_2d_iff
+  │         └─ single_focal_length_compatibility
+  └─ buggy_principal_point_conversion_inconsistent
 ```
 
 Theorem 1 is the load-bearing lemma. All other theorems in this file and in

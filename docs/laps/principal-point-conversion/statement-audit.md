@@ -33,7 +33,7 @@ If the OpenCV and OpenTrackIO projections agree at every normalised coordinate x
 | Check | Result |
 |-------|--------|
 | Vacuous? | No — hconsist is satisfiable; witnesses exist (any w, w_shader, fx, cx determine F and ΔPx) |
-| Over-strong hypotheses? | `hw`, `hw_s` are necessary (appear in the formula denominators) |
+| Over-strong hypotheses? | The nonzero hypotheses are justified by denominator-bearing conversion formulas and by the delegated theorem interfaces |
 | Unused hypotheses? | None |
 | Weakened conclusion? | No — `∧` gives both components; the formulas are exactly what the paper states |
 | Proxy property? | No — conclusion is the exact parameter pair, not a weaker consequence |
@@ -67,7 +67,7 @@ The 1D consistency condition holds for all x'' if and only if F and ΔPx have ex
 | Check | Result |
 |-------|--------|
 | Vacuous? | No |
-| Over-strong? | No — same hypotheses as Theorem 1, needed for field_simp and div |
+| Over-strong? | The nonzero hypotheses are justified by denominator-bearing conversion formulas and by the delegated theorem interfaces |
 | Weakened? | No — iff is the strongest form |
 | Proxy? | No |
 
@@ -102,7 +102,7 @@ The full 2D consistency condition (both u and v pixel coordinates agree for all 
 | Check | Result |
 |-------|--------|
 | Vacuous? | No |
-| Over-strong? | All four nonzero hypotheses are needed (two axes, each with w and w_shader) |
+| Over-strong? | The nonzero hypotheses are justified by denominator-bearing conversion formulas and by the delegated theorem interfaces |
 | F appears twice in conclusion? | Yes — `F = (w/w_shader)*fx` AND `F = (h/h_shader)*fy`. This is intentional: the single scalar F must satisfy both axes simultaneously, and the theorem exposes that both constraints are present |
 | Weakened? | No — iff |
 
@@ -134,7 +134,7 @@ If 2D consistency holds, both axes independently determine F, and the two values
 | Check | Result |
 |-------|--------|
 | Vacuous? | No — hconsist is satisfiable exactly when the constraint holds |
-| Over-strong hypotheses? | All nonzero conditions needed; hconsist provides the two F equations |
+| Over-strong hypotheses? | The nonzero hypotheses are justified by denominator-bearing conversion formulas and by the delegated theorem interfaces |
 | Unused hypotheses? | `cx`, `cy`, `ΔPx`, `ΔPy` appear in hconsist and in the 2D iff theorem — they are formally required by Theorem 3, even though the conclusion mentions only `w`, `w_shader`, `h`, `h_shader`, `fx`, `fy`. This is not over-strong: the 2D iff theorem's interface requires all parameters |
 | Weakened conclusion? | No — the conclusion is exactly the single-F compatibility condition |
 | One-way implication? | Correct — the converse (compatibility → 2D consistency) would be false in general (compatibility is necessary but not sufficient; ΔPx and ΔPy also need to be correct) |
@@ -170,8 +170,8 @@ The old buggy formula `ΔPx = (w/w_shader)*cx` (missing the centering term `-w_s
 
 | Check | Result |
 |-------|--------|
-| Vacuous? | No — `hconsist` and `hbug` together are inconsistent; that is the claim |
-| Over-strong hypotheses? | `hw`, `hw_s` are necessary (used to derive `w/w_shader ≠ 0`) |
+| Vacuous? | Not vacuous in the bad sense: the theorem intentionally proves that this pair of assumptions is inconsistent. This is a regression contradiction theorem, not a semantic preservation theorem. |
+| Over-strong hypotheses? | The nonzero hypotheses are justified: `hw` and `hw_s` are required to derive `w/w_shader ≠ 0`, which is the key step in the contradiction |
 | Weakened? | No — concludes `False`, the strongest possible regression claim |
 | Proxy property? | No |
 | Direct contradiction correct? | Yes — the analysis in `MutationTests.lean` confirms this is genuinely unconditional (no anti-degeneracy hypothesis needed), unlike the other mutation theorems |
