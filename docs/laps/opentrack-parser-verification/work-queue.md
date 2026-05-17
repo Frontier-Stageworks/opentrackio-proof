@@ -10,7 +10,7 @@ Current slice: **Slice 1 — rational-value-wrappers**
 
 | # | Slug | Layer | Size | Status | Blocker |
 |---|---|---|---|---|---|
-| 1 | `rational-value-wrappers` | 0 | Small | **IN PROGRESS** | — |
+| 1 | `rational-value-wrappers` | 0 | Small | **COMPLETE** | — |
 | 2 | `json-raw-model` | 0 | Small | Queued | — |
 | 3 | `decode-error-vocabulary` | 0 | Small | Queued | — |
 | 4 | `version-decoder-soundness` | 1 | Small | Queued | Slice 2, 3 |
@@ -49,7 +49,7 @@ Current slice: **Slice 1 — rational-value-wrappers**
 
 | # | Slug | Completed | Notes |
 |---|---|---|---|
-| — | — | — | No slices completed yet |
+| 1 | `rational-value-wrappers` | 2026-05-17 | `noncomputable` needed for `toReal`; all 11 theorems green; lake build clean |
 
 ---
 

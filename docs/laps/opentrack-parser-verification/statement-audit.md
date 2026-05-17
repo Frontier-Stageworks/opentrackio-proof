@@ -151,3 +151,20 @@ constructor invariant fields (`den_pos`, `num_pos`) using `omega` or `norm_cast`
 No Mathlib lemma hunting required.
 
 **Verdict:** Slice 1 statements are well-scoped and safe to proceed.
+
+**Final signatures (as compiled, 2026-05-17):**
+
+```lean
+theorem rational_with_positive_denominator_den_nat_ne_zero (r : RationalWithPositiveDenominator) : r.den ≠ 0
+theorem nonnegative_rational_den_nat_ne_zero               (r : NonnegativeRational)              : r.den ≠ 0
+theorem positive_rational_den_nat_ne_zero                  (r : PositiveRational)                 : r.den ≠ 0
+theorem rational_with_positive_denominator_den_ne_zero     (r : RationalWithPositiveDenominator)  : (r.den : ℝ) ≠ 0
+theorem nonnegative_rational_den_ne_zero                   (r : NonnegativeRational)              : (r.den : ℝ) ≠ 0
+theorem positive_rational_den_ne_zero                      (r : PositiveRational)                 : (r.den : ℝ) ≠ 0
+theorem positive_rational_num_ne_zero                      (r : PositiveRational)                 : (r.num : ℝ) ≠ 0
+theorem positive_rational_toReal_pos                       (r : PositiveRational)                 : 0 < r.toReal
+theorem nonnegative_rational_toReal_nonneg                 (r : NonnegativeRational)              : 0 ≤ r.toReal
+```
+
+Note: `toReal` functions are `noncomputable` (standard for `ℝ` division).  
+Source: `opentrackio_parser/RationalValueWrappers.lean`

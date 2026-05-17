@@ -18,6 +18,10 @@ srcDir = "opencv_opentrackio_proofs"
 name = "MutationTests"
 srcDir = "opencv_opentrackio_proofs"
 
+[[lean_lib]]
+name = "RationalValueWrappers"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
