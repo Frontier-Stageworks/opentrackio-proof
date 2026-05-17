@@ -54,6 +54,14 @@ srcDir = "opentrackio_parser"
 name = "TimingEnumDecoders"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "TransformModel"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "TransformDecoder"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

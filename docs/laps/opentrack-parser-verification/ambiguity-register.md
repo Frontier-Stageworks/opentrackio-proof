@@ -336,22 +336,49 @@ the digit-bound invariant — a prerequisite for decoder soundness in 4B.
 
 ---
 
-## A9 — Quaternion normalization requirement
+## A9 — Transform rotation representation
 
-**Status:** UNRESOLVED  
-**Blocks:** Slice 8 (Transform Model)
+**Status:** RESOLVED (2026-05-17)  
+**Blocks:** Slice 8 — unblocked.
 
-**What is unknown:**  
-Does the protocol require that rotation quaternions have unit norm? Is
-normalization checked by the decoder or assumed by the consumer?
+**Resolution:**  
+Transform rotation is **Euler pan/tilt/roll in degrees**, not quaternions.
+There is no quaternion unit-norm requirement. `ValidTransform` must not
+include any quaternion predicate.
 
-**Why it matters:**  
-`ValidTransform` may or may not include a normalization predicate. If it does,
-the decoder must either enforce it (and prove the check) or document that
-normalization is a consumer responsibility.
+**Transform structure (normative):**
 
-**Resolution needed:**  
-Check the OpenTrackIO spec for quaternion constraints.
+```
+translation   : required object
+  .x          : required JSON number
+  .y          : required JSON number
+  .z          : required JSON number
+
+rotation      : required object
+  .pan        : required JSON number
+  .tilt       : required JSON number
+  .roll       : required JSON number
+
+scale         : optional object
+  .x          : required JSON number (when scale is present)
+  .y          : required JSON number (when scale is present)
+  .z          : required JSON number (when scale is present)
+
+id            : optional string, nonempty, maxLength 1023
+```
+
+**Angle bounds:** Angles are NOT bounded to [0, 360). The prose explicitly
+allows values > 360 and < 0. `ValidTransform` must not constrain pan, tilt,
+or roll.
+
+**Lean impact:**  
+- `Vec3` (or inline triple): `x y z : String` (raw JSON number strings;
+  semantic parsing of floats is deferred to a later slice).
+- `Rotation`: `pan tilt roll : String`.
+- `ValidTransform`: expresses structural invariants only (e.g., `id` is
+  nonempty when present), not angle bounds.
+- `transforms` field at the sample level: decoded as a `NonemptyArray Transform`
+  (using Slice 6) when the key is present.
 
 ---
 

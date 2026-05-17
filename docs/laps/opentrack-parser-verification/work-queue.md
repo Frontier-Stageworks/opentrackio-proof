@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 8 — transform-model-decoder** (blocked on A9)
+Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 
 ---
 
@@ -19,7 +19,8 @@ Current slice: **Slice 8 — transform-model-decoder** (blocked on A9)
 | 5 | `rational-decoder-soundness` | 1 | Medium | **COMPLETE** | — |
 | 6 | `nonempty-array-decoder` | 1 | Small | **COMPLETE** | — |
 | 7 | `timing-enum-decoders` | 1 | Small | **COMPLETE** | — |
-| 8 | `transform-model-decoder` | 2 | Medium | Queued | Slices 5, 6; **A9** |
+| 8A | `transform-model` | 2 | Small | **COMPLETE** | — |
+| 8B | `transform-decoder` | 2 | Medium | **COMPLETE** | — |
 | 9 | `camera-model-decoder` | 2 | Med–Large | Queued | Slices 5, 6, 7; **A4**, **A8** |
 | 10 | `lens-model-decoder` | 2 | Med–Large | Queued | Slices 5, 6, 7; **A4**, **A6**, **A8** |
 | 11 | `sample-model-shell` | 2 | Small–Med | Queued | Slices 9, 10 |
@@ -43,7 +44,7 @@ Current slice: **Slice 8 — transform-model-decoder** (blocked on A9)
 | A5 | Enum spelling | [A5](ambiguity-register.md#a5--enum-spelling-and-canonicalization) |
 | A6 | Lens coefficient array lengths | [A6](ambiguity-register.md#a6--lens-coefficient-array-lengths) |
 | A8 | Protocol field names and version policy | [A8](ambiguity-register.md#a8--protocol-field-names-and-version-policy) |
-| A9 | Quaternion normalization | [A9](ambiguity-register.md#a9--quaternion-normalization-requirement) |
+| A9 | Transform rotation (Euler, not quaternion) | [A9](ambiguity-register.md#a9--transform-rotation-representation) |
 | A11 | Version arity: 2-tuple vs. 3-tuple | [A11](ambiguity-register.md#a11--version-arity-majorminor-vs-majorminorpatch) |
 | A12 | Version JSON shape: array vs. object vs. string | [A12](ambiguity-register.md#a12--version-json-shape-array-vs-object-vs-string) |
 | A13 | `ValidVersion` protocol constraints | [A13](ambiguity-register.md#a13--validversion-protocol-constraints) |
@@ -63,6 +64,8 @@ Current slice: **Slice 8 — transform-model-decoder** (blocked on A9)
 | 5 | `rational-decoder-soundness` | 2026-05-17 | `decodePositiveRational`; decision proofs `hn`/`hd` become struct fields; `_h` unused; lake build clean |
 | 6 | `nonempty-array-decoder` | 2026-05-17 | `NonemptyArray α` + `decodeNonemptyArray`; `cons_ne_nil` is load-bearing construction; `_h` unused; lake build clean |
 | 7 | `timing-enum-decoders` | 2026-05-17 | 4 enums + `toStr` + decoders + soundness; `cases m` before `split at h` to avoid orientation issue; lake build clean |
+| 8A | `transform-model` | 2026-05-17 | `NonemptyString` + `Vec3` + `Rotation` + `Transform`; id invariant in type not predicate; no decoder; lake build clean |
+| 8B | `transform-decoder` | 2026-05-17 | `decodeIdField` + `decodeTransform`; `if h : s ≠ ""` constructs `NonemptyString`; soundness is `fun ns _ => ns.nonempty`; lake build clean |
 
 ---
 
