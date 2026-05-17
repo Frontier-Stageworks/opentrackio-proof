@@ -469,3 +469,64 @@ theorem wrong_q2_power_F4_inconsistent
     (hwrong : q2 = p2 / F ^ 4) :
     False :=
   hpow (wrong_q2_power_F4_forces_power_degeneracy p1 p2 q1 q2 F hF hp2 hpoly hwrong)
+
+/-
+  H — Coefficient-swap mutations.
+
+  A swapped coefficient uses the wrong parameter as the numerator.
+  The iff theorem gives the correct formula; comparing correct and wrong forces
+  the two parameters to be equal.  Only the minimal hypothesis is included
+  (one half of the swap suffices — the other half is symmetric).
+-/
+
+-- H.1 Radial: l1 = k2/F^2  (correct numerator: k1)  forces  k1 = k2
+theorem wrong_l1_swapped_k2_forces_equal_coefficients
+    (k1 k2 k3 l1 l3 l5 F : ℝ)
+    (hF  : F ≠ 0)
+    (hpoly : ∀ r : ℝ,
+        k1 * r ^ 2 + k2 * r ^ 4 + k3 * r ^ 6 =
+        l1 * (F * r) ^ 2 + l3 * (F * r) ^ 4 + l5 * (F * r) ^ 6)
+    (hwrong : l1 = k2 / F ^ 2) :
+    k1 = k2 := by
+  obtain ⟨hl1, _, _⟩ := (whole_radial_polynomial_iff k1 k2 k3 l1 l3 l5 F hF).mp hpoly
+  have hF2 : F ^ 2 ≠ 0 := pow_ne_zero _ hF
+  have heq : k1 / F ^ 2 = k2 / F ^ 2 := by linarith
+  exact mul_right_cancel₀ hF2 ((div_eq_div_iff hF2 hF2).mp heq)
+
+theorem wrong_l1_swapped_k2_inconsistent
+    (k1 k2 k3 l1 l3 l5 F : ℝ)
+    (hF  : F ≠ 0)
+    (hne : k1 ≠ k2)
+    (hpoly : ∀ r : ℝ,
+        k1 * r ^ 2 + k2 * r ^ 4 + k3 * r ^ 6 =
+        l1 * (F * r) ^ 2 + l3 * (F * r) ^ 4 + l5 * (F * r) ^ 6)
+    (hwrong : l1 = k2 / F ^ 2) :
+    False :=
+  hne (wrong_l1_swapped_k2_forces_equal_coefficients k1 k2 k3 l1 l3 l5 F hF hpoly hwrong)
+
+-- H.2 Tangential: q1 = p2/F^2  (correct numerator: p1)  forces  p1 = p2
+theorem wrong_q1_swapped_p2_forces_equal_coefficients
+    (p1 p2 q1 q2 F : ℝ)
+    (hF  : F ≠ 0)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q1 = p2 / F ^ 2) :
+    p1 = p2 := by
+  obtain ⟨hq1, _⟩ := (whole_tangential_field_iff p1 p2 q1 q2 F hF).mp hpoly
+  have hF2 : F ^ 2 ≠ 0 := pow_ne_zero _ hF
+  have heq : p1 / F ^ 2 = p2 / F ^ 2 := by linarith
+  exact mul_right_cancel₀ hF2 ((div_eq_div_iff hF2 hF2).mp heq)
+
+theorem wrong_q1_swapped_p2_inconsistent
+    (p1 p2 q1 q2 F : ℝ)
+    (hF  : F ≠ 0)
+    (hne : p1 ≠ p2)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q1 = p2 / F ^ 2) :
+    False :=
+  hne (wrong_q1_swapped_p2_forces_equal_coefficients p1 p2 q1 q2 F hF hpoly hwrong)

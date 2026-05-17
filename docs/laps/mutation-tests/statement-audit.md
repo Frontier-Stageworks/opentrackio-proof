@@ -342,3 +342,44 @@ Using `whole_tangential_field_iff` (δx only) rather than the 2D variant — δx
 ## Authorization
 
 All 8 Task 5 statements approved.
+
+---
+
+# Statement Audit — Task 6: Coefficient-Swap Mutations
+
+## Pattern (all 4 theorems)
+
+A swapped coefficient uses the wrong parameter as the numerator.
+The iff theorem gives the correct formula; equating correct and wrong forces the two parameters to be equal.
+
+| Theorem | Wrong formula | Forced degeneracy |
+|---------|--------------|-------------------|
+| `wrong_l1_swapped_k2_*` | `l1 = k2/F^2` (correct: k1) | `k1 = k2` |
+| `wrong_q1_swapped_p2_*` | `q1 = p2/F^2` (correct: p1) | `p1 = p2` |
+
+## Note on unused hypotheses
+
+The "swap" scenario has both q1 and q2 wrong simultaneously. Including both
+`hwrong_q1 : q1 = p2/F^2` and `hwrong_q2 : q2 = p1/F^2` would create an
+unused hypothesis (q2 alone suffices for the same conclusion by symmetry, and
+either half suffices alone). Per LAPS audit, only the minimal hypothesis is included.
+The q2 swap is rejected by the same argument with `obtain ⟨_, hq2⟩`.
+
+## Proof shape
+
+```
+obtain correct coefficient from iff.mp
+linarith: ki/F^2 = kj/F^2
+div_eq_div_iff hF2 hF2: ki * F^2 = kj * F^2
+mul_right_cancel₀ hF2: ki = kj
+```
+
+## Audit (all 4)
+
+- Vacuous? No — `k1 = k2` (or `p1 = p2`) is the exact condition under which the swap is indistinguishable.
+- Over-strong? No — no unnecessary hypotheses beyond `F ≠ 0`.
+- Proxy? No.
+
+## Authorization
+
+All 4 Task 6 statements approved.

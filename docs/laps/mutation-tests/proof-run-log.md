@@ -113,6 +113,21 @@ Layer 2: term-mode `hpow (layer-1 ...)`.
 
 ---
 
+## Runs 29–32 — Task 6: Coefficient-swap mutations
+
+All 4 theorems (radial l1↔k2 swap, tangential q1↔p2 swap; layers 1 and 2 each).
+
+**Proof shape (uniform):**
+`obtain` correct coefficient from iff.mp,
+`linarith` to equate correct and wrong formula (same denominator),
+`div_eq_div_iff hF2 hF2` cross-multiply with equal denominators,
+`mul_right_cancel₀ hF2` → coefficient equality.
+Layer 2: term-mode `hne (layer-1 ...)`.
+
+**Results:** All PASS (clean).
+
+---
+
 ## Pending theorems (deferred — do not start without authorization)
 
 - B layer 2: `wrong_projection_offset_unscaled_inconsistent`

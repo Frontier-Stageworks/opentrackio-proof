@@ -144,6 +144,24 @@ the formula into a definition.
 
 ---
 
+### Task 6 — Coefficient-swap mutations (4 theorems)
+
+**Classification:** Forces coefficient equality (layer 1) / Contradiction under `ki ≠ kj` (layer 2)
+
+**Existing theorems used:** `whole_radial_polynomial_iff`, `whole_tangential_field_iff`
+
+**What is forced:**
+- `wrong_l1_swapped_k2_*`: swapping k1↔k2 in l1 forces `k1 = k2`
+- `wrong_q1_swapped_p2_*`: swapping p1↔p2 in q1 forces `p1 = p2`
+
+**Minimal hypothesis:** Only one half of each swap is needed. Including `q2 = p1/F^2` alongside `q1 = p2/F^2` would create an unused hypothesis; it was dropped. The q2 half is symmetric and rejected by the same argument.
+
+**Overclaims?** No — if the two coefficients happen to be equal, the swap is indistinguishable and no contradiction is possible. The anti-degeneracy hypothesis `ki ≠ kj` is necessary.
+
+**Proof uniformity:** `div_eq_div_iff hF2 hF2` (equal denominators) then `mul_right_cancel₀`. Shorter than the wrong-power case.
+
+---
+
 ## Pending review (deferred)
 
 All remaining mutations. Each will be added here upon completion and verification.
