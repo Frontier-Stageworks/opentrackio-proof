@@ -22,6 +22,10 @@ srcDir = "opencv_opentrackio_proofs"
 name = "RationalValueWrappers"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "JsonRawModel"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

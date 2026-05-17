@@ -11,7 +11,7 @@ Current slice: **Slice 1 — rational-value-wrappers**
 | # | Slug | Layer | Size | Status | Blocker |
 |---|---|---|---|---|---|
 | 1 | `rational-value-wrappers` | 0 | Small | **COMPLETE** | — |
-| 2 | `json-raw-model` | 0 | Small | Queued | — |
+| 2 | `json-raw-model` | 0 | Small | **COMPLETE** | — |
 | 3 | `decode-error-vocabulary` | 0 | Small | Queued | — |
 | 4 | `version-decoder-soundness` | 1 | Small | Queued | Slice 2, 3 |
 | 5 | `rational-decoder-soundness` | 1 | Medium | Queued | Slice 1, 2, 3; **A1** |
@@ -50,6 +50,7 @@ Current slice: **Slice 1 — rational-value-wrappers**
 | # | Slug | Completed | Notes |
 |---|---|---|---|
 | 1 | `rational-value-wrappers` | 2026-05-17 | `noncomputable` needed for `toReal`; all 11 theorems green; lake build clean |
+| 2 | `json-raw-model` | 2026-05-17 | A2 policy recorded; `lookup?` is raw utility only; 2 theorems green; lake build clean |
 
 ---
 

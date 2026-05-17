@@ -32,23 +32,20 @@ one rational-typed field and confirm which JSON form it uses.
 
 ## A2 — Duplicate object key semantics
 
-**Status:** UNRESOLVED  
-**Blocks:** Slice 2 (`JsonValue.lookup?`), Slice 12 (completeness)
+**Status:** RESOLVED (2026-05-17)  
+**Blocks:** Slice 2 (`JsonValue.lookup?`) — unblocked. Slice 12 (completeness) — still open.
 
-**What is unknown:**  
-If a JSON object contains duplicate keys (e.g., `{"a": 1, "a": 2}`), which
-value does `lookup?` return? Options:
-- first occurrence (left-bias)
-- last occurrence (right-bias)
-- error / undefined
+**Policy:** OpenTrackIO-conforming JSON objects must have unique member names.
+Duplicate keys are a **decoding error**, not first-wins or last-wins.
 
-**Why it matters:**  
-The semantics of `lookup?` must be stated before any soundness proof about
-field lookup. The completeness theorem also depends on this.
-
-**Resolution needed:**  
-Pick a policy (left-bias is conventional). Record it as a fixed design
-decision in the Lean model (not a spec question — the model defines the behavior).
+**Implementation:**
+- `JsonValue.object` holds a raw `List (String × JsonValue)` that may contain
+  duplicate keys. The raw model does not enforce uniqueness.
+- `JsonValue.lookup?` is a first-match scan utility on this raw list.
+  It is **not** presented as normative: the module comment and proof capsule
+  explicitly state that normative field access requires a `NoDupKeys` proof,
+  deferred to a later slice.
+- Duplicate-key validation (checker + soundness theorem) is a future slice.
 
 ---
 
