@@ -50,15 +50,20 @@ Layer 6 — Normalization and packaging
 ### Slice 1 — rational-value-wrappers
 
 Strategy: define three `structure`s with invariant fields (`den_pos`, `num_pos`),
-optional `toReal` evaluation functions, then prove basic lemmas directly from
-the struct fields using `omega` or `norm_cast`. No Mathlib search needed.
+required `toReal` evaluation functions (not optional), then prove ℕ-level
+denominator nonzero lemmas via `omega` and ℝ-level nonzero/positivity lemmas via
+`exact_mod_cast` and `positivity`. No Mathlib search needed.
 
-Expected tactic budget: `omega` for nat arithmetic, `norm_cast` for coercions.
+Expected tactic budget: `omega` for ℕ arithmetic, `exact_mod_cast` for casts,
+`positivity` for `toReal_pos` and `toReal_nonneg`.
 
 ### Slice 2 — json-raw-model
 
-Strategy: define `JsonValue` as an inductive. Define `lookup?` as a list scan
-with left-bias (resolves A2). Prove two lookup theorems by `simp` on the list
+Strategy: define `JsonValue` as an inductive. Define `lookup?` as a list scan.
+Left-bias may be proposed as the implementation choice, but **A2 must be
+formally resolved before protocol-facing lookup semantics are treated as
+normative** — document the choice in the ambiguity register and record it as
+decided, not silently assumed. Prove two lookup theorems by `simp` on the list
 definition. No arithmetic.
 
 ### Slice 3 — decode-error-vocabulary
@@ -68,9 +73,34 @@ No theorems required unless discriminator lemmas are useful later.
 
 ### Slice 4 — version-decoder-soundness
 
-Strategy: define `Version` and `ValidVersion`, define `decodeVersion` by
-pattern matching on `JsonValue.object`, prove soundness by `simp` and `omega`.
-Small.
+**Blocked on A8 for any protocol-facing JSON decoding** (normative field names
+are not yet fixed). Two options:
+
+- **Model-only sub-slice** (`version-model`): define `Version` and `ValidVersion`,
+  prove decomposition lemmas, no JSON decoding. This can open immediately after
+  Slice 3 without resolving A8.
+- **Decoder sub-slice** (`version-decoder-soundness`): define `decodeVersion` and
+  prove soundness. Opens only after A8 is resolved.
+
+If A8 is not resolved before Slice 4 opens, split into these two sub-slices
+and proceed with the model-only sub-slice first.
+
+### Blocked composite slices — split policy
+
+Any slice in Layers 1–2 that is blocked on an unresolved ambiguity may be
+split into two sub-slices:
+
+- **Model sub-slice** (`X-model`): defines types and `ValidX`, proves structural
+  lemmas. No JSON, no field names, no decoder. Opens as soon as its type
+  dependencies are complete.
+- **Decoder sub-slice** (`X-decoder-soundness`): defines `decodeX` and proves
+  soundness. Opens only after the ambiguity blocking the field names or
+  representation is resolved.
+
+When a split occurs, update the work queue to replace the original slice entry
+with the two sub-slices and re-evaluate blockers for each.
+
+---
 
 ### Slice 5 — rational-decoder-soundness
 
@@ -124,11 +154,13 @@ Standard patterns; see the parser plan for details.
 
 | Tactic | Allowed for |
 |---|---|
-| `omega` | nat/int arithmetic, array length checks, ordinal comparisons |
+| `omega` | ℕ/ℤ arithmetic, array length checks, ordinal comparisons |
 | `norm_cast` | coercions between `Nat`, `Int`, `ℝ` |
+| `exact_mod_cast` | casting a known fact to a coerced goal (preferred over `norm_cast` when goal is fully determined) |
+| `positivity` | nonnegativity and positivity of division/product expressions |
 | `simp` | unfolding definitions, list lemmas, basic propositional rewriting |
 | `decide` | closed decidable propositions (enum membership, small finite checks) |
-| `linarith` / `nlinarith` | real arithmetic (unlikely to be needed in Slices 1–3) |
+| `linarith` / `nlinarith` | real arithmetic; fallback when `positivity` does not close the goal |
 | `ring` / `field_simp` | not expected in Slices 1–7 |
 
 No custom tactics. No `native_decide` unless agreed per-slice.
@@ -152,3 +184,8 @@ Each slice must pass proof review before the next slice opens. Review checks:
 - no vacuous hypotheses
 - theorem statement matches the slice contract
 - no excluded scope was touched
+- `lake env lean <new-file-path>` exits 0 with no errors or warnings
+- `lake build` succeeds if the new file is wired into the package
+
+Every implementation slice records the result of both checks in its slice
+artifacts before marking itself complete.

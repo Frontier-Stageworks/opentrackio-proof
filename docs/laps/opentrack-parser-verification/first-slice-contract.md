@@ -10,8 +10,9 @@
 
 > Define three invariant-carrying rational value wrapper types whose
 > constructors encode denominator-nonzero and positivity invariants,
-> add optional real-valued evaluation functions, and prove the basic
-> invariant lemmas that downstream decoders will use as hypotheses.
+> add real-valued evaluation functions, and prove the basic invariant
+> lemmas (both ℕ-level and ℝ-level) that downstream decoders will use
+> as hypotheses.
 
 ---
 
@@ -20,15 +21,18 @@
 - Define `RationalWithPositiveDenominator` with fields `num : Int`, `den : Nat`, `den_pos : den > 0`
 - Define `NonnegativeRational` with fields `num : Nat`, `den : Nat`, `den_pos : den > 0`
 - Define `PositiveRational` with fields `num : Nat`, `den : Nat`, `num_pos : num > 0`, `den_pos : den > 0`
-- Optional: `RationalWithPositiveDenominator.toReal : RationalWithPositiveDenominator → ℝ`
-- Optional: `NonnegativeRational.toReal : NonnegativeRational → ℝ`
-- Optional: `PositiveRational.toReal : PositiveRational → ℝ`
-- `theorem rational_with_positive_denominator_den_ne_zero`
-- `theorem nonnegative_rational_den_ne_zero`
-- `theorem positive_rational_den_ne_zero`
-- `theorem positive_rational_num_ne_zero`
-- `theorem positive_rational_toReal_pos` (if `toReal` is defined)
-- `theorem nonnegative_rational_toReal_nonneg` (if `toReal` is defined)
+- `RationalWithPositiveDenominator.toReal : RationalWithPositiveDenominator → ℝ`
+- `NonnegativeRational.toReal : NonnegativeRational → ℝ`
+- `PositiveRational.toReal : PositiveRational → ℝ`
+- `theorem rational_with_positive_denominator_den_nat_ne_zero`  (ℕ-level)
+- `theorem nonnegative_rational_den_nat_ne_zero`                (ℕ-level)
+- `theorem positive_rational_den_nat_ne_zero`                   (ℕ-level)
+- `theorem rational_with_positive_denominator_den_ne_zero`      (ℝ-level)
+- `theorem nonnegative_rational_den_ne_zero`                    (ℝ-level)
+- `theorem positive_rational_den_ne_zero`                       (ℝ-level)
+- `theorem positive_rational_num_ne_zero`                       (ℝ-level)
+- `theorem positive_rational_toReal_pos`
+- `theorem nonnegative_rational_toReal_nonneg`
 
 ---
 
@@ -69,7 +73,6 @@ structure PositiveRational where
   num_pos : num > 0
   den_pos : den > 0
 
--- Optional evaluation functions
 def RationalWithPositiveDenominator.toReal (r : RationalWithPositiveDenominator) : ℝ :=
   (r.num : ℝ) / (r.den : ℝ)
 
@@ -87,6 +90,17 @@ No other definitions are allowed in this slice.
 ## Allowed theorem shapes
 
 ```lean
+-- ℕ-level denominator nonzero (used by coercion lemmas and omega-friendly contexts)
+theorem rational_with_positive_denominator_den_nat_ne_zero
+    (r : RationalWithPositiveDenominator) : r.den ≠ 0
+
+theorem nonnegative_rational_den_nat_ne_zero
+    (r : NonnegativeRational) : r.den ≠ 0
+
+theorem positive_rational_den_nat_ne_zero
+    (r : PositiveRational) : r.den ≠ 0
+
+-- ℝ-level denominator and numerator nonzero (used by field_simp / div lemmas)
 theorem rational_with_positive_denominator_den_ne_zero
     (r : RationalWithPositiveDenominator) : (r.den : ℝ) ≠ 0
 
@@ -99,12 +113,16 @@ theorem positive_rational_den_ne_zero
 theorem positive_rational_num_ne_zero
     (r : PositiveRational) : (r.num : ℝ) ≠ 0
 
+-- Value-level semantics
 theorem positive_rational_toReal_pos
     (r : PositiveRational) : 0 < r.toReal
 
 theorem nonnegative_rational_toReal_nonneg
     (r : NonnegativeRational) : 0 ≤ r.toReal
 ```
+
+No value-level positivity or nonnegativity theorem for `RationalWithPositiveDenominator`:
+its `num` is signed (`Int`), so no such fact holds in general.
 
 Auxiliary `Nat.pos_iff_ne_zero`-style lemmas may be added inline if needed,
 but not exported as named theorems unless they are reused by at least two
@@ -149,9 +167,11 @@ that can be made without consulting the OpenTrackIO spec.
 
 - `simp`: allowed freely for unfolding struct projections and nat/int coercions
 - `rw`: allowed for rewriting with specific lemmas
-- `omega`: primary tactic for `den > 0 → den ≠ 0` and similar nat arithmetic
+- `omega`: primary tactic for `den > 0 → den ≠ 0` and ℕ-level arithmetic
 - `norm_cast`: for coercions between `Nat → ℝ` and `Int → ℝ`
-- `linarith` / `nlinarith`: allowed for `toReal_pos` (division positivity from nonzero parts)
+- `exact_mod_cast`: preferred over `norm_cast` when the goal is a cast of a known fact
+- `positivity`: for `toReal_pos` and `toReal_nonneg` (div of nonneg/pos parts)
+- `linarith` / `nlinarith`: fallback for `toReal_pos` if `positivity` does not close the goal
 - `ring` / `ring_nf`: not expected; allowed if useful
 - `decide`: not expected for this slice
 - No `native_decide`
@@ -179,8 +199,9 @@ This slice is complete only when:
 
 1. All three structure definitions compile without `sorry`.
 2. All listed theorems compile without `sorry`.
-3. `lake build` succeeds with the new file included.
-4. No excluded definitions or theorems were introduced.
-5. Proof review accepts the result (no vacuous hypotheses, no trivial-True conclusions).
-6. `work-queue.md` marks Slice 1 as **COMPLETE**.
-7. `statement-audit.md` Slice 1 section is updated with final theorem signatures.
+3. `lake env lean <new-file-path>` exits 0 with no errors or warnings on the new file.
+4. `lake build` succeeds if the new file is wired into the package; otherwise step 3 is sufficient.
+5. No excluded definitions or theorems were introduced.
+6. Proof review accepts the result (no vacuous hypotheses, no trivial-True conclusions).
+7. `work-queue.md` marks Slice 1 as **COMPLETE**.
+8. `statement-audit.md` Slice 1 section is updated with final theorem signatures.
