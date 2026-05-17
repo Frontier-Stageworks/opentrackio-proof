@@ -1,16 +1,64 @@
 ---
 name: mutation-tests-proof-review
-description: Final proof review for MutationTests.lean — all 32 theorems + 2 sanity examples
+description: Final proof review for MutationTests.lean — all 34 theorems + 2 sanity examples (updated after H.3 addition)
 metadata:
   type: project
 ---
 
 # Proof Review — MutationTests.lean
 
+## Verdict
+
+accepted with notes (H.3 gap closed; `whole_tangential_field_iff` choice confirmed)
+
 ## File compiles clean
 
 `lake env lean opencv_opentrackio_proofs/MutationTests.lean` — no output (clean).
 No `sorry`, `admit`, `axiom`, `unsafe`, or `partial` in the file.
+
+---
+
+---
+
+## Per-Theorem Classification
+
+Each theorem is classified as one of:
+- **DC** — direct contradiction (`False` from wrong formula + well-formedness conditions only; no anti-degeneracy hypothesis)
+- **FD** — forces degeneracy (wrong formula + consistency → nontrivial equality)
+- **CD** — contradiction under anti-degeneracy (FD + negation of forced equality → `False`)
+- **PS** — positive sanity example (satisfiability witness)
+
+| ID | Theorem | Class | Degenerate condition |
+|----|---------|-------|----------------------|
+| A | `buggy_projection_offset_missing_center_inconsistent` | **DC** | — |
+| B.1 | `wrong_projection_offset_unscaled_forces_degenerate_relation` | **FD** | `cx = (w/w_shader)*(cx - w_shader/2)` |
+| B.2 | `wrong_projection_offset_unscaled_inconsistent` | **CD** | ↑ |
+| C.1 | `wrong_projection_offset_minus_half_forces_degenerate_relation` | **FD** | `cx - w_shader/2 = (w/w_shader)*(cx - w_shader/2)` |
+| C.2 | `wrong_projection_offset_minus_half_inconsistent` | **CD** | ↑ |
+| D.1 | `wrong_focal_length_identity_forces_degeneracy` | **FD** | `w = w_shader` |
+| D.2 | `wrong_focal_length_identity_inconsistent` | **CD** | ↑ |
+| E | `wrong_focal_length_inverted_inconsistent` | **CD** | `w = w_shader` (positivity excludes `w = -w_shader`) |
+| F.1 | `wrong_l1_power_F4_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^2 = F^4` |
+| F.2 | `wrong_l3_power_F2_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^2 = F^4` |
+| F.3 | `wrong_l5_power_F4_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^6 = F^4` |
+| F.4 | `wrong_l2_power_F4_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^2 = F^4` |
+| F.5 | `wrong_l4_power_F2_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^2 = F^4` |
+| F.6 | `wrong_l6_power_F4_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^6 = F^4` |
+| G.1 | `wrong_q1_power_F1_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^2 = F` |
+| G.2 | `wrong_q1_power_F4_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^2 = F^4` |
+| G.3 | `wrong_q2_power_F1_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^2 = F` |
+| G.4 | `wrong_q2_power_F4_forces_power_degeneracy` / `_inconsistent` | **FD/CD** | `F^2 = F^4` |
+| H.1 | `wrong_l1_swapped_k2_forces_equal_coefficients` / `_inconsistent` | **FD/CD** | `k1 = k2` |
+| H.2 | `wrong_q1_swapped_p2_forces_equal_coefficients` / `_inconsistent` | **FD/CD** | `p1 = p2` |
+| H.3 | `wrong_q2_swapped_p1_forces_equal_coefficients` / `_inconsistent` | **FD/CD** | `p1 = p2` |
+| I.1 | `example` (existential witness) | **PS** | — |
+| I.2 | `example` (numeric witness) | **PS** | — |
+
+**Confirmation: No theorem is classified DC where only degeneracy is forced.**
+- All DC theorems (A, and E once anti-degeneracy is included) genuinely produce `False`.
+- All FD theorems conclude with an equality, never `False`.
+- All CD theorems explicitly carry the negation of their FD equality as a hypothesis.
+- Theorem E is classified CD, not DC: it requires `hne : w ≠ w_shader` to reach `False`.
 
 ---
 
@@ -42,6 +90,7 @@ No `sorry`, `admit`, `axiom`, `unsafe`, or `partial` in the file.
 | `wrong_q2_power_F4_forces_power_degeneracy` | `q2 = p2/F^4` | `F^2 = F^4` |
 | `wrong_l1_swapped_k2_forces_equal_coefficients` | `l1 = k2/F^2` | `k1 = k2` |
 | `wrong_q1_swapped_p2_forces_equal_coefficients` | `q1 = p2/F^2` | `p1 = p2` |
+| `wrong_q2_swapped_p1_forces_equal_coefficients` | `q2 = p1/F^2` | `p1 = p2` |
 
 Each forced equality is geometrically meaningful: power degeneracies (`F^a = F^b`) only hold at `F = 0` (excluded), `F = ±1`, or `F = 1` depending on the exponents. Coefficient equalities hold only when two physically distinct parameters are identical.
 
@@ -64,6 +113,29 @@ All anti-degeneracy hypotheses are the minimal negation of the forced equality. 
 
 ---
 
+## Why `whole_tangential_field_iff` is correct for section G
+
+The G theorems (tangential wrong-power mutations) use `whole_tangential_field_iff` (δx consistency only).
+The question is whether they should instead use `whole_tangential_field_2d_iff` (δx AND δy).
+
+**`whole_tangential_field_iff` is the right choice.** The G mutation theorems carry:
+
+```lean
+hpoly : ∀ x' y' : ℝ, (δx consistency only)
+```
+
+This matches the antecedent of `whole_tangential_field_iff` exactly. Using the 1D theorem means
+the hypotheses are **weaker** — the wrong formula is rejected even when only δx consistency is required.
+That is a **stronger result**: the wrong formula fails a less demanding test.
+
+Switching to `whole_tangential_field_2d_iff` would require changing every G theorem's `hpoly` to
+`∀ x' y', (δx) ∧ (δy)` — a stronger assumption — producing a weaker result (more room for the
+wrong formula to be consistent with just one component).
+
+No change is required in section G. The design is intentional and correct.
+
+---
+
 ## Existing iff theorems used
 
 | Source theorem | Used in sections |
@@ -71,7 +143,7 @@ All anti-degeneracy hypotheses are the minimal negation of the forced equality. 
 | `principal_point_conversion_necessary` | A, B, C, D, E |
 | `buggy_principal_point_conversion_inconsistent` | A (delegation) |
 | `whole_radial_polynomial_iff` | F (all 12 radial theorems) |
-| `whole_tangential_field_iff` | G (all 8 tangential theorems), H (tangential swap) |
+| `whole_tangential_field_iff` | G (all 8 tangential theorems), H (tangential swaps H.2, H.3) |
 
 No positive theorems were reproved from scratch.
 
@@ -110,6 +182,26 @@ No positive theorems were reproved from scratch.
 | E | 1 | Direct contradiction (positivity) |
 | F | 12 | Forces power degeneracy + contradiction (6 pairs) |
 | G | 8 | Forces power degeneracy + contradiction (4 pairs) |
-| H | 4 | Forces coefficient equality + contradiction (2 pairs) |
+| H | 6 | Forces coefficient equality + contradiction (3 pairs) |
 | I | 2 | Positive sanity examples |
-| **Total** | **34** | |
+| **Total** | **36** | |
+
+---
+
+## Added theorem: H.3 (`q2 = p1/F^2`)
+
+**Gap closed.** Section H previously covered:
+- H.1: radial swap `l1 = k2/F^2` (p2 used as l1 numerator) → forces `k1 = k2`
+- H.2: tangential swap `q1 = p2/F^2` (p2 used as q1 numerator) → forces `p1 = p2`
+
+Missing: `q2 = p1/F^2` (p1 used as q2 numerator). The existing comment "one half of the
+swap suffices — the other half is symmetric" refers to within-parameter direction symmetry,
+not cross-parameter swaps. Using p1 as q2's numerator is a distinct mutation not covered by H.2.
+
+The correct formula gives `q2 = p2/F^2`. Setting `q2 = p1/F^2` and applying
+`whole_tangential_field_iff` gives `p2/F^2 = p1/F^2`, hence `p1 = p2` (via
+`mul_right_cancel₀` on `F^2`, then `.symm`). Proof follows the H.2 pattern using the
+second conjunct `hq2`.
+
+`wrong_q2_swapped_p1_forces_equal_coefficients` and `wrong_q2_swapped_p1_inconsistent`
+were added. Lean check passes cleanly.

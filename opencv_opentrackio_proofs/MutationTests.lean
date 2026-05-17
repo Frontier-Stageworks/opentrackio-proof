@@ -531,6 +531,33 @@ theorem wrong_q1_swapped_p2_inconsistent
     False :=
   hne (wrong_q1_swapped_p2_forces_equal_coefficients p1 p2 q1 q2 F hF hpoly hwrong)
 
+-- H.3 Tangential: q2 = p1/F^2  (correct numerator: p2)  forces  p1 = p2
+theorem wrong_q2_swapped_p1_forces_equal_coefficients
+    (p1 p2 q1 q2 F : ℝ)
+    (hF  : F ≠ 0)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q2 = p1 / F ^ 2) :
+    p1 = p2 := by
+  obtain ⟨_, hq2⟩ := (whole_tangential_field_iff p1 p2 q1 q2 F hF).mp hpoly
+  have hF2 : F ^ 2 ≠ 0 := pow_ne_zero _ hF
+  have heq : p2 / F ^ 2 = p1 / F ^ 2 := by linarith
+  exact (mul_right_cancel₀ hF2 ((div_eq_div_iff hF2 hF2).mp heq)).symm
+
+theorem wrong_q2_swapped_p1_inconsistent
+    (p1 p2 q1 q2 F : ℝ)
+    (hF  : F ≠ 0)
+    (hne : p1 ≠ p2)
+    (hpoly : ∀ x' y' : ℝ,
+        2 * p1 * x' * y' + p2 * (x' ^ 2 + y' ^ 2 + 2 * x' ^ 2) =
+        2 * q1 * (F * x') * (F * y') +
+          q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2))
+    (hwrong : q2 = p1 / F ^ 2) :
+    False :=
+  hne (wrong_q2_swapped_p1_forces_equal_coefficients p1 p2 q1 q2 F hF hpoly hwrong)
+
 /-
   I — Positive sanity examples.
 
