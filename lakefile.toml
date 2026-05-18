@@ -95,6 +95,34 @@ name = "VersionEncoder"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "LeafDecoders"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "GlobalStageDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "TrackerDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "PtpInfoDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "TimecodeDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "SynchronizationDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "TimingDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "IntegrationSmoke"
 srcDir = "opentrackio_parser"
 

@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
+Current slice: **Slice 15 — encode-decode-roundtrip-by-component**
 
 ---
 
@@ -29,7 +29,15 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 12B | `compose-decoder-soundness/composed-soundness` | 3 | Small | **COMPLETE** | — |
 | 13 | `error-correctness-required-fields` | 4 | Small | **COMPLETE** | — |
 | 14 | `encoder-version` | 5 | Small | **COMPLETE** | — |
-| 15 | `encode-decode-roundtrip-by-component` | 5 | Med–Large | Queued | Slice 14 + all decoders |
+| 14.1 | `leaf-object-decoders` | 5 | Small | **COMPLETE** | — |
+| 14.2 | `globalstage-decoder` | 5 | Small | **COMPLETE** | — |
+| 14.3 | `tracker-decoders` | 5 | Small | **COMPLETE** | — |
+| 14.4 | `ptpinfo-decoder` | 5 | Small | **COMPLETE** | — |
+| 14.5 | `timecode-decoder` | 5 | Small | **COMPLETE** | — |
+| 14.6 | `synchronization-decoder` | 5 | Small | **COMPLETE** | — |
+| 14.7 | `timing-decoder` | 5 | Small | **COMPLETE** | — |
+| 14.8 | `sample-decoder-complete` | 5 | Small | **COMPLETE** | — |
+| 15 | `encode-decode-roundtrip-by-component` | 5 | Med–Large | Queued | 14.8 + all decoders |
 | 16 | `decode-encode-normalization` | 6 | Large | Queued | Slices 14–15; **A2**, **A3** |
 | 17 | `executable-differential-harness-packaging` | 6 | TBD | Future | Slice 12+ |
 
@@ -76,6 +84,14 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 12B | `compose-decoder-soundness/composed-soundness` | 2026-05-17 | 5 theorems; all `_h` unused; proofs are direct struct field reads; no bind tracing; lake build clean |
 | 13 | `error-correctness-required-fields` | 2026-05-17 | 5 theorems; `simp [decoder, h]` closed all goals including simultaneous-match in T5; no fallback needed; lake build clean |
 | 14 | `encoder-version` | 2026-05-17 | 3 encoders + 3 roundtrip theorems; `decide` → `native_decide` for R1 (toString not kernel-reducible); `simp; rfl` for R2 (monadic residual); lake build clean |
+| 14.1 | `leaf-object-decoders` | 2026-05-18 | `decodeTimestamp`, `decodeLeaderPriorities`, `decodeSyncOffsets`; pure `let` for all-optional SyncOffsets; no theorems; lake build clean |
+| 14.2 | `globalstage-decoder` | 2026-05-18 | `decodeGlobalStage`; 6 required number fields; `do` block; no theorems; lake build clean |
+| 14.3 | `tracker-decoders` | 2026-05-18 | `decodeStaticTracker` + `decodeTracker`; private `decodeOptionalString` re-defined locally; `recording` pure `let` via `.bool`; no theorems; lake build clean |
+| 14.4 | `ptpinfo-decoder` | 2026-05-18 | `decodePtpInfo`; 6 required fields + 2 optional; `leaderIdentity` uses `if h : s ≠ ""` for `NonemptyString`; enum decoders take full `JsonValue`; no theorems; lake build clean |
+| 14.5 | `timecode-decoder` | 2026-05-18 | `decodeTimecode`; 5 required fields + 2 optional; `frameRate` via `decodePositiveRational`; `dropFrame` pure `let` via `.bool`; no theorems; lake build clean |
+| 14.6 | `synchronization-decoder` | 2026-05-18 | `decodeSynchronization`; 2 required + 4 optional; `locked` required bool uses `.expectedString` for wrong-type (no `expectedBool` in vocabulary); `ptp` via `decodePtpInfo`; no theorems; lake build clean |
+| 14.7 | `timing-decoder` | 2026-05-18 | `decodeTiming`; all 7 fields optional; `sequenceNumber` pure `let`; delegates to `decodeTimestamp`, `decodePositiveRational`, `decodeSynchronization`, `decodeTimecode`; no theorems; lake build clean |
+| 14.8 | `sample-decoder-complete` | 2026-05-18 | `decodeSample` completed; `globalStage`/`timing`/`tracker` wired; `StaticInfo.tracker` wired; 5 existing theorems unchanged; all 11 `Sample` fields now active; lake build clean |
 
 ---
 

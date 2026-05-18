@@ -1,14 +1,17 @@
-/-
-  SampleDecoder.lean — Slice 12A: decodeSampleShell / Slice 14.8: sample-decoder-complete
+# Proof Plan — sample-decoder-complete (Slice 14.8)
 
-  Defines decodeSample : JsonValue → Except DecodeError Sample.
-  Wires all component decoders to Sample fields.
-  Five soundness theorems. No new structs.
+## File
 
-  Ref: docs/laps/compose-decoder-soundness/proof-capsule-12a.md
-       docs/laps/sample-decoder-complete/proof-capsule.md
--/
+`opentrackio_parser/SampleDecoder.lean` — modified in place.
+No new lakefile entry. `SampleDecoder` is already registered.
 
+---
+
+## Step 1 — Updated imports
+
+Add three new imports after the existing block:
+
+```lean
 import Mathlib.Tactic
 import DecodeError
 import JsonRawModel
@@ -22,12 +25,13 @@ import SampleModel
 import GlobalStageDecoder
 import TrackerDecoder
 import TimingDecoder
+```
 
-private def decodeRelatedId (ej : JsonValue) : Except DecodeError String :=
-  match ej with
-  | .string s => .ok s
-  | _         => .error .expectedString
+---
 
+## Step 2 — Complete `decodeStaticInfo`
+
+```lean
 private def decodeStaticInfo (sj : JsonValue) : Except DecodeError StaticInfo :=
   match sj with
   | .object _ => do
@@ -49,7 +53,13 @@ private def decodeStaticInfo (sj : JsonValue) : Except DecodeError StaticInfo :=
         | some vj => (decodeStaticTracker vj).map some
       return { duration, camera, lens := slens, tracker := stracker }
   | _ => .error .expectedObject
+```
 
+---
+
+## Step 3 — Complete `decodeSample`
+
+```lean
 def decodeSample (j : JsonValue) : Except DecodeError Sample :=
   match j with
   | .object _ => do
@@ -110,45 +120,25 @@ def decodeSample (j : JsonValue) : Except DecodeError Sample :=
                tracker          := tracker
                transforms       := transforms }
   | _ => .error .expectedObject
+```
 
-/-─────────────────────────────────────────────────────────────────────────────
-  Composed soundness theorems
+---
 
-  All five proofs read a struct field directly. The decoder hypothesis _h
-  is unused in every case — invariants live in the types, not in Valid
-  predicates, so no Except.bind tracing is required.
-─────────────────────────────────────────────────────────────────────────────-/
+## Step 4 — Existing theorems unchanged
 
-theorem decodeSample_transforms_sound
-    (j : JsonValue) (s : Sample) (_h : decodeSample j = .ok s)
-    (ts : NonemptyArray Transform) (_ : s.transforms = some ts) :
-    ts.values ≠ [] :=
-  ts.nonempty
+All five theorems (`decodeSample_transforms_sound`, `decodeSample_protocol_sound`,
+`decodeSample_lens_encoders_sound`, `decodeSample_static_duration_sound`,
+`decodeSample_static_camera_sound`) are copied verbatim. No new theorems.
 
-theorem decodeSample_protocol_sound
-    (j : JsonValue) (s : Sample) (_h : decodeSample j = .ok s)
-    (p : ProtocolInfo) (_ : s.protocol = some p) :
-    ValidVersion p.version :=
-  protocolVersion_valid p.version
+---
 
-theorem decodeSample_lens_encoders_sound
-    (j : JsonValue) (s : Sample) (_h : decodeSample j = .ok s)
-    (l : Lens) (_ : s.lens = some l)
-    (fiz : FizOptions) (_ : l.encoders = some fiz) :
-    fiz.focus ≠ none ∨ fiz.iris ≠ none ∨ fiz.zoom ≠ none :=
-  fiz.anyPresent
+## Stop rule
 
-theorem decodeSample_static_duration_sound
-    (j : JsonValue) (s : Sample) (_h : decodeSample j = .ok s)
-    (st : StaticInfo) (_ : s.«static» = some st)
-    (r : PositiveRational) (_ : st.duration = some r) :
-    0 < r.toReal :=
-  positive_rational_toReal_pos r
+At the first elaboration failure, stop and diagnose before attempting any fix.
 
-theorem decodeSample_static_camera_sound
-    (j : JsonValue) (s : Sample) (_h : decodeSample j = .ok s)
-    (st : StaticInfo) (_ : s.«static» = some st)
-    (c : Camera) (_ : st.camera = some c)
-    (r : PositiveRational) (_ : c.captureFrameRate = some r) :
-    0 < r.toReal :=
-  positive_rational_toReal_pos r
+## Acceptance criteria
+
+1. `lake env lean opentrackio_parser/SampleDecoder.lean` — exit 0, no warnings.
+2. `lake build SampleDecoder` — exit 0.
+3. No `sorry` or forbidden constructs.
+4. All five existing theorems still compile.
