@@ -147,6 +147,10 @@ name = "SynchronizationDecoder"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "SynchronizationEncoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "TimingDecoder"
 srcDir = "opentrackio_parser"
 

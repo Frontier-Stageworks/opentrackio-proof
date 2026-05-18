@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 15.7 — synchronization-encoder**
+Current slice: **Slice 15.8 — timing-encoder**
 
 ---
 
@@ -45,7 +45,7 @@ Current slice: **Slice 15.7 — synchronization-encoder**
 | 15.5 | `ptpinfo-encoder` | 5 | Small | **COMPLETE** | — |
 | 15.6A | `numeric-literal-roundtrip` | 5 | Small | **COMPLETE** | — |
 | 15.6B | `timecode-encoder-roundtrip` | 5 | Small | **COMPLETE** | — |
-| 15.7 | `synchronization-encoder` | 5 | Small | Queued | 15.5 |
+| 15.7 | `synchronization-encoder` | 5 | Small | **COMPLETE** | — |
 | 15.8 | `timing-encoder` | 5 | Small | Queued | 15.6, 15.7 |
 | 15.9 | `camera-encoder` | 5 | Small–Med | Queued | — |
 | 15.10 | `lens-encoder` | 5 | Small–Med | Queued | 15.9 |
