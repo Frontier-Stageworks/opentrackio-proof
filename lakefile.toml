@@ -95,6 +95,22 @@ name = "VersionEncoder"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "LeafEncoders"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "TransformEncoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "GlobalStageEncoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "TrackerEncoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "LeafDecoders"
 srcDir = "opentrackio_parser"
 
