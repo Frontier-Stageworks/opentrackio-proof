@@ -82,6 +82,10 @@ srcDir = "opentrackio_parser"
 name = "SampleModel"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "IntegrationSmoke"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
