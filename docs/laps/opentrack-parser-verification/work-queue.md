@@ -25,7 +25,8 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 10 | `lens-model-decoder` | 2 | Med–Large | **COMPLETE** | — |
 | 11 | `sample-model-shell` | 2 | Small–Med | **COMPLETE** | — |
 | 11.5 | `integration-smoke` | 2 | Small | **COMPLETE** | — |
-| 12 | `compose-decoder-soundness` | 3 | Medium | Queued | Slices 4–11 |
+| 12A | `compose-decoder-soundness/decodeSampleShell` | 3 | Small | **COMPLETE** | — |
+| 12B | `compose-decoder-soundness/composed-soundness` | 3 | Small | **COMPLETE** | — |
 | 13 | `error-correctness-required-fields` | 4 | Small | Queued | Slice 12 |
 | 14 | `encoder-version` | 5 | Small | Queued | Slice 4 |
 | 15 | `encode-decode-roundtrip-by-component` | 5 | Med–Large | Queued | Slice 14 + all decoders |
@@ -71,6 +72,8 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 10 | `lens-model-decoder` | 2026-05-17 | 10A: 7 structs including FizOptions with `anyPresent` proof field; 10B: 4 private helpers + 5 sub-object decoders + `decodeStaticLens` + `decodeLens`; soundness is `fun fiz _ => fiz.anyPresent`; lake build clean |
 | 11 | `sample-model-shell` | 2026-05-17 | 12 structs; `«static»` guillemet escaping; `Bool`/`Option Bool` for JSON booleans; all enum names corrected to Slice 7 names; lake build clean |
 | 11.5 | `integration-smoke` | 2026-05-17 | 16-module import chain; 5 `#eval |>.isOk` lines all `true`; `smokeSample : Sample` shell; capsule corrected `decodeProtocol` input and `#eval` tactic; lake build clean |
+| 12A | `compose-decoder-soundness/decodeSampleShell` | 2026-05-17 | `decodeRelatedId` + `decodeStaticInfo` private helpers; nested `do` extracted to avoid elaborator type inference failure; lambda return type extracted to private def; lake build clean |
+| 12B | `compose-decoder-soundness/composed-soundness` | 2026-05-17 | 5 theorems; all `_h` unused; proofs are direct struct field reads; no bind tracing; lake build clean |
 
 ---
 

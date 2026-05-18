@@ -83,6 +83,10 @@ name = "SampleModel"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "SampleDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "IntegrationSmoke"
 srcDir = "opentrackio_parser"
 
