@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 15.5 — ptpinfo-encoder**
+Current slice: **Slice 15.7 — synchronization-encoder**
 
 ---
 
@@ -42,8 +42,9 @@ Current slice: **Slice 15.5 — ptpinfo-encoder**
 | 15.2 | `transform-encoder` | 5 | Small | **COMPLETE** | — |
 | 15.3 | `globalstage-encoder` | 5 | Small | **COMPLETE** | — |
 | 15.4 | `tracker-encoder` | 5 | Small | **COMPLETE** | — |
-| 15.5 | `ptpinfo-encoder` | 5 | Small | Queued | 15.1 |
-| 15.6 | `timecode-encoder` | 5 | Small | Queued | 15.1 |
+| 15.5 | `ptpinfo-encoder` | 5 | Small | **COMPLETE** | — |
+| 15.6A | `numeric-literal-roundtrip` | 5 | Small | **COMPLETE** | — |
+| 15.6B | `timecode-encoder-roundtrip` | 5 | Small | **COMPLETE** | — |
 | 15.7 | `synchronization-encoder` | 5 | Small | Queued | 15.5 |
 | 15.8 | `timing-encoder` | 5 | Small | Queued | 15.6, 15.7 |
 | 15.9 | `camera-encoder` | 5 | Small–Med | Queued | — |
@@ -107,6 +108,7 @@ Current slice: **Slice 15.5 — ptpinfo-encoder**
 | 15.2 | `transform-encoder` | 2026-05-18 | `encodeVec3`, `encodeRotation`, `encodeTransform`; 3 roundtrip theorems; `simp; rfl` pattern established for `do`-block bind chains; `dif_pos hns` + `obtain` for `NonemptyString` guard; lake build clean |
 | 15.3 | `globalstage-encoder` | 2026-05-18 | `encodeGlobalStage`; 1 roundtrip theorem; `simp; rfl` closed first attempt; no deviations; lake build clean |
 | 15.4 | `tracker-encoder` | 2026-05-18 | `encodeStaticTracker` + `encodeTracker`; 2 roundtrip theorems; private `decodeOptionalString` required local re-expose via `decodeOptStr` + `rfl` equation; `simp [*, ...]` discharges dite via context; lake build clean |
+| 15.5 | `ptpinfo-encoder` | 2026-05-18 | `encodePtpInfo`; 1 roundtrip theorem; `·` bullets required — `try t <;> t2` silently skips `t2` when `try` catches failure; `none`/`some` lts branches split explicitly; `decodePtpProfile`/`decodePtpLeaderSource` added to simp set; lake build clean |
 
 ---
 

@@ -111,6 +111,14 @@ name = "TrackerEncoder"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "PtpInfoEncoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "NumericLiteralRoundtrip"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "LeafDecoders"
 srcDir = "opentrackio_parser"
 
@@ -128,6 +136,10 @@ srcDir = "opentrackio_parser"
 
 [[lean_lib]]
 name = "TimecodeDecoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "TimecodeEncoder"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
