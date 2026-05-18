@@ -316,8 +316,8 @@ struct fields. This is the approach for Slice 1.
 
 ## A8 — Protocol field names and version policy
 
-**Status:** PARTIALLY RESOLVED — protocol resolved (2026-05-17); camera resolved (2026-05-17); lens resolved (2026-05-17); timing, globalStage, tracker still open.  
-**Blocks:** Slice 4C — unblocked. Slice 9 — unblocked. Slice 10 — unblocked. Slices 11, 12 — still blocked on remaining fields.
+**Status:** FULLY RESOLVED (2026-05-17) — all field trees locked (protocol, camera, lens, sample, timing, globalStage, tracker). Status line was stale; body already recorded sample field tree resolution. Updated 2026-05-17.  
+**Blocks:** All slices unblocked.
 
 **Resolved: protocol sub-tree**
 
