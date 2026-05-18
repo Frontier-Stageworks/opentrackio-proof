@@ -83,8 +83,8 @@ handling. If unspecified, pick a policy and document it.
 
 ## A4 — Optional and default field behavior
 
-**Status:** PARTIALLY RESOLVED (2026-05-17) — camera resolved; lens and sample still open.  
-**Blocks:** Slice 9 — unblocked. Slices 10, 11 — still open.
+**Status:** PARTIALLY RESOLVED (2026-05-17) — camera resolved; lens resolved (2026-05-17); sample still open.  
+**Blocks:** Slice 9 — unblocked. Slice 10 — unblocked. Slice 11 — still open.
 
 **Camera resolution:**  
 All `static.camera` fields are optional for consumers. The OpenTrackIO docs
@@ -102,7 +102,28 @@ All top-level camera fields are `Option _`. No `ValidCamera` predicate is
 needed beyond what the field types themselves carry. Missing fields produce
 `none`, not an error and not a default value.
 
-**Still unresolved:** lens field optionality, sample-level field optionality.
+**Lens resolution (2026-05-17):**  
+`static.lens` and `lens` are optional for consumers. All immediate child
+fields inside both are optional. Missing optional fields decode to `none`,
+with one exception: `distortion.model` missing decodes to the string default
+`"Brown-Conrady D-U"` (not `none`).
+
+When a nested object IS present, its internal required-field constraints apply:
+- `distortion[i]` (if present): `radial` required and nonempty
+- `distortionOffset` (if present): `x`, `y` required
+- `projectionOffset` (if present): `x`, `y` required
+- `encoders` (if present): at least one of `focus`, `iris`, `zoom` required
+- `rawEncoders` (if present): at least one of `focus`, `iris`, `zoom` required
+- `exposureFalloff` (if present): `a1` required; `a2`, `a3` optional
+
+**Lean impact — Lens:**  
+All top-level `static.lens` and `lens` fields are `Option _`. The
+`distortion.model` default is handled at decode time (absent → `"Brown-Conrady D-U"`).
+The `anyOf` constraint for `encoders`/`rawEncoders` is carried by `FizOptions`
+(an invariant-carrying type with `anyPresent` proof field). No `ValidLens`
+predicate is needed beyond what the field types carry.
+
+**Still unresolved:** sample-level field optionality.
 
 ---
 
@@ -222,8 +243,8 @@ struct fields. This is the approach for Slice 1.
 
 ## A8 — Protocol field names and version policy
 
-**Status:** PARTIALLY RESOLVED (2026-05-17) — protocol sub-tree resolved; remaining top-level fields still open.  
-**Blocks:** Slice 4C — unblocked. Slices 9, 10, 11, 12 — still blocked on remaining fields.
+**Status:** PARTIALLY RESOLVED — protocol resolved (2026-05-17); camera resolved (2026-05-17); lens resolved (2026-05-17); timing, globalStage, tracker still open.  
+**Blocks:** Slice 4C — unblocked. Slice 9 — unblocked. Slice 10 — unblocked. Slices 11, 12 — still blocked on remaining fields.
 
 **Resolved: protocol sub-tree**
 
@@ -294,11 +315,123 @@ structure Camera where
   shutterAngle                   : Option String
 ```
 
+**Resolved: static.lens field tree (2026-05-17)**
+
+Normative keys under `static.lens`; all optional:
+
+```
+distortionOverscanMax     : JSON number, minimum 1.0; optional (bound deferred)
+undistortionOverscanMax   : JSON number, minimum 1.0; optional (bound deferred)
+make                      : string; optional
+model                     : string; optional
+serialNumber              : string; optional
+firmwareVersion           : string; optional
+nominalFocalLength        : plain JSON number (not rational); optional
+calibrationHistory        : array of nonempty strings; optional; empty array allowed
+```
+
+**Lean model for StaticLens (Slice 10):**
+
+```lean
+structure StaticLens where
+  distortionOverscanMax   : Option String   -- raw JSON number; bound deferred
+  undistortionOverscanMax : Option String   -- raw JSON number; bound deferred
+  make                    : Option NonemptyString
+  model                   : Option NonemptyString
+  serialNumber            : Option NonemptyString
+  firmwareVersion         : Option NonemptyString
+  nominalFocalLength      : Option String   -- raw JSON number; bound deferred
+  calibrationHistory      : Option (List NonemptyString)
+```
+
+**Resolved: dynamic lens field tree (2026-05-17)**
+
+Normative keys under `lens`; all optional for consumers. Present nested
+objects must satisfy their own required-field constraints.
+
+```
+custom              : array of JSON numbers; optional; empty array allowed
+distortion          : nonempty array of distortion objects; optional
+  radial            : nonempty array of JSON numbers; required if distortion object present
+  tangential        : nonempty array of JSON numbers; optional
+  overscan          : JSON number, minimum 1.0; optional (bound deferred)
+  model             : string; optional; default "Brown-Conrady D-U" when absent
+distortionOffset    : object; optional
+  x                 : JSON number; required if parent present
+  y                 : JSON number; required if parent present
+encoders            : object; optional; at least one of focus/iris/zoom required
+  focus             : JSON number [0.0, 1.0]; optional (bound deferred)
+  iris              : JSON number [0.0, 1.0]; optional (bound deferred)
+  zoom              : JSON number [0.0, 1.0]; optional (bound deferred)
+entrancePupilOffset : plain JSON number; optional
+exposureFalloff     : object; optional
+  a1                : JSON number; required if parent present
+  a2                : JSON number; optional
+  a3                : JSON number; optional
+fStop               : plain JSON number, exclusiveMinimum 0.0; optional (bound deferred)
+focusDistance       : plain JSON number; optional
+pinholeFocalLength  : plain JSON number (not rational), exclusiveMinimum 0.0; optional
+projectionOffset    : object; optional
+  x                 : JSON number; required if parent present
+  y                 : JSON number; required if parent present
+rawEncoders         : object; optional; at least one of focus/iris/zoom required
+  focus             : JSON integer [0, 4294967295]; optional (bound deferred)
+  iris              : JSON integer [0, 4294967295]; optional (bound deferred)
+  zoom              : JSON integer [0, 4294967295]; optional (bound deferred)
+tStop               : plain JSON number, exclusiveMinimum 0.0; optional (bound deferred)
+```
+
+**Lean model for Lens (Slice 10):**
+
+```lean
+structure FizOptions where
+  focus      : Option String
+  iris       : Option String
+  zoom       : Option String
+  anyPresent : focus ≠ none ∨ iris ≠ none ∨ zoom ≠ none
+
+structure DistortionOffset where
+  x : String
+  y : String
+
+structure ProjectionOffset where
+  x : String
+  y : String
+
+structure ExposureFalloff where
+  a1 : String
+  a2 : Option String
+  a3 : Option String
+
+structure Distortion where
+  radial     : NonemptyArray String
+  tangential : Option (NonemptyArray String)
+  overscan   : Option String
+  model      : String              -- default "Brown-Conrady D-U" when absent in JSON
+
+structure Lens where
+  custom              : Option (List String)
+  distortion          : Option (NonemptyArray Distortion)
+  distortionOffset    : Option DistortionOffset
+  encoders            : Option FizOptions
+  entrancePupilOffset : Option String
+  exposureFalloff     : Option ExposureFalloff
+  fStop               : Option String
+  focusDistance       : Option String
+  pinholeFocalLength  : Option String
+  projectionOffset    : Option ProjectionOffset
+  rawEncoders         : Option FizOptions
+  tStop               : Option String
+```
+
+**Guardrail for Slice 10:**  
+The soundness theorem must not overclaim numeric bounds, integer-vs-number
+distinctions, or max string lengths that are not enforced by the current types.
+`FizOptions.anyPresent` is the only structural invariant proved in this slice.
+
 **Still unresolved: broader field tree**
 
 ```
-static.lens.*          (nominalFocalLength, make, model, ...)
-lens.*                 (pinholeFocalLength, focusDistance, distortion, ...)
 timing.*               (sampleRate, sampleTimestamp, timecode, ...)
 globalStage            (E, N, U, lat0, lon0, h0)
 tracker.*              (make, model, serialNumber, ...)
