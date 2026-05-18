@@ -28,7 +28,7 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 12A | `compose-decoder-soundness/decodeSampleShell` | 3 | Small | **COMPLETE** | — |
 | 12B | `compose-decoder-soundness/composed-soundness` | 3 | Small | **COMPLETE** | — |
 | 13 | `error-correctness-required-fields` | 4 | Small | **COMPLETE** | — |
-| 14 | `encoder-version` | 5 | Small | Queued | Slice 4 |
+| 14 | `encoder-version` | 5 | Small | **COMPLETE** | — |
 | 15 | `encode-decode-roundtrip-by-component` | 5 | Med–Large | Queued | Slice 14 + all decoders |
 | 16 | `decode-encode-normalization` | 6 | Large | Queued | Slices 14–15; **A2**, **A3** |
 | 17 | `executable-differential-harness-packaging` | 6 | TBD | Future | Slice 12+ |
@@ -75,6 +75,7 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 12A | `compose-decoder-soundness/decodeSampleShell` | 2026-05-17 | `decodeRelatedId` + `decodeStaticInfo` private helpers; nested `do` extracted to avoid elaborator type inference failure; lambda return type extracted to private def; lake build clean |
 | 12B | `compose-decoder-soundness/composed-soundness` | 2026-05-17 | 5 theorems; all `_h` unused; proofs are direct struct field reads; no bind tracing; lake build clean |
 | 13 | `error-correctness-required-fields` | 2026-05-17 | 5 theorems; `simp [decoder, h]` closed all goals including simultaneous-match in T5; no fallback needed; lake build clean |
+| 14 | `encoder-version` | 2026-05-17 | 3 encoders + 3 roundtrip theorems; `decide` → `native_decide` for R1 (toString not kernel-reducible); `simp; rfl` for R2 (monadic residual); lake build clean |
 
 ---
 

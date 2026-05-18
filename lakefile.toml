@@ -91,6 +91,10 @@ name = "ErrorCorrectness"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "VersionEncoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "IntegrationSmoke"
 srcDir = "opentrackio_parser"
 
