@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 15.8 — timing-encoder**
+Current slice: **Slice 15.9 — camera-encoder**
 
 ---
 
@@ -46,7 +46,7 @@ Current slice: **Slice 15.8 — timing-encoder**
 | 15.6A | `numeric-literal-roundtrip` | 5 | Small | **COMPLETE** | — |
 | 15.6B | `timecode-encoder-roundtrip` | 5 | Small | **COMPLETE** | — |
 | 15.7 | `synchronization-encoder` | 5 | Small | **COMPLETE** | — |
-| 15.8 | `timing-encoder` | 5 | Small | Queued | 15.6, 15.7 |
+| 15.8 | `timing-encoder` | 5 | Small | **COMPLETE** | — |
 | 15.9 | `camera-encoder` | 5 | Small–Med | Queued | — |
 | 15.10 | `lens-encoder` | 5 | Small–Med | Queued | 15.9 |
 | 15.11 | `sample-encoder` | 5 | Med | Queued | 15.2, 15.3, 15.4, 15.8, 15.9, 15.10 |
@@ -109,6 +109,10 @@ Current slice: **Slice 15.8 — timing-encoder**
 | 15.3 | `globalstage-encoder` | 2026-05-18 | `encodeGlobalStage`; 1 roundtrip theorem; `simp; rfl` closed first attempt; no deviations; lake build clean |
 | 15.4 | `tracker-encoder` | 2026-05-18 | `encodeStaticTracker` + `encodeTracker`; 2 roundtrip theorems; private `decodeOptionalString` required local re-expose via `decodeOptStr` + `rfl` equation; `simp [*, ...]` discharges dite via context; lake build clean |
 | 15.5 | `ptpinfo-encoder` | 2026-05-18 | `encodePtpInfo`; 1 roundtrip theorem; `·` bullets required — `try t <;> t2` silently skips `t2` when `try` catches failure; `none`/`some` lts branches split explicitly; `decodePtpProfile`/`decodePtpLeaderSource` added to simp set; lake build clean |
+| 15.6A | `numeric-literal-roundtrip` | 2026-05-18 | Bridge theorem `nat_repr_toNat?_some`; strong induction on `n` for `toDigitsCore_eq` (not fuel); `interval_cases n` for H6 base case; `rw [if_neg ...]` (not simp) keeps `'0'.toNat` unreduced before `rw [digitChar_toNat_inv]`; `isNat_step` removed — pattern mismatch after `List.foldl_cons` beta-reduces lambda; `isNat_foldl_stable` auxiliary proved instead; lake build clean |
+| 15.6B | `timecode-encoder-roundtrip` | 2026-05-18 | `encodePositiveRational` + `encodeTimecode`; 2 roundtrip theorems; `r.num.repr` used directly (not `toString`) so `nat_repr_toNat?_some` matches without extra unfolding; residual `do`-bind goals closed by `<;> rfl` (definitional equality); lake build clean |
+| 15.7 | `synchronization-encoder` | 2026-05-18 | `encodeSynchronization`; `encodeSyncOffsets` already in `LeafEncoders` (Slice 15.1) — capsule corrected at Stop 2; 64 goals from 4 SyncSource values × 4 optional field splits; nested roundtrip lemmas as simp rules avoid expanding nested encoders; `Except.map` needed for `.map some` reductions; `<;> rfl` closes `do`-bind residuals; lake build clean |
+| 15.8 | `timing-encoder` | 2026-05-18 | `encodeTiming`; all 7 fields optional; two-branch `mode` split required (TimingMode literals must be concrete for `decodeTimingMode`); 192 total goals (64 + 128); `set_option maxHeartbeats 400000` (2× default); nested roundtrip lemmas as simp rules; `<;> rfl` closes do-bind residuals; lake build clean |
 
 ---
 
