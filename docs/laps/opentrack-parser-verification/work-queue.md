@@ -21,7 +21,7 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 7 | `timing-enum-decoders` | 1 | Small | **COMPLETE** | — |
 | 8A | `transform-model` | 2 | Small | **COMPLETE** | — |
 | 8B | `transform-decoder` | 2 | Medium | **COMPLETE** | — |
-| 9 | `camera-model-decoder` | 2 | Med–Large | Queued | Slices 5, 6, 7; **A4**, **A8** |
+| 9 | `camera-model-decoder` | 2 | Med–Large | **COMPLETE** | — |
 | 10 | `lens-model-decoder` | 2 | Med–Large | Queued | Slices 5, 6, 7; **A4**, **A6**, **A8** |
 | 11 | `sample-model-shell` | 2 | Small–Med | Queued | Slices 9, 10 |
 | 12 | `compose-decoder-soundness` | 3 | Medium | Queued | Slices 4–11 |
@@ -66,6 +66,7 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 7 | `timing-enum-decoders` | 2026-05-17 | 4 enums + `toStr` + decoders + soundness; `cases m` before `split at h` to avoid orientation issue; lake build clean |
 | 8A | `transform-model` | 2026-05-17 | `NonemptyString` + `Vec3` + `Rotation` + `Transform`; id invariant in type not predicate; no decoder; lake build clean |
 | 8B | `transform-decoder` | 2026-05-17 | `decodeIdField` + `decodeTransform`; `if h : s ≠ ""` constructs `NonemptyString`; soundness is `fun ns _ => ns.nonempty`; lake build clean |
+| 9 | `camera-model-decoder` | 2026-05-17 | 9A: 3 structs (SensorPhysicalDimensions, SensorResolution, Camera); 9B: `decodeOptionalString` helper + `decodeCamera`; soundness is `fun r _ => positive_rational_toReal_pos r`; lake build clean |
 
 ---
 

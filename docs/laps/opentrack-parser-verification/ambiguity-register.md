@@ -83,21 +83,26 @@ handling. If unspecified, pick a policy and document it.
 
 ## A4 — Optional and default field behavior
 
-**Status:** UNRESOLVED  
-**Blocks:** Slices 9–11 (Camera, Lens, Sample)
+**Status:** PARTIALLY RESOLVED (2026-05-17) — camera resolved; lens and sample still open.  
+**Blocks:** Slice 9 — unblocked. Slices 10, 11 — still open.
 
-**What is unknown:**  
-Which fields are required vs. optional? For optional fields: is a missing
-field represented as `Option.none`, a protocol-specified default, or an error?
+**Camera resolution:**  
+All `static.camera` fields are optional for consumers. The OpenTrackIO docs
+state all described fields should be considered optional by the Consumer.
+Missing fields decode to `none`; there are no schema defaults.
 
-**Why it matters:**  
-`ValidCamera`, `ValidLens`, and `ValidSample` must encode which fields are
-required. If the decoder silently defaults a missing optional field, the
-soundness theorem must characterize that default.
+When a nested object IS present, its internal fields are required:
+- `captureFrameRate` (if present): `num`, `denom` required
+- `activeSensorPhysicalDimensions` (if present): `height`, `width` required
+- `activeSensorResolution` (if present): `height`, `width` required
+- `anamorphicSqueeze` (if present): `num`, `denom` required
 
-**Resolution needed:**  
-For each protocol record (Camera, Lens, Transform, Sample), enumerate which
-fields are normatively required and what the default is for each optional field.
+**Lean impact — Camera:**  
+All top-level camera fields are `Option _`. No `ValidCamera` predicate is
+needed beyond what the field types themselves carry. Missing fields produce
+`none`, not an error and not a default value.
+
+**Still unresolved:** lens field optionality, sample-level field optionality.
 
 ---
 
@@ -237,17 +242,64 @@ Notes:
 - Top-level fields are camelCase: `sampleId`, `sourceId`, `sourceNumber`, `relatedSampleIds`, `globalStage`, `transforms`.
 - The schema states all described fields should be considered optional by consumers, but sub-fields within an object are required once the object is present.
 
-**Still unresolved: broader field tree**
+**Resolved: static.camera field tree (2026-05-17)**
 
-The full field tree has been provided and is recorded for reference, but the following
-fields are not yet locked down for Lean decoder use (sub-tree required by Slices 9–12):
+Normative keys under `static.camera` (`additionalProperties: false`):
 
 ```
-static.camera.*        (captureFrameRate, activeSensorResolution, make, model, ...)
+captureFrameRate                  : rational { num, denom }; optional
+activeSensorPhysicalDimensions    : object; optional
+  height                          : JSON number, minimum 0.0; required if parent present
+  width                           : JSON number, minimum 0.0; required if parent present
+activeSensorResolution            : object; optional
+  height                          : integer, min 0, max 2147483647; required if parent present
+  width                           : integer, min 0, max 2147483647; required if parent present
+make                              : string; optional
+model                             : string; optional
+serialNumber                      : string; optional
+firmwareVersion                   : string; optional
+label                             : string; optional
+anamorphicSqueeze                 : rational { num, denom }; optional
+isoSpeed                          : integer; optional (bounded wrapper deferred)
+fdlLink                           : string; optional (regex proof deferred)
+shutterAngle                      : number; optional (bounded real wrapper deferred)
+```
+
+Rational fields (`captureFrameRate`, `anamorphicSqueeze`) use the
+`{ "num": ..., "denom": ... }` shape from A1 (not "den").
+
+**Lean model for Camera (Slice 9):**
+
+```lean
+structure SensorPhysicalDimensions where
+  height : String   -- raw JSON number string, minimum 0.0
+  width  : String
+
+structure SensorResolution where
+  height : Nat      -- integer [0, 2147483647]
+  width  : Nat
+
+structure Camera where
+  captureFrameRate               : Option PositiveRational
+  activeSensorPhysicalDimensions : Option SensorPhysicalDimensions
+  activeSensorResolution         : Option SensorResolution
+  make                           : Option NonemptyString
+  model                          : Option NonemptyString
+  serialNumber                   : Option NonemptyString
+  firmwareVersion                : Option NonemptyString
+  label                          : Option NonemptyString
+  anamorphicSqueeze              : Option PositiveRational
+  isoSpeed                       : Option String
+  fdlLink                        : Option String
+  shutterAngle                   : Option String
+```
+
+**Still unresolved: broader field tree**
+
+```
 static.lens.*          (nominalFocalLength, make, model, ...)
 lens.*                 (pinholeFocalLength, focusDistance, distortion, ...)
 timing.*               (sampleRate, sampleTimestamp, timecode, ...)
-transforms[]           (translation, rotation, scale, id)
 globalStage            (E, N, U, lat0, lon0, h0)
 tracker.*              (make, model, serialNumber, ...)
 ```

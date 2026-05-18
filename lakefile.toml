@@ -62,6 +62,14 @@ srcDir = "opentrackio_parser"
 name = "TransformDecoder"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "CameraModel"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "CameraDecoder"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
