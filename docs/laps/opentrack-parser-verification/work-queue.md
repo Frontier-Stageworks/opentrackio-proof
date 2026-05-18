@@ -23,7 +23,7 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 8B | `transform-decoder` | 2 | Medium | **COMPLETE** | — |
 | 9 | `camera-model-decoder` | 2 | Med–Large | **COMPLETE** | — |
 | 10 | `lens-model-decoder` | 2 | Med–Large | **COMPLETE** | — |
-| 11 | `sample-model-shell` | 2 | Small–Med | Queued | Slices 9, 10 |
+| 11 | `sample-model-shell` | 2 | Small–Med | **COMPLETE** | — |
 | 12 | `compose-decoder-soundness` | 3 | Medium | Queued | Slices 4–11 |
 | 13 | `error-correctness-required-fields` | 4 | Small | Queued | Slice 12 |
 | 14 | `encoder-version` | 5 | Small | Queued | Slice 4 |
@@ -68,6 +68,7 @@ Current slice: **Slice 9 — camera-model-decoder** (blocked on A4, A8)
 | 8B | `transform-decoder` | 2026-05-17 | `decodeIdField` + `decodeTransform`; `if h : s ≠ ""` constructs `NonemptyString`; soundness is `fun ns _ => ns.nonempty`; lake build clean |
 | 9 | `camera-model-decoder` | 2026-05-17 | 9A: 3 structs (SensorPhysicalDimensions, SensorResolution, Camera); 9B: `decodeOptionalString` helper + `decodeCamera`; soundness is `fun r _ => positive_rational_toReal_pos r`; lake build clean |
 | 10 | `lens-model-decoder` | 2026-05-17 | 10A: 7 structs including FizOptions with `anyPresent` proof field; 10B: 4 private helpers + 5 sub-object decoders + `decodeStaticLens` + `decodeLens`; soundness is `fun fiz _ => fiz.anyPresent`; lake build clean |
+| 11 | `sample-model-shell` | 2026-05-17 | 12 structs; `«static»` guillemet escaping; `Bool`/`Option Bool` for JSON booleans; all enum names corrected to Slice 7 names; lake build clean |
 
 ---
 

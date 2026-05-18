@@ -83,8 +83,8 @@ handling. If unspecified, pick a policy and document it.
 
 ## A4 — Optional and default field behavior
 
-**Status:** PARTIALLY RESOLVED (2026-05-17) — camera resolved; lens resolved (2026-05-17); sample still open.  
-**Blocks:** Slice 9 — unblocked. Slice 10 — unblocked. Slice 11 — still open.
+**Status:** FULLY RESOLVED (2026-05-17) — camera, lens, and sample all resolved.  
+**Blocks:** Slice 9 — unblocked. Slice 10 — unblocked. Slice 11 — unblocked.
 
 **Camera resolution:**  
 All `static.camera` fields are optional for consumers. The OpenTrackIO docs
@@ -123,7 +123,80 @@ The `anyOf` constraint for `encoders`/`rawEncoders` is carried by `FizOptions`
 (an invariant-carrying type with `anyPresent` proof field). No `ValidLens`
 predicate is needed beyond what the field types carry.
 
-**Still unresolved:** sample-level field optionality.
+**Sample resolution (2026-05-17):**
+Every immediate top-level sample field is optional for Consumers. Missing
+top-level fields decode to `none`. Missing optional nested fields decode to
+`none`. Present nested objects enforce their own required subfields. No
+sample-level defaults are specified.
+
+**Full sample field tree (Slice 11):**
+
+```
+sampleId          : optional string (UUID URN; regex deferred)  → Option String
+sourceId          : optional string (UUID URN; regex deferred)  → Option String
+sourceNumber      : optional integer                             → Option String
+relatedSampleIds  : optional array of strings; empty allowed    → Option (List String)
+globalStage       : optional object; all 6 sub-fields required  → Option GlobalStage
+  E / N / U / lat0 / lon0 / h0 : required JSON numbers         → String
+transforms        : optional nonempty array                     → Option (NonemptyArray Transform)
+protocol          : optional object                             → Option ProtocolInfo
+lens              : optional object                             → Option Lens
+static            : optional object                             → Option StaticInfo
+  duration        : optional rational { num, denom }            → Option PositiveRational
+  camera          : optional object                             → Option Camera
+  lens            : optional object                             → Option StaticLens
+  tracker         : optional object                             → Option StaticTracker
+    make/model/serialNumber/firmwareVersion : optional nonempty strings → Option NonemptyString
+tracker           : optional object                             → Option Tracker
+  notes / slate / status : optional nonempty strings           → Option NonemptyString
+  recording       : optional boolean                            → Option Bool
+timing            : optional object                             → Option Timing
+  mode            : optional enum                               → Option TimingMode
+  recordedTimestamp : optional object                          → Option Timestamp
+  sampleRate      : optional rational { num, denom }            → Option PositiveRational
+  sampleTimestamp : optional object                             → Option Timestamp
+  sequenceNumber  : optional integer                            → Option String
+  synchronization : optional object                             → Option Synchronization
+  timecode        : optional object                             → Option Timecode
+Timestamp: seconds : String; nanoseconds : String
+Synchronization:
+  locked          : required boolean                            → Bool
+  source          : required enum (SyncSource)                  → SyncSource
+  frequency       : optional rational { num, denom }            → Option PositiveRational
+  offsets         : optional object                             → Option SyncOffsets
+  present         : optional boolean                            → Option Bool
+  ptp             : optional object                             → Option PtpInfo
+SyncOffsets: translation / rotation / lensEncoders : optional numbers → Option String
+PtpInfo:
+  profile         : required enum (PtpProfile)                  → PtpProfile
+  domain          : required integer                            → String
+  leaderIdentity  : required nonempty string (MAC-like; deferred) → NonemptyString
+  leaderPriorities : required object                            → LeaderPriorities
+  leaderAccuracy  : required number                             → String
+  meanPathDelay   : required number                             → String
+  leaderTimeSource : optional enum (PtpLeaderSource)            → Option PtpLeaderSource
+  vlan            : optional integer                            → Option String
+LeaderPriorities: priority1 / priority2 : required integers → String
+Timecode:
+  hours / minutes / seconds / frames : required integers        → String
+  frameRate       : required rational { num, denom }            → PositiveRational
+  subFrame        : optional integer                            → Option String
+  dropFrame       : optional boolean                            → Option Bool
+```
+
+**Lean enum name corrections:**
+- `synchronization.source` uses `SyncSource` (Slice 7 name), not `SynchronizationSource`
+- `ptp.leaderTimeSource` uses `PtpLeaderSource` (Slice 7 name), not `PtpLeaderTimeSource`
+
+**Lean impact — Sample:**
+All top-level `Sample` fields are `Option _`. Existing invariant-carrying types
+(`PositiveRational`, `NonemptyString`, `NonemptyArray`, timing enums, `Camera`,
+`StaticLens`, `Lens`, `ProtocolInfo`, `Transform`) are reused. JSON integers and
+numbers without a wrapper are stored as raw `String`. JSON booleans are stored
+as `Bool` or `Option Bool`. UUID regexes, MAC-pattern proofs, numeric bounds,
+and max string lengths are deferred.
+
+**Status:** FULLY RESOLVED (2026-05-17). Slice 11 unblocked.
 
 ---
 
@@ -429,15 +502,12 @@ The soundness theorem must not overclaim numeric bounds, integer-vs-number
 distinctions, or max string lengths that are not enforced by the current types.
 `FizOptions.anyPresent` is the only structural invariant proved in this slice.
 
-**Still unresolved: broader field tree**
+**Resolved: sample field tree (2026-05-17)**
 
-```
-timing.*               (sampleRate, sampleTimestamp, timecode, ...)
-globalStage            (E, N, U, lat0, lon0, h0)
-tracker.*              (make, model, serialNumber, ...)
-```
-
-These will be resolved per slice as needed.
+Full sample, static, tracker, timing, and globalStage field trees locked.
+See A4 (sample resolution) for complete Lean type mapping. All remaining
+fields (timing sub-trees, UUID regex, MAC-pattern, numeric bounds) are
+deferred per the Slice 11 guardrail.
 
 ---
 

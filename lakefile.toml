@@ -78,6 +78,10 @@ srcDir = "opentrackio_parser"
 name = "LensDecoder"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "SampleModel"
+srcDir = "opentrackio_parser"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
