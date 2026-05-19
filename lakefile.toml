@@ -159,6 +159,10 @@ name = "TimingEncoder"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "CameraEncoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "IntegrationSmoke"
 srcDir = "opentrackio_parser"
 
