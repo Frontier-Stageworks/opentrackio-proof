@@ -21,22 +21,23 @@ This is a packaging slice. No new theorems. No new proofs. No changes to Slices 
 | Item | Value |
 |---|---|
 | File | `opentrackio_parser/HarnessMain.lean` |
-| Lake target | `[[lean_exe]]` in `lakefile.toml` |
-| Executable name | `opentrackio-harness` |
-| Run command | `lake exe opentrackio-harness` |
+| Convenience wrapper | `scripts/opentrackio-harness.sh` |
+| Run command | `lake env lean --run opentrackio_parser/HarnessMain.lean` |
 | Imports | `NormalizationTheorems` (transitively pulls all of Slices 1–16) |
+
+No `[[lean_exe]]` entry in `lakefile.toml`. Native `lake exe` was attempted but deferred
+due to a Lean 4.29.0 / macOS SDK 26.5 linker incompatibility (see proof-plan.md).
 
 ---
 
-## Lake configuration
+## Convenience wrapper
 
-Add after the existing `[[lean_lib]]` entries and before `[[require]]`:
+`scripts/opentrackio-harness.sh`:
 
-```toml
-[[lean_exe]]
-name = "opentrackio-harness"
-srcDir = "opentrackio_parser"
-root = "HarnessMain"
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+lake env lean --run opentrackio_parser/HarnessMain.lean
 ```
 
 ---
@@ -157,10 +158,10 @@ Exit status 0.
 
 ## Hard step
 
-Getting the `[[lean_exe]]` Lake configuration right. In particular:
-- `root = "HarnessMain"` with `srcDir = "opentrackio_parser"` must resolve correctly
-- `def main : IO UInt32` must be the accepted signature for a non-zero exit code
-- All imports must be accessible (transitively via `NormalizationTheorems`)
+`lake env lean --run` resolves imports via the Lake environment (`.lake/build/` oleans),
+so all 33 library targets must be built first (`lake build`). The `def main : IO UInt32`
+signature is accepted by `lean --run` for non-zero exit codes. Native `lake exe` linking
+failed on this host — documented in proof-plan.md; not a correctness issue.
 
 ---
 
