@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 17 — executable-differential-harness-packaging**
+Current slice: **COMPLETE — all 17 slices done**
 
 ---
 
@@ -53,7 +53,7 @@ Current slice: **Slice 17 — executable-differential-harness-packaging**
 | 15.11 | `sample-encoder` | 5 | Med | **COMPLETE** | — |
 | 16A | `wellformed-predicate` | 6 | Small | **COMPLETE** | — |
 | 16B | `normalization-theorems` | 6 | Med | **COMPLETE** | — |
-| 17 | `executable-differential-harness-packaging` | 6 | TBD | Future | Slice 12+ |
+| 17 | `executable-differential-harness-packaging` | 6 | Small | **COMPLETE** | — |
 
 ---
 
@@ -121,6 +121,7 @@ Current slice: **Slice 17 — executable-differential-harness-packaging**
 | 15.11 | `sample-encoder` | 2026-05-19 | `encodeStaticInfo` (private) + `encodeSample`; 1 public roundtrip theorem; `decodeRelId'` + `decodeStaticInfo'` local copies + `decodeSample_unfold` by `rfl`; `encodeRelatedIds_rt` must use composed-mapM form `rs.mapM (decodeRelId' ∘ .string)` — Mathlib's `List.mapM_map` fuses map+mapM before simp lemma can match; `relatedSampleIds` and `transforms` inlined in encoder (no named helper); `maxHeartbeats 40000000` for 2048 goals; lake build clean (229s) |
 | 16A | `wellformed-predicate` | 2026-05-19 | 29 predicates (NoDupKeys via `mutual`, allKeysIn, 26 WellFormed* helpers, WellFormedSampleJson); `private mutual` not valid Lean 4 — `private` goes on each `def` inside the block; allKeysIn receiver order: `(j : JsonValue) (allowed : List String)` for dot notation; NoDupKeys asserted once at root, covers all descendants; no allKeysIn on Sample itself (extension-tolerant per A3); lake build clean (6.4s) |
 | 16B | `normalization-theorems` | 2026-05-19 | `sampleNormalize` function + 5 theorems; `normalize` clashes with Mathlib — renamed `sampleNormalize`; bare `simp` triggers `CommMonoidWithZero JsonValue` — all proofs use `simp only`; `sampleNormalize_idempotent` proved by `cases h : decodeSample j` with `rw`+`simp only` in each branch; `WellFormedSampleJson (encodeSample s)` excluded (private predicate access required); lake build clean (15s) |
+| 17 | `executable-differential-harness-packaging` | 2026-05-19 | `HarnessMain.lean` + `scripts/opentrackio-harness.sh`; all 10 checks PASS via `lake env lean --run`; native `lake exe` deferred — Lean 4.29.0 bundled `ld64.lld` cannot locate `libSystem` on Darwin 25.3.0 / SDK 26.5; packaging/toolchain limitation, not a proof failure; lake build clean (3290 jobs) |
 
 ---
 
