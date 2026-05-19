@@ -90,8 +90,10 @@ is inherited from the Lean standard library, not proved separately here.
 
 **What it actually proves:** The model compiles and the utility function elaborates.
 
-**Deferred:** Byte-level JSON parsing; duplicate-key semantics are modeled but the
-policy (first-key-wins) is not separately theorem-proved.
+**Deferred:** Byte-level JSON parsing. `JsonValue.lookup?` is a raw first-match utility —
+it is not normative semantics for OpenTrackIO-conforming JSON. Duplicate-key rejection is
+modeled later through `NoDupKeys` / `WellFormedSampleJson`, but `decodeSample` itself does
+not enforce it.
 
 ---
 
@@ -468,11 +470,12 @@ theorem normalization_under_wellFormed (j : JsonValue) (s : Sample)
 | Without `WellFormedSampleJson`, would the theorem overclaim? | The `WellFormedSampleJson` hypothesis is structurally required but actually unused in the proof body (the conclusion follows from `hd` and `encodeSample_roundtrip`). It is present to mark the domain of intended application. Technically `normalization_under_wellFormed` would hold without it — it follows from `hd` alone. This is a slight overclaim on the hypothesis's necessity, but not a vacuity problem |
 | `WellFormedSampleJson (encodeSample s)` proved? | **No — intentionally out of scope.** The private predicates in `WellFormedSampleJson.lean` cannot be accessed from `NormalizationTheorems.lean`. This gap means the "image of `encodeSample` is well-formed" claim is not proved |
 
-**Classification:** Meaningful under stated conditions. `sampleNormalize_idempotent` is the
-strongest theorem — it derives nontrivially from `encodeSample_roundtrip`. The
-`normalization_under_wellFormed` cluster would be strengthened if `WellFormedSampleJson
-(encodeSample s)` were proved (showing encoder output is always well-formed), but that
-obligation was deferred due to the private-predicate access boundary.
+**Classification:** Meaningful for idempotence/stability; the WellFormed-gated theorem is
+primarily a domain-labeling theorem unless later strengthened by proving
+`WellFormedSampleJson (encodeSample s)` or by making the `WellFormedSampleJson` hypothesis
+do real proof work. `sampleNormalize_idempotent` is the strongest theorem — it derives
+nontrivially from `encodeSample_roundtrip`. The `normalization_under_wellFormed` cluster
+would be genuinely stronger if the hypothesis were load-bearing rather than a domain marker.
 
 **What it actually proves:** Normalization is idempotent. Normalized samples roundtrip
 through the decoder. Encoding a sample and then normalizing it is a no-op.
@@ -573,7 +576,8 @@ Use this checklist when reviewing future slices or auditing existing ones.
 - [ ] Is `sorry`, `admit`, `axiom`, `unsafe`, or `partial` present anywhere in the verified module files?
 - [ ] Is any deferred property presented as proved?
 
-Current status: all red flags are **absent** in Slices 1–18 as delivered.
+Current status: no disqualifying red flags are known in Slices 1–18. Several intentionally
+weak or deferred areas are listed above and should not be presented as proved.
 
 ---
 
