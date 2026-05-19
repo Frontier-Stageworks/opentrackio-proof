@@ -22,16 +22,24 @@ parameter conversions, and end-to-end pixel coordinate preservation.
 
 ## opentrackio_parser — Parser verification
 
-Lean 4 formal model of the full OpenTrackIO v1.0.1 JSON sample schema:
-decoders, encoders, roundtrip theorems, a `WellFormedSampleJson` predicate,
-normalization theorems, and an executable harness.
+Lean 4 formal model of the [OpenTrackIO](https://github.com/SMPTE/ris-osvp-metadata-camdkit)
+v1.0.1 JSON sample data model over a verified `JsonValue` AST: decoders, encoders,
+roundtrip theorems, a `WellFormedSampleJson` predicate, normalization/idempotence theorems,
+and an executable harness.
 
 Key properties proved:
 
-- `encodeSample_roundtrip` — encode then decode returns the original `Sample`
-- `decodeSample_sound` — decode succeeds only when the input is well-formed
-- `normalization_under_wellFormed` — normalization is a no-op on already-well-formed samples
-- All 18 comparison fields extracted by the executable harness
+- `encodeSample_roundtrip` — encoding a `Sample` and then decoding it returns
+  the original `Sample`
+- `decodeSample` soundness theorems — decoded samples preserve the model's
+  type-carried structural invariants, including positive rationals, nonempty
+  arrays, valid protocol-version digits, nonempty strings, and lens encoder
+  presence constraints
+- `sampleNormalize_idempotent` — normalization is stable after one pass
+- `normalization_under_wellFormed` — normalization preserves decoded semantics
+  for well-formed inputs
+- Lean harness / battery-tester adapter support extraction of the 18 comparison
+  fields used by the differential harness
 
 The harness runs via:
 
@@ -46,7 +54,12 @@ scripts/opentrackio-harness.sh
 ```
 
 Native `lake exe` is deferred due to a Lean 4.29.0 / Darwin 25.3.0 toolchain
-linker incompatibility. All proof obligations are fully discharged.
+linker incompatibility. All Lean proof obligations in the repository are fully
+discharged.
+
+This is not a verified byte-level JSON parser. Byte-level JSON parsing, some
+numeric upper bounds, regex constraints, and full schema conformance checking are
+explicitly outside the proved parser core.
 
 ---
 
