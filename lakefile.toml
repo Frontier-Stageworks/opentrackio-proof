@@ -163,6 +163,14 @@ name = "CameraEncoder"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "LensSubEncoders"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "LensEncoder"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "IntegrationSmoke"
 srcDir = "opentrackio_parser"
 

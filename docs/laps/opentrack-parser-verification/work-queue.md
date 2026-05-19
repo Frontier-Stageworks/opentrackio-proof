@@ -2,7 +2,7 @@
 
 Task classification: **Large**  
 Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **Slice 15.10 — lens-encoder**
+Current slice: **Slice 15.11 — sample-encoder**
 
 ---
 
@@ -48,8 +48,9 @@ Current slice: **Slice 15.10 — lens-encoder**
 | 15.7 | `synchronization-encoder` | 5 | Small | **COMPLETE** | — |
 | 15.8 | `timing-encoder` | 5 | Small | **COMPLETE** | — |
 | 15.9 | `camera-encoder` | 5 | Small–Med | **COMPLETE** | — |
-| 15.10 | `lens-encoder` | 5 | Small–Med | Queued | — |
-| 15.11 | `sample-encoder` | 5 | Med | Queued | 15.2, 15.3, 15.4, 15.8, 15.9, 15.10 |
+| 15.10A | `lens-sub-object-encoders` | 5 | Small–Med | **COMPLETE** | — |
+| 15.10B | `lens-staticlens-lens-encoders` | 5 | Med | **COMPLETE** | — |
+| 15.11 | `sample-encoder` | 5 | Med | Queued | — |
 | 16 | `decode-encode-normalization` | 6 | Large | Queued | Slices 14–15; **A2**, **A3** |
 | 17 | `executable-differential-harness-packaging` | 6 | TBD | Future | Slice 12+ |
 
@@ -114,6 +115,8 @@ Current slice: **Slice 15.10 — lens-encoder**
 | 15.7 | `synchronization-encoder` | 2026-05-18 | `encodeSynchronization`; `encodeSyncOffsets` already in `LeafEncoders` (Slice 15.1) — capsule corrected at Stop 2; 64 goals from 4 SyncSource values × 4 optional field splits; nested roundtrip lemmas as simp rules avoid expanding nested encoders; `Except.map` needed for `.map some` reductions; `<;> rfl` closes `do`-bind residuals; lake build clean |
 | 15.8 | `timing-encoder` | 2026-05-18 | `encodeTiming`; all 7 fields optional; two-branch `mode` split required (TimingMode literals must be concrete for `decodeTimingMode`); 192 total goals (64 + 128); `set_option maxHeartbeats 400000` (2× default); nested roundtrip lemmas as simp rules; `<;> rfl` closes do-bind residuals; lake build clean |
 | 15.9 | `camera-encoder` | 2026-05-19 | `encodeSensorPhysicalDimensions` + `encodeSensorResolution` + `encodeCamera`; 3 roundtrip theorems; 2^12 = 4096 goals; `rcases ns with _ | ⟨v, h⟩` brings NonemptyString proof into context for `dif_pos`; `decodeOptionalString` public so no unfold-theorem needed; `set_option maxHeartbeats 40000000` (200× default); sub-object roundtrip lemmas as simp rules; lake build clean (826s) |
+| 15.10A | `lens-sub-object-encoders` | 2026-05-19 | 6 encoders (FizOptions, DistortionOffset, ProjectionOffset, ExposureFalloff, NonemptyStringArray, Distortion) + 6 roundtrip theorems; `decodeDistortion_unfold` by `rfl` for private helper access; `list_mapM_ok` induction — cons residual closed by `rfl` (`Except.bind_ok` does not exist); `decodeNonemptyArray_roundtrip` final `rfl` covers monad laws + proof irrelevance; `encodeNonemptyStringArray_rt` must not co-occur with `encodeNonemptyStringArray` in simp set; no `maxHeartbeats` override needed; lake build clean (8.2s) |
+| 15.10B | `lens-staticlens-lens-encoders` | 2026-05-19 | `encodeStaticLens` + `encodeLens`; 2 roundtrip theorems; 3 private local decoder copies + 2 `rfl`-unfold theorems (`decodeStaticLens_unfold`, `decodeLens_unfold`); `list_mapM_ok'` and `decodeNonemptyArray_roundtrip'` reproved locally (private in 15.10A); explicit types required for `list_mapM_ok'` (inference picks wrong `α`); `decodeCustom'` must be absent from `encodeLens_roundtrip` simp set (pre-expansion trap, same as 15.10A); `maxHeartbeats 10000000` for StaticLens (256 goals), `maxHeartbeats 40000000` for Lens (4096 goals); lake build clean (561s) |
 
 ---
 
