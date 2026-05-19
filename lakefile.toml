@@ -1,6 +1,6 @@
 name = "opentrackio-proof"
 version = "0.1.0"
-defaultTargets = ["DistortionConversion", "PrincipalPointConversion", "PixelEquivalence"]
+defaultTargets = ["DistortionConversion", "PrincipalPointConversion", "PixelEquivalence", "HarnessAdapter"]
 
 [[lean_lib]]
 name = "DistortionConversion"
@@ -184,6 +184,10 @@ srcDir = "opentrackio_parser"
 
 [[lean_lib]]
 name = "IntegrationSmoke"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "HarnessAdapter"
 srcDir = "opentrackio_parser"
 
 [[require]]

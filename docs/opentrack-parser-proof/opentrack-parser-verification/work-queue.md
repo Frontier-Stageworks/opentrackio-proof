@@ -1,8 +1,8 @@
 # Work Queue — OpenTrackIO Parser Verification
 
 Task classification: **Large**  
-Total slices: **17** (16 proof slices + 1 packaging slice)  
-Current slice: **COMPLETE — all 17 slices done**
+Total slices: **18** (16 proof slices + 1 packaging slice + 1 adapter slice)  
+Current slice: **COMPLETE — all 18 slices done**
 
 ---
 
@@ -54,6 +54,7 @@ Current slice: **COMPLETE — all 17 slices done**
 | 16A | `wellformed-predicate` | 6 | Small | **COMPLETE** | — |
 | 16B | `normalization-theorems` | 6 | Med | **COMPLETE** | — |
 | 17 | `executable-differential-harness-packaging` | 6 | Small | **COMPLETE** | — |
+| 18 | `battery-tester-lean-adapter` | 6 | Small | **COMPLETE** | — |
 
 ---
 
@@ -122,6 +123,7 @@ Current slice: **COMPLETE — all 17 slices done**
 | 16A | `wellformed-predicate` | 2026-05-19 | 29 predicates (NoDupKeys via `mutual`, allKeysIn, 26 WellFormed* helpers, WellFormedSampleJson); `private mutual` not valid Lean 4 — `private` goes on each `def` inside the block; allKeysIn receiver order: `(j : JsonValue) (allowed : List String)` for dot notation; NoDupKeys asserted once at root, covers all descendants; no allKeysIn on Sample itself (extension-tolerant per A3); lake build clean (6.4s) |
 | 16B | `normalization-theorems` | 2026-05-19 | `sampleNormalize` function + 5 theorems; `normalize` clashes with Mathlib — renamed `sampleNormalize`; bare `simp` triggers `CommMonoidWithZero JsonValue` — all proofs use `simp only`; `sampleNormalize_idempotent` proved by `cases h : decodeSample j` with `rw`+`simp only` in each branch; `WellFormedSampleJson (encodeSample s)` excluded (private predicate access required); lake build clean (15s) |
 | 17 | `executable-differential-harness-packaging` | 2026-05-19 | `HarnessMain.lean` + `scripts/opentrackio-harness.sh`; all 10 checks PASS via `lake env lean --run`; native `lake exe` deferred — Lean 4.29.0 bundled `ld64.lld` cannot locate `libSystem` on Darwin 25.3.0 / SDK 26.5; packaging/toolchain limitation, not a proof failure; lake build clean (3290 jobs) |
+| 18 | `battery-tester-lean-adapter` | 2026-05-19 | `HarnessAdapter.lean` + `adapters/lean_adapter.py` + `--with-lean` flag in `run.py`; Python converts fixture JSON → Lean `JsonValue` literal; runner invokes `lake env lean --run`; 18-field TSV parsed to dict; 17 PASS + 1 DIVERGE on `complete_static_example` (Lean reads `lens.pinholeFocalLength`, Python reads wrong key); existing 2-adapter mode unchanged; graceful degradation on Lean failure; lake build clean (3310 jobs) |
 
 ---
 

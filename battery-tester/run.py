@@ -28,7 +28,7 @@ FIXTURES = [
 ]
 
 # Each adapter: name, command list ("{fixture}" is replaced with the path)
-ADAPTERS = [
+_ADAPTERS_BASE = [
     {
         "name": "python",
         "cmd": [sys.executable, str(_HERE / "adapters/python_adapter.py"), "{fixture}"],
@@ -41,6 +41,11 @@ ADAPTERS = [
         ],
     },
 ]
+
+_LEAN_ADAPTER = {
+    "name": "lean",
+    "cmd": [sys.executable, str(_HERE / "adapters/lean_adapter.py"), "{fixture}"],
+}
 
 COMPARISON_FIELDS = [
     "protocol.name",
@@ -187,6 +192,11 @@ def main():
         action="store_true",
         help="Run against all fixtures in fixtures/generated/ (produced by generate_fixtures.py)",
     )
+    parser.add_argument(
+        "--with-lean",
+        action="store_true",
+        help="Include the Lean proof-backed oracle adapter (requires lake env lean --run)",
+    )
     args = parser.parse_args()
 
     if args.generated:
@@ -201,6 +211,10 @@ def main():
         fixture_paths = [FIXTURES_DIR / stem]
     else:
         fixture_paths = [FIXTURES_DIR / f for f in FIXTURES]
+
+    ADAPTERS = list(_ADAPTERS_BASE)
+    if args.with_lean:
+        ADAPTERS.append(_LEAN_ADAPTER)
 
     adapter_names = [a["name"] for a in ADAPTERS]
     report_path = resolve_report_path()
