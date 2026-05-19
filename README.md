@@ -61,6 +61,8 @@ This is not a verified byte-level JSON parser. Byte-level JSON parsing, some
 numeric upper bounds, regex constraints, and full schema conformance checking are
 explicitly outside the proved parser core.
 
+[Full details](opentrackio_parser/README.md)
+
 ---
 
 ## battery-tester — Differential test harness
