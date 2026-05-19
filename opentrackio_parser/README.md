@@ -1,9 +1,9 @@
 # opentrackio_parser — Parser Verification
 
 Lean 4 formal model of the [OpenTrackIO](https://github.com/SMPTE/ris-osvp-metadata-camdkit)
-v1.0.1 JSON sample data model over a verified `JsonValue` AST: decoders, encoders,
-roundtrip theorems, a `WellFormedSampleJson` predicate, normalization/idempotence
-theorems, and an executable harness.
+v1.0.1 JSON sample data model over the project's `JsonValue` AST model: decoders,
+encoders, roundtrip theorems, a `WellFormedSampleJson` predicate,
+normalization/idempotence theorems, and an executable harness.
 
 This is not a verified byte-level JSON parser. The model operates on an already-parsed
 `JsonValue` AST. Byte-level JSON parsing, numeric upper bounds, regex constraints, and
@@ -22,8 +22,8 @@ theorem encodeSample_roundtrip (s : Sample) :
 
 The strongest single artifact. For any `Sample` value constructible in the model,
 encoding it and decoding the result returns the original value. Rules out encoder
-field-name bugs, missing-field bugs, and key-spelling bugs end-to-end. Cannot be
-satisfied by a trivial encoder or decoder.
+field-name bugs, missing-field bugs, and key-spelling bugs end-to-end. This is hard
+to fake: a constant encoder or constant decoder would fail for populated `Sample` values.
 
 Depends on `nat_repr_toNat?_some` — a nontrivial standalone lemma proving that Lean's
 decimal renderer and `String.toNat?` are inverses for all natural numbers.
@@ -58,7 +58,7 @@ theorem decodeTransform_missing_rotation   : ... = .error (.missingField "rotati
 theorem decodePositiveRational_missing_num : ... = .error (.missingField "num")
 ```
 
-Decoders do not silently swallow missing required fields.
+The listed required-field cases are proved to reject with the expected error tags.
 
 ### Closed-world enum decoding
 
@@ -104,7 +104,7 @@ rather than doing load-bearing proof work.
 | `RationalValueWrappers.lean` | 0 | `PositiveRational`, `NonnegativeRational`, `RationalWithPositiveDenominator` — invariant-carrying types |
 | `JsonRawModel.lean` | 0 | `JsonValue` AST; `lookup?` utility |
 | `DecodeError.lean` | 0 | `DecodeError` inductive — error vocabulary |
-| `VersionDecoder.lean` / `VersionEncoder.lean` | 1 | `VersionDigit := Fin 10`; `decodeVersionDigit`, `decodeVersionValue`, `decodeProtocol` |
+| `ProtocolVersion.lean` / `VersionDecoder.lean` / `ProtocolDecoder.lean` / `VersionEncoder.lean` | 1 | `VersionDigit := Fin 10`; `decodeVersionDigit`, `decodeVersionValue`, `decodeProtocol` |
 | `RationalDecoder.lean` | 1 | `decodePositiveRational`; soundness via `if hn :` / `if hd :` decision proofs |
 | `NonemptyArrayDecoder.lean` | 1 | `NonemptyArray`; `decodeNonemptyArray` |
 | `TimingEnumDecoders.lean` | 1 | Closed-world decoders for `TimingMode`, `SyncSource`, `PtpProfile`, `PtpLeaderSource` |
@@ -139,8 +139,8 @@ scripts/opentrackio-harness.sh
 Expected output: 10 checks, all `PASS`.
 
 Native `lake exe` is deferred due to a Lean 4.29.0 / Darwin 25.3.0 toolchain linker
-incompatibility. All proof obligations are fully discharged; this is a packaging
-limitation only.
+incompatibility. All stated Lean proof obligations in this parser project are fully discharged; this is
+a packaging limitation only.
 
 ---
 
