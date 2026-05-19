@@ -63,21 +63,52 @@ Duplicate keys are a **decoding error**, not first-wins or last-wins.
 
 ## A3 — Unknown-field policy
 
-**Status:** UNRESOLVED  
-**Blocks:** Slice 12 (completeness), Slice 16 (normalization)
+**Status:** RESOLVED (2026-05-19)  
+**Blocks:** Slice 16 (normalization) — see implications below.
 
-**What is unknown:**  
-Does the decoder silently ignore unrecognized fields, or reject them with an
-error?
+**Policy (per OpenTrackIO spec + project decision):**
 
-**Why it matters:**  
-Completeness requires knowing whether extra fields cause rejection. Soundness
-is not blocked (extra fields cannot make an accepted value invalid), but the
-decoder implementation depends on this policy.
+OpenTrackIO is **top-level extension-tolerant but schema-strict inside defined objects**.
 
-**Resolution needed:**  
-Check OpenTrackIO spec language on forward compatibility / unknown-field
-handling. If unspecified, pick a policy and document it.
+- **Top-level `Sample` fields:** Unknown fields are accepted and silently ignored.
+  Custom top-level fields are explicitly allowed by the spec (shown in the complete
+  sample). The decoder does not error on unrecognized top-level keys.
+
+- **Nested objects with `additionalProperties: false`:** Unknown fields are invalid.
+  Objects such as `camera`, `staticLens`, `lens`, `distortion`, `transform`,
+  `ptp`, `exposureFalloff`, `distortionOffset`, `projectionOffset`, `synchronization`,
+  `timecode`, `globalStage`, `staticInfo`, `tracker` are all schema-strict.
+  A conforming decoder should reject extra fields in these objects.
+
+- **A2 unchanged:** Duplicate object keys remain a decoding error regardless of level.
+
+**Implications for existing decoders:**
+
+The current decoders (Slices 9–14) are more permissive than the spec requires for
+nested objects — they look up only the keys they know and silently ignore the rest.
+They do NOT enforce `additionalProperties: false` for nested objects.
+
+This is a **known gap**: the existing decoders are sound (accepted values are valid)
+but not strictly complete (they accept some malformed inputs they should reject).
+No prior slice is invalidated — soundness proofs remain correct.
+
+**Implications for Slice 16 (normalization):**
+
+The decode-encode normalization theorem (`decodeSample j = .ok s → encodeSample s ≈ j`)
+must be scoped to reflect actual decoder behavior:
+
+- At the top level: encoder output is a strict subset of `j` (custom fields dropped).
+  This is intentional per the extension-tolerant policy.
+- For nested objects: because current decoders accept extra fields that the spec would
+  reject, `encodeSample s` may differ from `j` on nested objects even when decoding
+  succeeded. A full normalization theorem would require either:
+  (a) retrofitting nested decoders to enforce `additionalProperties: false`, or
+  (b) scoping the theorem to inputs that already conform to `additionalProperties: false`
+      (i.e., restricting the premise to well-formed inputs).
+
+**Recommended scope for Slice 16:** Prove normalization under a `WellFormed j`
+hypothesis that asserts no unknown fields in any nested object. This avoids
+retrofitting decoders while stating a meaningful theorem.
 
 ---
 

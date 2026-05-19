@@ -175,6 +175,14 @@ name = "SampleEncoder"
 srcDir = "opentrackio_parser"
 
 [[lean_lib]]
+name = "WellFormedSampleJson"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "NormalizationTheorems"
+srcDir = "opentrackio_parser"
+
+[[lean_lib]]
 name = "IntegrationSmoke"
 srcDir = "opentrackio_parser"
 
