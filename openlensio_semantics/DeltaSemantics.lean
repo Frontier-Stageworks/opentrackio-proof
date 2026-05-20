@@ -4,12 +4,14 @@
   Defines SensorPoint vector operations and proves the ΔP/ΔC coordinate
   translation theorems from OpenLensIO §3 Eqs (12) and (13).
 
-  AMB-OL-002 resolution (load-bearing): Eq (13) is the authority.
-    ε_d = ε'_d + ΔP  (addition, not the inline text's subtraction near Eq (10))
-  Mathematical check: with Eq (13) sign,
+  Eq (13): ε_d = ε'_d + ΔP.
+  Inline text near Eq (10) states the same relationship as ε'_d = ε_d − ΔP — a
+  rearrangement, not a contradiction. The specification is self-consistent.
+  Mathematical check: substituting Eq (13) into Eq (4):
     U(ε_d − ΔC − ΔP) = U((ε'_d + ΔP) − ΔC − ΔP) = U(ε'_d − ΔC)  ✓ (matches Eq 10)
 
-  If AMB-OL-002 is resolved differently, all three theorems below need sign changes.
+  Note: AMB-OL-002 in the ambiguity register initially logged this as a sign
+  contradiction (misquoting the inline text sign). Corrected in second-pass-audit.md.
 -/
 
 import LensSemantics

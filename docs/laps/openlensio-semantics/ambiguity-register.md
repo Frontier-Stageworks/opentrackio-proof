@@ -24,24 +24,24 @@ All ambiguities extracted directly from OpenLensIO v1.0.1 PDF
 
 ---
 
-## AMB-OL-002 — ϵ'_d sign inconsistency (MATERIAL)
+## AMB-OL-002 — ϵ'_d sign relationship
 
-**Status:** Unresolved — likely a typo in inline text  
-**Paper location:** Section 3, inline text near Eq (10) vs Eq (13)  
-**What is unclear:**
-- Inline text near Eq (10) states: "where ϵ′_d = ϵ_d + ΔP"
-- Eq (13) states: "ϵ_d = ϵ′_d + ΔP", which implies ϵ′_d = ϵ_d − ΔP (opposite sign)
-- Only one can be correct.
+**Status:** Closed — FALSE_POSITIVE (register error; see `second-pass-audit.md`)  
+**Paper location:** Section 3, inline text near Eq (10) and Eq (13)
 
-**Mathematical analysis:** Eq (13)'s sign is consistent with the rest of the model:
-- If ϵ′_d = ϵ_d − ΔP, then substituting into Eq (10): ϵ′_u = U(ϵ_d − ΔP − ΔC) + ΔC
-- Adding ΔP: ϵ_u = ϵ′_u + ΔP = U(ϵ_d − ΔC − ΔP) + ΔC + ΔP ✓ (matches Eq 4)
-- The inline text near Eq (10) is almost certainly a typo.
+**Correction (2026-05-20):** The original register entry misquoted the inline text sign and manufactured a non-existent contradiction. The actual specification text:
+- Inline text near Eq (10): `ϵ′_d = ϵ_d − ΔP` (subtraction form, ϵ′_d isolated)
+- Eq (13): `ϵ_d = ϵ′_d + ΔP` (addition form, ϵ_d isolated)
 
-**Implementation risk:** HIGH — using the wrong sign inverts the ΔP offset direction for all FOV characterisation proofs.  
-**Proof impact:** All theorems relating FOV and projection characterisations depend on this sign.  
-**Can proofs proceed?** Yes, with the assumption that Eq (13) is authoritative over the inline text. This assumption must be stated explicitly in any theorem that uses ϵ′_d.  
-**Proposed resolution:** Confirm with paper authors or check against reference implementation output for nonzero ΔP cases.
+These are the same algebraic relationship, rearranged. Rearranging Eq (13): `ϵ_d − ΔP = ϵ′_d`, i.e., `ϵ′_d = ϵ_d − ΔP` ✓ — exactly the inline text form. The specification is self-consistent. No typo exists.
+
+**How the error entered the register:** The register wrote "where ϵ′_d = ϵ_d + ΔP" (addition) for the inline text. The contemporaneous DeltaSemantics.lean header note confirms the inline text uses subtraction ("not the inline text's subtraction near Eq (10)"). These two campaign artifacts contradicted each other; the Lean source is the more reliable record.
+
+**Mathematical check (still valid):** Substituting Eq (13) into Eq (4):
+- U(ε_d − ΔC − ΔP) = U((ε'_d + ΔP) − ΔC − ΔP) = U(ε'_d − ΔC) ✓ (matches Eq 10)
+
+**Proof impact:** None. DeltaSemantics.lean's encoding of Eq (13) is correct and all theorems stand unchanged. The sign convention is load-bearing for the proofs (implementations must use the correct form), but the specification is unambiguous on which form is authoritative — both forms say the same thing.  
+**Implementation risk:** None — the specification is self-consistent on this point.
 
 ---
 
@@ -62,30 +62,25 @@ All ambiguities extracted directly from OpenLensIO v1.0.1 PDF
 
 ---
 
-## AMB-OL-004 — U(ϵ) singular diagonal form at coordinate axes
+## AMB-OL-004 — U(ϵ) diagonal form notation
 
-**Status:** Unresolved representation question  
-**Paper location:** Section 4.1, Eq (16)  
-**What is unclear:** Eq (16) writes U as a diagonal matrix times ϵ:
+**Status:** Resolved — NOTATIONAL (see `second-pass-audit.md`)  
+**Paper location:** Section 4.1, Eq (16)
 
-```
-U(ϵ) = diag([R + 2p₁ϵ_y + p₂(r² + 2ϵ_x²)/ϵ_x,
-              R + p₁(r² + 2ϵ_y²)/ϵ_y + 2p₂ϵ_x]) · ϵ
-```
-
-The diagonal entries contain `1/ϵ_x` and `1/ϵ_y`, which are undefined when ϵ_x = 0 or ϵ_y = 0 respectively. The non-singular component form:
+**Resolution (2026-05-20):** The apparent singularities at ϵ_x = 0 and ϵ_y = 0 in the diagonal form do not exist in the actual function. The 1/ϵ_x and 1/ϵ_y terms in the diagonal entries cancel exactly when multiplied by the corresponding components. Expanding:
 
 ```
-U_x(ϵ) = R·ϵ_x + 2p₁ϵ_xϵ_y + p₂(r² + 2ϵ_x²)
-U_y(ϵ) = R·ϵ_y + p₁(r² + 2ϵ_y²) + 2p₂ϵ_xϵ_y
+diag-entry-x · ϵ_x = [R + 2p₁ϵ_y + p₂(r² + 2ϵ_x²)/ϵ_x] · ϵ_x
+                    = R·ϵ_x + 2p₁ϵ_xϵ_y + p₂(r² + 2ϵ_x²)   ← no ϵ_x in denominator
+
+diag-entry-y · ϵ_y = [R + p₁(r² + 2ϵ_y²)/ϵ_y + 2p₂ϵ_x] · ϵ_y
+                    = R·ϵ_y + p₁(r² + 2ϵ_y²) + 2p₂ϵ_xϵ_y   ← no ϵ_y in denominator
 ```
 
-is equivalent away from the axes and has no singularities.
+These are exactly the component forms. The diagonal notation is a compact factoring of the component formula; the two representations are algebraically identical and the function is continuous everywhere. There is no singularity in the function — only in the intermediate notation.
 
-**Implementation risk:** The diagonal form is a compact notation; the actual function is the component form. However, the paper uses the diagonal form without comment.  
-**Proof impact:** Lean definitions must use the component (non-singular) form. Theorem statements about U should not depend on the diagonal form. Any domain-safety proof must note that the component form is the intended definition.  
-**Can proofs proceed?** Yes — use component form. Document the choice in the proof capsule.  
-**Proposed resolution:** Use component form as the Lean definition. State explicitly that the diagonal form in the paper is a notational convenience.
+**Implementation risk:** None — the component form is unambiguous and continuous.  
+**Proof impact:** None — the Lean definitions use the component form, which is correct. No theorem depends on the diagonal representation.
 
 ---
 
@@ -214,11 +209,12 @@ The asymmetry between the overscan forms and their non-overscan counterparts, an
 
 ## AMB-OL-014 — Frame of U's input argument (distortion-centered frame)
 
-**Status:** Low risk — derivable from equations  
+**Status:** Resolved — PROOF_ENGINEERING_ONLY (see `second-pass-audit.md`)  
 **Paper location:** Sections 2, 3, 4.1  
-**What is unclear:** Eq (16) defines U(ϵ) where ϵ is a screen coordinate vector. In Eqs (4) and (10), U is always called with `ϵ_d − ΔC − ΔP` or `ϵ′_d − ΔC`. The paper does not explicitly state that U's argument is in the coordinate frame centered at the distortion center. This must be derived.  
-**Proof impact:** The semantic model should represent U as a function of distortion-centered coordinates to make the domain specification clean.  
-**Can proofs proceed?** Yes — derivable. State as a documentation note in the proof capsule.
+**What is unclear:** Eq (16) defines U(ϵ) where ϵ is a screen coordinate vector. In Eqs (4) and (10), U is always called with `ϵ_d − ΔC − ΔP` or `ϵ′_d − ΔC`. The paper does not explicitly state that U's argument is in the coordinate frame centered at the distortion center. This must be derived from the call sites.  
+**Resolution:** The coordinate frame is fully derivable from the equations. The call sites in Eqs (4) and (10) are the authoritative specification; no ambiguity remains once these are read carefully. This is a proof-engineering note, not a genuine specification gap.  
+**Proof impact:** The semantic model uses distortion-centered coordinates as U's argument — derivable, documented in the proof capsule. No theorem is weakened by this.  
+**Can proofs proceed?** Yes — derivable and resolved.
 
 ---
 
@@ -276,9 +272,9 @@ The Python oracle (SLICE-OL-15) passed 7/7 fixtures. This confirms the Python im
 | ID | Title | Status | Proof Impact | Can Proceed? |
 |----|-------|--------|--------------|--------------|
 | AMB-OL-001 | Version mismatch | Unresolved | Low | Yes |
-| AMB-OL-002 | ϵ′_d sign | Likely typo in inline text | HIGH | Yes, with Eq (13) as authority |
+| AMB-OL-002 | ϵ′_d sign relationship | Closed — FALSE_POSITIVE (register error) | None | Yes, spec is self-consistent |
 | AMB-OL-003 | Eq (8) drops ΔC + ΔP | Unresolved | HIGH | Assumption-gated |
-| AMB-OL-004 | Diagonal U singularity | Representation choice | Medium | Yes, use component form |
+| AMB-OL-004 | Diagonal U notation | Resolved — NOTATIONAL | None | Yes, component form correct |
 | AMB-OL-005 | Radial coeff units | Unresolved | Low | Yes, with unit assumption |
 | AMB-OL-006 | Decentering coeff units | Unresolved | Medium | Yes, with unit assumption |
 | AMB-OL-007 | Denominator nonzero | Unresolved | HIGH | Yes, as explicit precondition |
@@ -288,6 +284,6 @@ The Python oracle (SLICE-OL-15) passed 7/7 fixtures. This confirms the Python im
 | AMB-OL-011 | Aperture normative? | Resolved: NOT normative | — | Defer |
 | AMB-OL-012 | Overscan appendix normative? | Resolved: informative | Low | Advisory only |
 | AMB-OL-013 | Default p₁, p₂ = 0 | Unresolved | Low | Yes, with assumption |
-| AMB-OL-014 | U argument frame | Derivable | Low | Yes |
+| AMB-OL-014 | U argument frame | Resolved — PROOF_ENGINEERING_ONLY | None | Yes |
 | AMB-OL-015 | Which Ω for equivalence | Unresolved | Medium | Separately per form |
 | AMB-OL-016 | Float oracle semantic divergence | Open — deferred | None (current); High (future Float campaign) | Yes — layers independent |
