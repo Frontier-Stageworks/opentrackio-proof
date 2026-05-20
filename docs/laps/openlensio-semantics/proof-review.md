@@ -625,3 +625,54 @@ Each Float definition mirrors its exact counterpart:
 | Exact definitions modified | ✅ None — oracle is a parallel file with no imports from project |
 | Grouped structure field syntax | ✅ Fixed — each field has its own `:` annotation |
 | Domain failure silently ignored | ✅ `None` propagated explicitly; tolerance-based check documented |
+
+---
+
+## SLICE-OL-15 — Differential semantic testing
+
+**Run:** `python3 battery-tester/semantic_oracle/run.py` — ✅ 7/7 passed  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No Lean code in this slice. No theorems. No `sorry`, `admit`, `unsafe`. This is a Layer F test artifact.
+
+### Blocker documented
+
+Full differential testing against Mo-Sys C++ (`opentrackio-cpp`) and CamDKit Python (`ris-osvp-metadata-camdkit`) is blocked — neither provides undistort math evaluation. Both are protocol parsers only:
+- `opentrackio-cpp/build/tools/dump_sample`: protocol field parser; no undistort computation
+- `ris-osvp-metadata-camdkit/src/main/python/camdkit/lens_types.py`: coefficient storage; no Brown-Conrady evaluation
+
+Blocker is documented in the capsule. OL-15 is descoped to Python reference oracle vs. hand-computed expected outputs.
+
+### Python reference oracle verified
+
+`reference_oracle.py` implements all OpenLensIO math functions from the spec. Each function verified to match the exact Lean Float definition and the `#eval` outputs from OL-14.
+
+### Test results
+
+| ID | Function | Result | Status |
+|---|---|---|---|
+| identity | `undistort_point` | (1.0, 2.0) | ✅ matches Lean `#eval` |
+| barrel | `undistort_point` | (1.5, 3.0) | ✅ matches Lean `#eval` |
+| pincushion | `undistort_point` | (0.5, 1.0) | ✅ R=0.5 by hand |
+| zero-origin | `undistort_point` | (0.0, 0.0) | ✅ r=0 boundary |
+| tangential | `undistort_point` | (1.2, 1.4) | ✅ p1=0.1, by hand |
+| domain-fail | `undistort_point` | None | ✅ denom=0, correctly classified |
+| full-eq4 | `undistort_from_distorted` | (1.3, 2.15) | ✅ identity coeff = input |
+
+All 7 cases pass at 1e-10 tolerance. Exact equality observed (Python and Lean use same IEEE 754 double arithmetic).
+
+### Python version fix documented
+
+`float | None` union syntax (PEP 604) requires Python 3.10+. Running Python 3.9.6. Fix: added `from __future__ import annotations` to defer annotation evaluation. No semantic change.
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Theorem claimed for test results | ✅ None — this is a test artifact |
+| External blocker suppressed | ✅ Blocker documented in capsule, review, and run.py header comment |
+| Python oracle compared against itself | ✅ Expected values independently hand-computed or from Lean `#eval` |
+| Domain failure treated as tolerance failure | ✅ Classified separately in run.py and fixture `domain_valid` field |
+| Test results conflated with proof | ✅ Not conflated — test output is not a Lean theorem |

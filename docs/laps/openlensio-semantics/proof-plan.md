@@ -505,3 +505,61 @@ None. All Float arithmetic is direct translation of exact definitions. Domain va
 ### Automation budget
 
 None (no proof). The file should compile and `#eval` should produce output matching the expected identity case.
+
+---
+
+## SLICE-OL-15 — Differential semantic testing
+
+No proof — this is a test implementation plan.
+
+### Scope (descoped from original)
+
+Original: compare Lean oracle against Mo-Sys C++ and CamDKit undistort.  
+Actual: compare Python reference oracle (from spec) against Lean oracle expected outputs.  
+Reason: external implementations do not have undistort math available (documented in capsule).
+
+### Python reference oracle design
+
+Implement each function from the spec directly in Python, matching the Lean Float definitions exactly:
+- `radial_term(k, r)` → `(1+k1*r²+k3*r⁴+k5*r⁶) / (1+k2*r²+k4*r⁴+k6*r⁶)`, returns `None` if `|denom| < 1e-10`
+- `undistort_x(p, ex, ey, r, R)`, `undistort_y(p, ex, ey, r, R)` — Brown-Conrady Eq(16)
+- `undistort_point(k, p, eps)` → calls radial_term, then components
+- `undistort_from_distorted(k, p, eps_d, dc, dp)` — Eq(4) shift-undistort-shift
+- `fov_undistort_from_distorted(k, p, eps_d, dc)` — Eq(10) FOV form
+
+### Fixtures format
+
+```json
+[
+  {
+    "id": "identity",
+    "k": [0,0,0,0,0,0], "p": [0,0],
+    "input": [1.0, 2.0],
+    "expected": [1.0, 2.0],
+    "domain_valid": true
+  }, ...
+]
+```
+
+### Comparison runner design
+
+1. Load fixtures from JSON
+2. For each fixture: run Python reference oracle
+3. Compare output against `expected` field within tolerance 1e-10
+4. Domain failures (`expected: null`): verify oracle returns `None`
+5. Print pass/fail per fixture; print summary
+
+### Implementation order
+
+1. `battery-tester/semantic_oracle/reference_oracle.py` — Python reference
+2. `battery-tester/semantic_oracle/fixtures.json` — 7 test cases
+3. `battery-tester/semantic_oracle/run.py` — comparison runner
+4. Execute `python run.py`, capture output
+
+### Expected hard step
+
+None. Arithmetic is direct from spec.
+
+### Automation budget
+
+None (no proof). Expected: all 7 test cases PASS on first run.

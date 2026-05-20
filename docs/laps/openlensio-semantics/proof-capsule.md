@@ -747,3 +747,49 @@ structure FloatTangentialCoefficients where p1 p2 : Float
 - No `sorry`, `admit`, `unsafe`, `partial`
 - No modification to exact definitions
 - No claim that `#eval` output constitutes a proof
+
+---
+
+## SLICE-OL-15 — Differential semantic testing
+
+File: `battery-tester/semantic_oracle/` (new directory)  
+Layer: F
+
+### Blocker: external reference implementations lack undistort math
+
+The full OL-15 specification (compare against Mo-Sys C++ and CamDKit) is blocked:
+- `opentrackio-cpp` (`build/tools/dump_sample`): protocol field parser only; no undistort computation
+- `ris-osvp-metadata-camdkit`: stores distortion coefficients; no Brown-Conrady evaluation function
+
+This blocker is documented here and in the proof review. OL-15 is descoped to:
+
+1. **Python reference oracle** (`reference_oracle.py`): independent Python implementation of the OpenLensIO math from the spec — not from CamDKit or Mo-Sys
+2. **Test fixtures** (`fixtures.json`): 7 canonical test cases with hand-computed expected outputs
+3. **Comparison script** (`run.py`): runs Python reference on all fixtures; reports pass/fail against Lean oracle expected outputs
+
+### Executable contract
+
+- **Python reference oracle**: implements exactly the same formulas as `ExecutableSemanticOracle.lean`  
+  `radialTerm`, `undistortX/Y`, `undistortPoint`, `undistortFromDistorted`, `fovUndistortFromDistorted`, shader coords, `angleOfView`
+- **Comparison baseline**: expected outputs from Lean `#eval` (verified in OL-14)
+- **Tolerance**: 1e-10 for Python-vs-expected (same IEEE 754 arithmetic; should be near-exact)
+- **Domain failure**: classified separately (none/null output), not a tolerance failure
+- **Future extension**: when Mo-Sys C++ or CamDKit add undistort math, plug in here
+
+### Test fixture scope (7 cases)
+
+| ID | Coefficients | Input ε | Expected output | Tests |
+|---|---|---|---|---|
+| identity | k=0, p=0 | (1, 2) | (1, 2) | zero-distortion identity |
+| barrel | k1=0.1, rest=0 | (1, 2) | (1.5, 3.0) | positive k1 |
+| pincushion | k1=−0.1, rest=0 | (1, 2) | (0.5, 1.0) | negative k1 |
+| zero-origin | k=0, p=0 | (0, 0) | (0, 0) | r=0 boundary |
+| tangential | k=0, p1=0.1, p2=0 | (1, 1) | (1.2, 1.4) | tangential component |
+| domain-fail | k2=−1, rest=0 | (1, 0) | none | denominator=0 |
+| full-eq4 | k=0, p=0, ΔC=(0.1,0.05), ΔP=(0.2,0.1), εd=(1.3,2.15) | — | (1.3, 2.15) | Eq(4) undistortFromDistorted |
+
+### Forbidden
+
+- No theorem claimed for comparison results
+- No claim that Python oracle is independently verified
+- External blocker must be documented in the proof review
