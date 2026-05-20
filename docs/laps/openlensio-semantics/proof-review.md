@@ -355,6 +355,61 @@ ext <;> simp [undistortFromDistorted, addSensorPoints, subSensorPoints] <;> ring
 
 ---
 
+## SLICE-OL-12 — `angle_of_view_eq`
+
+**Build:** `lake build AngleOfView` — ✅ clean, no warnings (3295 jobs)  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`. Import `Mathlib.Analysis.SpecialFunctions.Trigonometric.Arctan` added explicitly (not in `Mathlib.Tactic` default).
+
+### Theorem statement
+
+```lean
+theorem angle_of_view_eq (F r_u : ℝ) :
+    Real.tan (angleOfView F r_u / 2) = r_u / F
+```
+
+**Deviation from proof capsule draft:** `hF : 0 < F` was planned but dropped after the linter flagged it as unused. The proof is valid for all F : ℝ (Lean 4 division is total). Domain restriction (F > 0) is enforced by callers via `ValidLensSemantics`. The theorem statement in the capsule was updated to reflect this.
+
+### Semantic match
+
+**Intent:** Paper Eq (6) states `r_u / F = tan(α/2)`. The definition `angleOfView F r_u = 2 * Real.arctan (r_u / F)` makes `α = angleOfView F r_u`, and the theorem proves `tan(α/2) = r_u / F`. This is the standard pinhole camera FOV characterisation.  
+**Non-vacuity:** The theorem is not trivially true by `rfl` — it requires `Real.tan_arctan` from Mathlib (a Mathlib lemma, not a definitional unfolding).
+
+### Dropped theorem documented
+
+`fovAngleFromWidth F w = angleOfView F (w / 2)` is true by `ring_nf` on the `arctan` argument — dropped per LAPS anti-pattern rule.
+
+### Proof structure
+
+```lean
+simp [angleOfView, Real.tan_arctan]
+```
+
+Unfolds `angleOfView`, simplifies `2 * arctan(r_u / F) / 2` to `arctan(r_u / F)`, then applies `Real.tan_arctan : ∀ x, Real.tan (Real.arctan x) = x`. One tactic closes the full goal.
+
+**Hard step:** None after identifying `Real.tan_arctan`. The failed first attempt (`Real.arctan` unknown) revealed the missing import `Mathlib.Analysis.SpecialFunctions.Trigonometric.Arctan`.
+
+### Load-bearing definition alignment
+
+- `angleOfView`: `2 * Real.arctan (r_u / F)` — Eq (6). Not changed.
+- `fovAngleFromWidth`: `2 * Real.arctan (w / (2 * F))` — Eq (14). Definition-only slice, no theorem.
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Hidden sorry | ✅ None |
+| `Real.arctan` used without import | ✅ Import added — `Mathlib.Analysis.SpecialFunctions.Trigonometric.Arctan` |
+| `hF : 0 < F` as dead hypothesis | ✅ Dropped after linter warning; documented as caller responsibility |
+| Trivial `fovAngleFromWidth = angleOfView` theorem | ✅ Dropped per LAPS anti-pattern rule |
+| Vacuous theorem | ✅ Non-vacuous — requires `Real.tan_arctan` |
+| Wrong Eq (6) direction | ✅ `tan(α/2) = r_u/F` matches paper; definition inverts to give α |
+
+---
+
 ## SLICE-OL-11 — `fov_undistort_eq`
 
 **Build:** `lake build FovModel` — ✅ clean (3292 jobs)  
@@ -426,3 +481,79 @@ Matches proof-capsule.md SLICE-OL-11 section exactly (two-hypothesis form, helpe
 | `undistortPoint_congr` helper without explicit role | ✅ Has explicit role — called in final tactic step |
 | Vacuous theorem | ✅ Non-vacuous (fails for wrong ΔC placement) |
 | AMB-OL-002 sign buried | ✅ Dependency on `distortion_center_translation_commutes` explicit |
+
+---
+
+## SLICE-OL-13 — `pixel_metric_roundtrip`, `image_texture_coordinate_roundtrip`
+
+**Build:** `lake build ShaderCoords` — ✅ clean, no warnings (3296 jobs)  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`. Standard Mathlib axioms only.
+
+### Theorem statements
+
+```lean
+theorem pixel_metric_roundtrip
+    (w h wshader : ℝ) (hw : 0 < w) (hh : 0 < h) (hs : 0 < wshader)
+    (p : SensorPoint) :
+    fromShaderCoords w h wshader (toShaderCoords w h wshader p) = p
+
+theorem image_texture_coordinate_roundtrip
+    (w h wshader : ℝ) (hw : 0 < w) (hh : 0 < h) (hs : 0 < wshader)
+    (q : SensorPoint) :
+    toShaderCoords w h wshader (fromShaderCoords w h wshader q) = q
+```
+
+Matches proof-capsule.md SLICE-OL-13 section exactly.
+
+### Semantic match
+
+**Intent:** §4.2 Eq (18) defines image-to-shader coordinate conversion. Both roundtrip theorems verify the conversion is invertible: mm→shader→mm and shader→mm→shader each return the original point.  
+**Non-vacuity:** If `toShaderCoords` had a wrong sign (e.g., `- wshader / 2` instead of `+ wshader / 2`), `fromShaderCoords` would not cancel it and the conclusion would be false. The theorems verify both directions of an actual bijection.
+
+### Proof structure and hard step
+
+**`pixel_metric_roundtrip`:**
+```lean
+ext <;> simp [fromShaderCoords, toShaderCoords] <;>
+field_simp [hw.ne', hh.ne', hs.ne']
+```
+`field_simp` closes both component goals directly after unfolding.
+
+**`image_texture_coordinate_roundtrip`:**
+```lean
+ext <;> simp [toShaderCoords, fromShaderCoords] <;>
+field_simp [hw.ne', hh.ne', hs.ne'] <;> ring
+```
+`field_simp` leaves residual arithmetic `q.x * 2 - wshader + wshader = q.x * 2`; `ring` closes it.
+
+**Hard step:** None. The asymmetry between the two proofs (one needs `ring`, one does not) is a `field_simp` normalization artifact, not a mathematical difficulty.
+
+**Calibration note:** Initial attempt removed `ring` from both theorems after `pixel_metric_roundtrip` compiled cleanly without it. IDE diagnostics immediately revealed `image_texture_coordinate_roundtrip` had unsolved residuals. `ring` restored for that theorem only.
+
+### Hypothesis justification
+
+All three positivity hypotheses are load-bearing:
+- `hw.ne' : w ≠ 0` — needed by `field_simp` for the x-component denominator in `fromShaderCoords`
+- `hh.ne' : h ≠ 0` — needed by `field_simp` for the y-component denominator in `fromShaderCoords`
+- `hs.ne' : wshader ≠ 0` — needed by `field_simp` for both component denominators in `toShaderCoords`
+
+No hypothesis is unused.
+
+### Load-bearing definition alignment
+
+- `toShaderCoords`: `⟨wshader * p.x / w + wshader / 2, wshader * p.y / h + wshader / 2⟩` — Eq (18). Not changed.
+- `fromShaderCoords`: `⟨w * (q.x - wshader / 2) / wshader, h * (q.y - wshader / 2) / wshader⟩` — inverse of Eq (18). Not changed.
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Hidden sorry | ✅ None |
+| Unused hypothesis | ✅ All three positivity hypotheses load-bearing |
+| `ring` removed without testing both theorems | ✅ Caught immediately by IDE diagnostics; corrected |
+| Vacuous theorem | ✅ Non-vacuous — wrong sign in definition would falsify the conclusion |
+| Units not documented | ✅ File header documents mm → shader pixel coordinates conversion |

@@ -566,3 +566,131 @@ The original plan proposed a single-hypothesis form with `▸` in the theorem st
 - Do not add ΔP to `fovProjectToImage` or `fovUndistortFromDistorted` — these are the ΔP-free FOV forms.
 - Do not merge `h` and `h'` into one (via `▸` in the statement) — risks elaboration issues; two-hypothesis form is the verified clean shape.
 - Do not use `sorry`.
+
+---
+
+## SLICE-OL-12 — Definitions: `angleOfView`, `fovAngleFromWidth`; theorem `angle_of_view_eq`
+
+**File:** `openlensio_semantics/AngleOfView.lean` (new file)  
+**Layer:** C
+
+### Definitions
+
+```lean
+-- Eq (6): α = 2 * arctan(r_u / F)
+noncomputable def angleOfView (F r_u : ℝ) : ℝ :=
+  2 * Real.arctan (r_u / F)
+
+-- Eq (14): θ = 2 * arctan(w / (2F))
+noncomputable def fovAngleFromWidth (F w : ℝ) : ℝ :=
+  2 * Real.arctan (w / (2 * F))
+```
+
+### Theorem
+
+```lean
+theorem angle_of_view_eq (F r_u : ℝ) (hF : 0 < F) :
+    Real.tan (angleOfView F r_u / 2) = r_u / F
+```
+
+### Intent
+
+**`angleOfView`:** The paper's Eq (6) states `r_u / F = tan(α/2)`. The natural Lean form defines `α = 2 * arctan(r_u / F)` and proves the `tan`-side of the equation. This is the standard pinhole camera FOV characterisation: a point at image-plane radius `r_u` from the principal point subtends a half-angle `arctan(r_u / F)` from the optical axis.
+
+**`fovAngleFromWidth`:** Eq (14) gives the FOV angle for a sensor of width `w`. This is `angleOfView F (w/2)` — the angle subtended by half the sensor width. The two definitions are related by `fovAngleFromWidth F w = angleOfView F (w / 2)` (trivially true, not worth a theorem).
+
+**`angle_of_view_eq`:** Proves that `tan(α/2) = r_u / F` given the definition of `α`. Uses `Real.tan_arctan : ∀ x, Real.tan (Real.arctan x) = x` from Mathlib.
+
+### Dropped theorem
+
+`fovAngleFromWidth F w = angleOfView F (w / 2)` is trivially true by `ring_nf` on the arctan argument — dropped per LAPS anti-pattern rule.
+
+### Statement audit
+
+- NOT vacuous: `Real.tan_arctan` is a non-trivial Mathlib lemma; the theorem does not hold by `rfl`.
+- `hF : 0 < F` is included even though not needed for the proof (division by F in `r_u / F` is well-typed for all F in Lean 4) because F is focal length and must be positive in the physical domain (per paper §1.3). Including the hypothesis documents the domain and prevents unphysical instantiations.
+
+### Load-bearing definitions
+
+| Name | Shape | Paper |
+|---|---|---|
+| `angleOfView` | `2 * Real.arctan (r_u / F)` | §2 Eq (6) |
+| `fovAngleFromWidth` | `2 * Real.arctan (w / (2 * F))` | §3.1 Eq (14) |
+
+### Mathlib dependency
+
+`Real.tan_arctan : ∀ (x : ℝ), Real.tan (Real.arctan x) = x`
+
+This is unconditional in Mathlib (holds for all reals, including negative inputs). No domain restriction required.
+
+### Forbidden changes
+
+- Do not replace `Real.arctan` with a custom definition.
+- Do not drop `hF` — it documents the valid domain even if not needed for the proof kernel.
+- Do not add `angleOfView F w / 2 = arctan w/2 / F` as a separate theorem — trivially true and unneeded.
+- Do not add `hF : 0 < F` back to `angle_of_view_eq` — it is unused and misleading. Domain restriction belongs to callers (ValidLensSemantics).
+- Do not use `sorry`.
+
+---
+
+## SLICE-OL-13 — `pixel_metric_roundtrip`, `image_texture_coordinate_roundtrip`
+
+**File:** `openlensio_semantics/ShaderCoords.lean` (new file)  
+**Layer:** E
+
+### Definitions
+
+```lean
+-- Eq (18): mm image coords → square shader space
+noncomputable def toShaderCoords (w h wshader : ℝ) (p : SensorPoint) : SensorPoint :=
+  ⟨wshader * p.x / w + wshader / 2, wshader * p.y / h + wshader / 2⟩
+
+-- Inverse: shader coords → mm image coords
+noncomputable def fromShaderCoords (w h wshader : ℝ) (q : SensorPoint) : SensorPoint :=
+  ⟨w * (q.x - wshader / 2) / wshader, h * (q.y - wshader / 2) / wshader⟩
+```
+
+### Theorems
+
+```lean
+-- mm → shader → mm roundtrip
+theorem pixel_metric_roundtrip
+    (w h wshader : ℝ) (hw : 0 < w) (hh : 0 < h) (hs : 0 < wshader)
+    (p : SensorPoint) :
+    fromShaderCoords w h wshader (toShaderCoords w h wshader p) = p
+
+-- shader → mm → shader roundtrip
+theorem image_texture_coordinate_roundtrip
+    (w h wshader : ℝ) (hw : 0 < w) (hh : 0 < h) (hs : 0 < wshader)
+    (q : SensorPoint) :
+    toShaderCoords w h wshader (fromShaderCoords w h wshader q) = q
+```
+
+### Intent
+
+**`toShaderCoords`:** Eq (18) maps mm image-plane coordinates (centred at origin) to square shader pixel coordinates. The sensor has physical dimensions w × h mm; the shader has resolution wshader × wshader pixels. The x-coordinate uses `w` as the denominator, the y-coordinate uses `h`. Both use `wshader` as scale and add `wshader/2` to shift the origin.
+
+**`fromShaderCoords`:** The algebraic inverse: given shader coords, recover mm coords. Requires wshader ≠ 0 for the x/y component and w, h ≠ 0 respectively.
+
+**`pixel_metric_roundtrip`:** Starting in mm, converting to shader and back gives the original point. Verifies that `toShaderCoords` and `fromShaderCoords` are inverses in the mm→shader direction.
+
+**`image_texture_coordinate_roundtrip`:** Starting in shader coords, converting to mm and back gives the original shader point. Verifies the inverse direction.
+
+### Statement audit
+
+- Both theorems are NOT trivially true by `rfl` — they require arithmetic cancellation that needs `field_simp` with nonzero denominators.
+- Hypotheses `hw, hh, hs` are all genuinely required: `field_simp` uses them as `w ≠ 0`, `h ≠ 0`, `wshader ≠ 0`. Without them, division by zero would make junk values and the roundtrip would fail.
+- Two separate theorems for two separate roundtrip directions — both are in the work queue and capture distinct properties.
+
+### Load-bearing definitions
+
+| Name | Shape | Paper |
+|---|---|---|
+| `toShaderCoords` | Eq (18): `wshader * p.x / w + wshader/2` | §4.2 Eq (18) |
+| `fromShaderCoords` | Algebraic inverse of Eq (18) | §4.2 (implied) |
+
+### Forbidden changes
+
+- Do not merge `pixel_metric_roundtrip` and `image_texture_coordinate_roundtrip` — they verify different directions.
+- Do not drop `hw`, `hh`, `hs` — all are needed for `field_simp`.
+- Do not use `sorry`.

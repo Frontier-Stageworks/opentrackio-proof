@@ -387,3 +387,85 @@ The `congr 1; congr 1` decomposition — `congr 1` on `addSensorPoints X Y = add
 ### Automation budget
 
 Two: `simp only [...]`, `rfl`.
+
+---
+
+## SLICE-OL-12 — `angle_of_view_eq`
+
+### Goal shape
+
+`Real.tan (angleOfView F r_u / 2) = r_u / F`
+
+Classification: **real function equality** — reduces to `Real.tan (Real.arctan x) = x` after unfolding.
+
+### Opening move
+
+```lean
+unfold angleOfView
+simp [Real.tan_arctan]
+```
+
+After `unfold angleOfView`, the LHS becomes `Real.tan (2 * Real.arctan (r_u / F) / 2)`. After arithmetic simplification `2 * x / 2 = x`, this becomes `Real.tan (Real.arctan (r_u / F))`. Then `Real.tan_arctan (r_u / F)` closes the goal.
+
+`simp [Real.tan_arctan]` should handle the arithmetic simplification and the Mathlib identity in one step.
+
+### Expected hard step
+
+None. The theorem is a direct consequence of `Real.tan_arctan` after unfolding the definition.
+
+### Mathlib lemma
+
+`Real.tan_arctan : ∀ (x : ℝ), Real.tan (Real.arctan x) = x` — unconditional, no domain restriction.
+
+### Automation budget
+
+Two: `unfold angleOfView`, `simp [Real.tan_arctan]`. Or one: `simp [angleOfView, Real.tan_arctan]`.
+
+---
+
+## SLICE-OL-13 — `pixel_metric_roundtrip`, `image_texture_coordinate_roundtrip`
+
+### Goal shape
+
+Two `SensorPoint` equalities:
+
+1. `fromShaderCoords w h wshader (toShaderCoords w h wshader p) = p`  
+2. `toShaderCoords w h wshader (fromShaderCoords w h wshader q) = q`
+
+Classification: **equality** — roundtrip of two component-wise affine functions over ℝ.
+
+### Opening move
+
+`ext` — splits the `SensorPoint` equality into two component goals (`x` component and `y` component).
+
+### Why it fits
+
+`toShaderCoords` and `fromShaderCoords` are defined component-wise as affine maps. After `ext`, each component goal is a rational-function identity over ℝ with `w`, `h`, `wshader` in denominators.
+
+### Expected hard step
+
+None. All three positivity hypotheses (`hw : 0 < w`, `hh : 0 < h`, `hs : 0 < wshader`) are needed to discharge division-by-zero side conditions.
+
+- `hw.ne'` provides `w ≠ 0` for the `x` component of `fromShaderCoords`
+- `hh.ne'` provides `h ≠ 0` for the `y` component of `fromShaderCoords`
+- `hs.ne'` provides `wshader ≠ 0` for both components of `toShaderCoords`
+
+### Proof script (both theorems)
+
+```lean
+theorem pixel_metric_roundtrip ... := by
+  ext <;> simp [fromShaderCoords, toShaderCoords] <;>
+  field_simp [hw.ne', hh.ne', hs.ne'] <;> ring
+
+theorem image_texture_coordinate_roundtrip ... := by
+  ext <;> simp [toShaderCoords, fromShaderCoords] <;>
+  field_simp [hw.ne', hh.ne', hs.ne'] <;> ring
+```
+
+### Helper lemmas needed
+
+None.
+
+### Automation budget
+
+Three tactics per theorem: `ext`, `simp [defs]`, `field_simp [ne'] + ring`. All mechanical.

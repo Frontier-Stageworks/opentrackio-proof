@@ -222,6 +222,14 @@ srcDir = "openlensio_semantics"
 name = "FovModel"
 srcDir = "openlensio_semantics"
 
+[[lean_lib]]
+name = "AngleOfView"
+srcDir = "openlensio_semantics"
+
+[[lean_lib]]
+name = "ShaderCoords"
+srcDir = "openlensio_semantics"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

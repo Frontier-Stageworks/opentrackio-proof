@@ -9,8 +9,8 @@ metadata:
 
 **Source document:** OpenLensIO v1.0.1 PDF  
 (`OpenLensIO_v1-0-1.pdf`, title page: "OpenLensIO Lens Model Version 1.0.0", 17 February 2025)  
-**Status:** Gates 0–3 complete. Slices OL-00, OL-01–OL-11 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-12.  
-**Phase:** Implementation — Layers B, C/D, C/E complete; next: angle-of-view / FOV equation (OL-12)
+**Status:** Gates 0–3 complete. Slices OL-00, OL-01–OL-13 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-14.  
+**Phase:** Implementation — Layers B, C/D, C/E complete; next: executable semantic oracle (OL-14)
 
 ---
 
@@ -647,7 +647,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-12 — Angle-of-view / FOV equivalence (Eq 6, 14)
+### SLICE-OL-12 — Angle-of-view / FOV equivalence (Eq 6, 14) ✅ DONE
 
 **Layer:** C + E  
 **Goal:** State Eq (6) tan formula; define FOV angle from sensor width (Eq 14)  
