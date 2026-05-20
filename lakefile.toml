@@ -230,6 +230,10 @@ srcDir = "openlensio_semantics"
 name = "ShaderCoords"
 srcDir = "openlensio_semantics"
 
+[[lean_lib]]
+name = "ExecutableSemanticOracle"
+srcDir = "openlensio_semantics"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

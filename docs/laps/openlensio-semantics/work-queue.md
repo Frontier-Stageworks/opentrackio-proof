@@ -9,8 +9,8 @@ metadata:
 
 **Source document:** OpenLensIO v1.0.1 PDF  
 (`OpenLensIO_v1-0-1.pdf`, title page: "OpenLensIO Lens Model Version 1.0.0", 17 February 2025)  
-**Status:** Gates 0–3 complete. Slices OL-00, OL-01–OL-13 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-14.  
-**Phase:** Implementation — Layers B, C/D, C/E complete; next: executable semantic oracle (OL-14)
+**Status:** Gates 0–3 complete. Slices OL-00, OL-01–OL-14 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-15.  
+**Phase:** Implementation — Layers B, C/D, C/E, F (oracle) complete; next: differential semantic testing (OL-15)
 
 ---
 

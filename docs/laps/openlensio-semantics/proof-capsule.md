@@ -694,3 +694,56 @@ theorem image_texture_coordinate_roundtrip
 - Do not merge `pixel_metric_roundtrip` and `image_texture_coordinate_roundtrip` — they verify different directions.
 - Do not drop `hw`, `hh`, `hs` — all are needed for `field_simp`.
 - Do not use `sorry`.
+
+---
+
+## SLICE-OL-14 — Executable semantic oracle
+
+File: `openlensio_semantics/ExecutableSemanticOracle.lean` (new file)  
+Layer: F
+
+### Purpose
+
+Produce Float-valued executable counterparts of the exact-real definitions from OL-05 through OL-13. No theorems are stated or claimed about Float output. The slice satisfies Gate 6 (executable model review) from the work queue.
+
+### Executable contract (not theorems)
+
+This file is a Float approximation layer only. The boundary:
+
+- **Input:** Float coefficients (k1..k6, p1, p2), Float sensor points (ex, ey)
+- **Output:** Float sensor point, OR `none` for domain failure
+- **Domain validity:** Absolute tolerance check on the radial denominator (`|denom| < 1e-10`)
+- **Accuracy:** Float approximation — IEEE 754 double precision. Not connected to exact ℝ proofs.
+- **Purpose:** Support differential testing (SLICE-OL-15) and manual inspection via `#eval`
+
+### Float structures (parallel to exact types)
+
+```lean
+structure FloatSensorPoint where x y : Float
+structure FloatRadialCoefficients where k1 k2 k3 k4 k5 k6 : Float
+structure FloatTangentialCoefficients where p1 p2 : Float
+```
+
+### Float definitions (parallel to exact definitions)
+
+| Float name | Parallels | Layer |
+|---|---|---|
+| `sensorRadius_float` | `sensorRadius` (OL-04) | C |
+| `radialTerm_float` | `radialTerm` (OL-05); returns `Option Float` | C+D |
+| `undistortX_float`, `undistortY_float` | component forms (OL-07) | C |
+| `undistortPoint_float` | `undistortPoint` (OL-07); returns `Option FloatSensorPoint` | C |
+| `undistortFromDistorted_float` | `undistortFromDistorted` (OL-10) | C |
+| `fovUndistortFromDistorted_float` | `fovUndistortFromDistorted` (OL-11) | C |
+| `toShaderCoords_float`, `fromShaderCoords_float` | shader coord conversion (OL-13) | E |
+| `angleOfView_float`, `fovAngleFromWidth_float` | FOV angle (OL-12) | C+E |
+
+### Stop condition
+
+`#eval undistortPoint_float` with identity coefficients and a test point produces the identity (within Float rounding). `#eval` with typical distortion coefficients produces a non-trivial output without panic.
+
+### Forbidden
+
+- No theorem claiming Float output = exact output
+- No `sorry`, `admit`, `unsafe`, `partial`
+- No modification to exact definitions
+- No claim that `#eval` output constitutes a proof

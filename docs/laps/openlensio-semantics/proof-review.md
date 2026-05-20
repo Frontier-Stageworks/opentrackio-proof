@@ -557,3 +557,71 @@ No hypothesis is unused.
 | `ring` removed without testing both theorems | ✅ Caught immediately by IDE diagnostics; corrected |
 | Vacuous theorem | ✅ Non-vacuous — wrong sign in definition would falsify the conclusion |
 | Units not documented | ✅ File header documents mm → shader pixel coordinates conversion |
+
+---
+
+## SLICE-OL-14 — Executable semantic oracle
+
+**Build:** `lake build ExecutableSemanticOracle` — ✅ clean, no warnings (3 jobs)  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`. No Lean theorems stated. This is an executable Layer F file — not a proof artifact.
+
+### Boundary contract verified
+
+The file header explicitly states:
+
+> ⚠ FLOAT APPROXIMATION ONLY — NOT A PROVED THEOREM ⚠
+
+No theorem is stated or proved. All definitions are computable Float functions. `#eval` output is runtime inspection, not formal verification.
+
+### Float structure fix documented
+
+Initial attempt used grouped field syntax (`k1 k2 k3 k4 k5 k6 : Float`) inside `structure where`. Lean 4 structure syntax requires each field to have its own `:` annotation — the grouped shorthand is valid for function binders but not structure fields. Fix: expanded to one field per line. This is a syntax calibration, not a semantic change.
+
+### #eval output verified
+
+All four `#eval` calls produce correct output:
+
+| Call | Expected | Actual |
+|---|---|---|
+| Identity k, p=(1,2) | `some {x=1, y=2}` | `some { x := 1.000000, y := 2.000000 }` ✅ |
+| k1=0.1, p=(1,2), r=√5, R=1+0.1×5=1.5 | `some {x=1.5, y=3}` | `some { x := 1.500000, y := 3.000000 }` ✅ |
+| Shader (5,-3), w=24, h=13.5, ws=4096 | `(≈2901.33, ≈1137.78), (5,-3)` | `({x:=2901.333333, y:=1137.777778}, {x:=5.0, y:=-3.0})` ✅ |
+| angleOfView(F=50, r_u=12) = 2·atan(0.24) | ≈0.471 | `0.471090` ✅ |
+
+The barrel distortion calculation is manually verified: r=√(1+4)=√5, R=1+0.1×5=1.5, undistortX=1.5×1=1.5, undistortY=1.5×2=3.0.
+
+### Parallel definitions verified
+
+Each Float definition mirrors its exact counterpart:
+
+| Float def | Exact def | Paper ref | Match |
+|---|---|---|---|
+| `sensorRadius_float` | `sensorRadius` | §1.1 | ✅ `Float.sqrt(x²+y²)` mirrors `Real.sqrt(x²+y²)` |
+| `radialTerm_float` | `radialTerm` | §4.1 Eq(17) | ✅ Numerator/denominator polynomial structure identical |
+| `undistortX/Y_float` | `undistortX/Y` | §4.1 Eq(16) | ✅ Same formula; R taken pre-computed vs. via `h` |
+| `undistortPoint_float` | `undistortPoint` | §4.1 | ✅ Computes r once, calls component functions |
+| `undistortFromDistorted_float` | `undistortFromDistorted` | §2 Eq(4) | ✅ Shift ε by −ΔC−ΔP, undistort, add back |
+| `fovUndistortFromDistorted_float` | `fovUndistortFromDistorted` | §3 Eq(10) | ✅ Shift by −ΔC only (FOV form, no ΔP) |
+| `toShaderCoords_float` | `toShaderCoords` | §4.2 Eq(18) | ✅ `wshader*x/w + wshader/2` |
+| `fromShaderCoords_float` | `fromShaderCoords` | §4.2 (inverse) | ✅ `w*(q-wshader/2)/wshader` |
+| `angleOfView_float` | `angleOfView` | §2 Eq(6) | ✅ `2*Float.atan(r_u/F)` |
+| `fovAngleFromWidth_float` | `fovAngleFromWidth` | §3.1 Eq(14) | ✅ `2*Float.atan(w/(2*F))` |
+
+### Domain validity approach
+
+`radialTerm_float` returns `none` if `|denom| < 1e-10`. This is a Float-level tolerance check, not a proof. Callers propagate `none` via `match`. This correctly classifies domain failures as separate from wrong answers (per Gate 6 / work queue §10 differential testing policy).
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Theorem claimed for Float output | ✅ None — no `theorem` or `lemma` in file |
+| Hidden sorry | ✅ None |
+| Float output presented as a proof | ✅ Header warning explicit; `#eval` outputs are labelled as inspection |
+| Exact definitions modified | ✅ None — oracle is a parallel file with no imports from project |
+| Grouped structure field syntax | ✅ Fixed — each field has its own `:` annotation |
+| Domain failure silently ignored | ✅ `None` propagated explicitly; tolerance-based check documented |

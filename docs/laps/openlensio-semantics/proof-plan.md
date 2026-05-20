@@ -469,3 +469,39 @@ None.
 ### Automation budget
 
 Three tactics per theorem: `ext`, `simp [defs]`, `field_simp [ne'] + ring`. All mechanical.
+
+---
+
+## SLICE-OL-14 — Executable semantic oracle
+
+No proof — this is an implementation plan for a Layer F executable.
+
+### Design decisions
+
+1. **Float-native structures**: Define `FloatSensorPoint`, `FloatRadialCoefficients`, `FloatTangentialCoefficients` independently of the exact types. Avoids `Rat.toFloat` coercion complexity; keeps the oracle self-contained.
+2. **`Option` return type for domain failure**: `radialTerm_float` returns `None` if `|denom| < 1e-10`. Callers propagate `None` via `match`. Classifies domain failures separately from wrong answers.
+3. **Pre-computed R**: `undistortX_float` and `undistortY_float` take R (the radial term) as a Float argument, computed once by `undistortPoint_float`. Matches the structure of the exact component functions but avoids redundant division.
+4. **No imports from exact definitions**: The oracle is self-contained — it imports nothing from the project. Float arithmetic is Lean 4 core.
+5. **`#eval` for demonstration**: Two `#eval` calls in the file body verify the oracle runs:
+   - Identity coefficients → input point unchanged
+   - Typical distortion → non-trivial output, not `none`
+
+### Implementation order
+
+1. Float structures (`FloatSensorPoint`, `FloatRadialCoefficients`, `FloatTangentialCoefficients`)
+2. `sensorRadius_float`
+3. `radialTerm_float` with tolerance-based domain check
+4. `undistortX_float`, `undistortY_float`
+5. `undistortPoint_float`
+6. `undistortFromDistorted_float`, `fovUndistortFromDistorted_float`
+7. `toShaderCoords_float`, `fromShaderCoords_float`
+8. `angleOfView_float`, `fovAngleFromWidth_float`
+9. `#eval` demos
+
+### Expected hard step
+
+None. All Float arithmetic is direct translation of exact definitions. Domain validity uses a tolerance check with no proof obligation.
+
+### Automation budget
+
+None (no proof). The file should compile and `#eval` should produce output matching the expected identity case.
