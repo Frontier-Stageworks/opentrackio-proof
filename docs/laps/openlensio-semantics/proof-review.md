@@ -213,3 +213,88 @@ use with `ring` in downstream proofs.
 | `h` dropped | ✅ Explicit in all three signatures |
 | U⁻¹ defined prematurely | ✅ Not present — deferred to OL-DEFER-03 |
 | Wrong tangential formula | ✅ p1/p2 placement matches Eq (16): p1 on cross terms and y², p2 on cross terms and x² |
+
+---
+
+## SLICE-OL-08 — `tangential_zero_coefficients_identity` and `brown_conrady_zero_identity`
+
+**Build:** `lake build DistortionModel` — ✅ clean  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`.
+
+### Theorem statements unchanged
+
+Match proof-capsule.md SLICE-OL-08 section exactly.
+
+### `CoordinateTypes.lean` change
+
+`@[ext]` added to `SensorPoint`. This generates `SensorPoint.ext : s.x = t.x → s.y = t.y → s = t`, which is used in the proof of `brown_conrady_zero_identity`. The annotation is a structural declaration with no mathematical content change — two sensor points are equal iff their fields are equal, which is the correct semantics. Should have been present from SLICE-OL-04. All downstream builds still clean.
+
+### Semantic match
+
+**`tangential_zero_coefficients_identity`:** Conclusion is `undistortX k p ε h = radialTerm k (sensorRadius ε) h * ε.x`. With p1=p2=0, Eq (16) U_x reduces to R·ε_x. Exact match to paper claim. Non-vacuous: with p.p1 ≠ 0 the cross term 2·p1·ε_x·ε_y survives.
+
+**`brown_conrady_zero_identity`:** Conclusion is `undistortPoint k p ε h = ε`. With all eight coefficients zero, U is the identity. Exact match to paper claim (zero distortion lens). Non-vacuous: with k1=1, radialTerm ≠ 1, so undistortPoint ≠ ε.
+
+### Proof chain verified
+
+`radial_zero_coefficients_identity` is called explicitly via `have hR`. It earns its place as a named lemma — the proof does not re-derive R=1 inline.
+
+`tangential_zero_coefficients_identity` is called explicitly via `have htang`. It earns its place — the X component proof chains through it.
+
+The Y component (`hY`) is proved inline using `simp only [undistortY, ...]`. A named Y lemma was not planned and was not needed.
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Hidden sorry | ✅ None |
+| Vacuous theorem | ✅ Both non-vacuous |
+| `radial_zero_coefficients_identity` not used | ✅ Used explicitly in `hR` |
+| `tangential_zero_coefficients_identity` not used | ✅ Used explicitly in `hX` |
+| `allZeroCoeffs` bundled predicate added unnecessarily | ✅ Not added — individual hypotheses used |
+| `@[ext]` change hidden | ✅ Noted — structural annotation, no math change |
+
+---
+
+## SLICE-OL-09 — `deltaP_characterisation`, `deltaC_characterisation`, `distortion_center_translation_commutes`
+
+**Build:** `lake build DeltaSemantics` — ✅ clean (warnings for unused `ring` on first two theorems resolved)  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`.
+
+### Theorem statements unchanged
+
+Match proof-capsule.md SLICE-OL-09 section exactly.
+
+### AMB-OL-002 sign verified
+
+All three theorems use `addSensorPoints` (addition). The proof plan noted: if the sign were subtraction, `deltaP_characterisation` would require `(p.x - q.x) - q.x = p.x` → `p.x - 2·q.x = p.x` — false unless q=0. The theorems compiling without `sorry` confirms the addition sign is correct and consistent. AMB-OL-002 resolution is embedded in the definitions.
+
+### Semantic match
+
+**`deltaP_characterisation`:** `(ε'_u + ΔP) − ΔP = ε'_u`. Eq (12) roundtrip. Non-vacuous: false with wrong sign.
+
+**`deltaC_characterisation`:** Same algebraic form for Eq (13). Documents the separate paper equation. Non-vacuous: same argument.
+
+**`distortion_center_translation_commutes`:** `(ε'_d + ΔP) − ΔC − ΔP = ε'_d − ΔC`. Captures the key §3 consistency fact: the two parametrisations feed U the same distortion-centred argument. Non-vacuous: requires two-step cancellation; fails if either sign is wrong.
+
+### Proof cleanup
+
+Initial proofs used `ext <;> simp [...] <;> ring`. The linter reported `ring` unused on `deltaP_characterisation` and `deltaC_characterisation` — `simp` already handles `a + b - b = a` via Mathlib's `add_sub_cancel` simp set. `ring` removed from those two. `distortion_center_translation_commutes` needed `ring` (two-step linear arithmetic) — kept.
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Hidden sorry | ✅ None |
+| Wrong AMB-OL-002 sign | ✅ Theorems proven; addition confirmed correct |
+| `deltaP` and `deltaC` merged into one theorem | ✅ Kept separate — different paper equations |
+| `distortion_center_translation_commutes` trivially true | ✅ Non-trivial: requires ΔP cancellation across three points |
+| Unused tactics | ✅ Cleaned after linter warnings |

@@ -281,6 +281,7 @@ forwarded to `radialTerm` inside the body — no new nonzero evidence is created
 
 ### Deferred
 
+- Zero-distortion identity `U(ϵ) = ϵ` (SLICE-OL-08 — next slice)
 - Invertibility of U (U⁻¹, SLICE-OL-DEFER-03)
 - Continuity and monotonicity (deferred per work queue)
 - Zero-distortion identity `U(ϵ) = ϵ` when all coefficients zero (SLICE-OL-08)
@@ -290,3 +291,130 @@ forwarded to `radialTerm` inside the body — no new nonzero evidence is created
 - Do not use the diagonal matrix form — component form is the chosen representation.
 - Do not drop `h` from the signatures.
 - Do not define U⁻¹ in this slice.
+
+---
+
+## SLICE-OL-08 — `tangential_zero_coefficients_identity` and `brown_conrady_zero_identity`
+
+**File:** `openlensio_semantics/DistortionModel.lean` (added theorems)  
+**Layer:** E (algebraic identity)
+
+### Theorems
+
+```lean
+theorem tangential_zero_coefficients_identity
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (ε : SensorPoint) (h : denominatorNonzero k (sensorRadius ε))
+    (hp1 : p.p1 = 0) (hp2 : p.p2 = 0) :
+    undistortX k p ε h = radialTerm k (sensorRadius ε) h * ε.x
+
+theorem brown_conrady_zero_identity
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (ε : SensorPoint) (h : denominatorNonzero k (sensorRadius ε))
+    (hk1 : k.k1 = 0) (hk2 : k.k2 = 0) (hk3 : k.k3 = 0)
+    (hk4 : k.k4 = 0) (hk5 : k.k5 = 0) (hk6 : k.k6 = 0)
+    (hp1 : p.p1 = 0) (hp2 : p.p2 = 0) :
+    undistortPoint k p ε h = ε
+```
+
+### Intent
+
+**`tangential_zero_coefficients_identity`:** With zero tangential coefficients, the x-component of U reduces to R·ϵ_x. This is the intermediate step between "p=0" and "U_x = ϵ_x". It is a planned stepping stone: used explicitly in the proof of `brown_conrady_zero_identity` to derive the X component.
+
+**`brown_conrady_zero_identity`:** When all eight distortion coefficients are zero, the undistortion function is the identity. This is the central zero-distortion claim of the OpenLensIO model: a flat lens with no distortion leaves coordinates unchanged. It closes the identity proof chain started by `radial_zero_coefficients_identity`.
+
+### Statement audit
+
+- **`tangential_zero_coefficients_identity`:** NOT vacuous — the conclusion is false when p.p1 ≠ 0 (tangential cross term survives). Hypotheses hp1, hp2 are independently satisfiable.
+- **`brown_conrady_zero_identity`:** NOT vacuous — the conclusion `undistortPoint k p ε h = ε` is false for non-zero coefficients (R ≠ 1 or tangential terms ≠ 0). The 8 zero conditions are all genuinely required.
+- Work queue specified `allZeroCoeffs k p → ...` as a bundled predicate. Deviation: individual hypotheses taken instead. Bundling would require a new definition with no mathematical benefit; `allZeroCoeffs` is not defined elsewhere. Individual hypotheses are cleaner to use with `simp` and `rw`.
+- The `h : denominatorNonzero k (sensorRadius ε)` is structurally required by `radialTerm` (same pattern as `radial_zero_coefficients_identity`).
+
+### Proof chain
+
+```
+radial_zero_coefficients_identity  (OL-06)  →  hR : radialTerm ... = 1
+tangential_zero_coefficients_identity       →  hX : undistortX ... = R·ε.x
+                               hR + hX     →  undistortX ... = ε.x
+                                            →  undistortY ... = ε.y (inline)
+                                            →  undistortPoint ... = ε
+```
+
+`radial_zero_coefficients_identity` is called explicitly in the proof of `brown_conrady_zero_identity`. This confirms it earns its place as a named lemma.
+
+### Load-bearing definitions
+
+| Name | Role |
+|---|---|
+| `undistortX`, `undistortY` | Unfolded to expose polynomial structure |
+| `undistortPoint` | Packages x and y; equality proved by `SensorPoint.ext` |
+| `radialTerm` | Appears in `tangential_zero_coefficients_identity`'s conclusion; replaced by 1 via `hR` |
+| `radial_zero_coefficients_identity` | Called explicitly in `brown_conrady_zero_identity` |
+
+### Forbidden changes
+
+- Do not add `allZeroCoeffs` as a new definition just to match the work queue form.
+- Do not drop `tangential_zero_coefficients_identity` before verifying it is used in the `brown_conrady_zero_identity` proof.
+- Do not use `sorry`.
+
+---
+
+## SLICE-OL-09 — `deltaP_characterisation`, `deltaC_characterisation`, `distortion_center_translation_commutes`
+
+**File:** `openlensio_semantics/DeltaSemantics.lean` (new file)  
+**Layer:** C + E
+
+### AMB-OL-002 resolution (load-bearing)
+
+Paper Eq (13) is the authority: `ε_d = ε'_d + ΔP` (addition).
+The inline text near Eq (10) states `ε'_d = ε_d + ΔP` — this is a typo with the wrong sign.
+Mathematical verification: Eq (13) sign is consistent with the rest of the model:
+  `ε_u = U(ε_d − ΔC − ΔP) + ΔC + ΔP` (Eq 4)  
+  with `ε_d = ε'_d + ΔP` → argument = `ε'_d − ΔC` = argument of Eq (10). ✓
+
+**All ΔP shift operations in this slice use addition, not subtraction.**
+If this resolution is wrong, all three theorems below have the wrong sign.
+
+### Definitions
+
+```lean
+def addSensorPoints (p q : SensorPoint) : SensorPoint := ⟨p.x + q.x, p.y + q.y⟩
+def subSensorPoints (p q : SensorPoint) : SensorPoint := ⟨p.x - q.x, p.y - q.y⟩
+```
+
+### Theorems
+
+```lean
+-- Eq (12): (ε'_u + ΔP) − ΔP = ε'_u
+theorem deltaP_characterisation (ε'_u ΔP : SensorPoint) :
+    subSensorPoints (addSensorPoints ε'_u ΔP) ΔP = ε'_u
+
+-- Eq (13): (ε'_d + ΔP) − ΔP = ε'_d
+theorem deltaC_characterisation (ε'_d ΔP : SensorPoint) :
+    subSensorPoints (addSensorPoints ε'_d ΔP) ΔP = ε'_d
+
+-- Consistency of Eq (4) and Eq (10): (ε'_d + ΔP) − ΔC − ΔP = ε'_d − ΔC
+theorem distortion_center_translation_commutes (ε'_d ΔP ΔC : SensorPoint) :
+    subSensorPoints (subSensorPoints (addSensorPoints ε'_d ΔP) ΔC) ΔP =
+    subSensorPoints ε'_d ΔC
+```
+
+### Intent
+
+**`deltaP_characterisation`:** Documents Eq (12) — the ΔP shift is invertible; shifting and unshifting returns to the original FOV-form coordinate. Confirms the AMB-OL-002 sign choice is consistent: addition.
+
+**`deltaC_characterisation`:** Documents Eq (13) — same algebraic form for distorted coordinates. Both are instances of `(p + q) − q = p`; they are stated separately to document which paper equation each corresponds to.
+
+**`distortion_center_translation_commutes`:** The key algebraic fact from §3: when `ε_d = ε'_d + ΔP`, the argument `ε_d − ΔC − ΔP` in Eq (4) equals `ε'_d − ΔC` in Eq (10). The ΔP terms cancel. This is why the two parametrisations produce the same undistorted coordinate.
+
+### Statement audit
+
+- `deltaP_characterisation` and `deltaC_characterisation` are algebraically identical (`(p + q) − q = p`). They are kept as separate theorems for documentation: one for Eq (12) (undistorted), one for Eq (13) (distorted). Neither is vacuous — the conclusion is false if the sign were subtraction instead of addition.
+- `distortion_center_translation_commutes` is NOT the same as the previous two. It involves three points and captures a two-step cancellation.
+- AMB-OL-002 sign is load-bearing for all three. If the sign in the definitions were reversed, all theorems would fail.
+
+### Forbidden changes
+
+- Do not change `addSensorPoints` to use subtraction — the AMB-OL-002 resolution explicitly requires addition.
+- Do not merge `deltaP_characterisation` and `deltaC_characterisation` into one — they document different paper equations.
+- Do not use `sorry`.

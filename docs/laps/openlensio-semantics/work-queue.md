@@ -9,8 +9,8 @@ metadata:
 
 **Source document:** OpenLensIO v1.0.1 PDF  
 (`OpenLensIO_v1-0-1.pdf`, title page: "OpenLensIO Lens Model Version 1.0.0", 17 February 2025)  
-**Status:** Gates 0–3 complete. Slices OL-00, OL-04, OL-01–OL-03, OL-05–OL-07 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-08.  
-**Phase:** Implementation — Layer B complete; Layer C underway (RadialPolynomial, DistortionModel done)
+**Status:** Gates 0–3 complete. Slices OL-00, OL-01–OL-09 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-10.  
+**Phase:** Implementation — Layers B, C/D, C/E complete; next: projection model (OL-10)
 
 ---
 
@@ -577,7 +577,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-08 — Zero-distortion identity theorem
+### SLICE-OL-08 — Zero-distortion identity theorem ✅ DONE (Stop 4 complete)
 
 **Layer:** E  
 **Goal:** When all k and p coefficients are zero, U(ϵ) = ϵ  
@@ -595,7 +595,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-09 — ΔP and ΔC definitions and translation lemmas
+### SLICE-OL-09 — ΔP and ΔC definitions and translation lemmas ✅ DONE (Stop 4 complete)
 
 **Layer:** C + E  
 **Goal:** Define the ΔP and ΔC offset operations; prove translation properties  

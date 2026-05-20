@@ -210,6 +210,10 @@ srcDir = "openlensio_semantics"
 name = "DistortionModel"
 srcDir = "openlensio_semantics"
 
+[[lean_lib]]
+name = "DeltaSemantics"
+srcDir = "openlensio_semantics"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

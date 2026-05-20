@@ -147,3 +147,103 @@ Unfolds `radialTerm` directly and substitutes all six zero hypotheses. Both nume
 ### Hard step
 
 None. The proof is pure arithmetic simplification after unfolding the definition.
+
+---
+
+## SLICE-OL-08 — `tangential_zero_coefficients_identity` and `brown_conrady_zero_identity`
+
+### `tangential_zero_coefficients_identity`
+
+**Goal shape:** `undistortX k p ε h = radialTerm k (sensorRadius ε) h * ε.x`
+
+**Classification:** Equality — polynomial simplification after substituting p1=p2=0.
+
+**Opening move:** `simp only [undistortX, hp1, hp2, mul_zero, zero_mul, add_zero]`
+
+Unfolds `undistortX`, substitutes zeros, and reduces:
+- `2 * 0 * ε.x * ε.y → 0`
+- `0 * (r^2 + 2 * ε.x^2) → 0`
+- `radialTerm k r h * ε.x + 0 + 0 → radialTerm k r h * ε.x`
+
+**Hard step:** None.
+
+---
+
+### `brown_conrady_zero_identity`
+
+**Goal shape:** `undistortPoint k p ε h = ε`
+
+**Classification:** Structural equality of `SensorPoint` values.
+
+**Proof structure:** Three `have` steps, then close with `SensorPoint.ext`.
+
+**Step 1 — R = 1:**
+```lean
+have hR : radialTerm k (sensorRadius ε) h = 1 :=
+  radial_zero_coefficients_identity k (sensorRadius ε) hk1 hk2 hk3 hk4 hk5 hk6 h
+```
+Calls `radial_zero_coefficients_identity` (OL-06) explicitly. This confirms that lemma earns its place.
+
+**Step 2 — X component:**
+```lean
+have hX : undistortX k p ε h = ε.x := by
+  have htang := tangential_zero_coefficients_identity k p ε h hp1 hp2
+  rw [htang, hR, one_mul]
+```
+Calls `tangential_zero_coefficients_identity` (this slice), then rewrites R to 1, then closes with `one_mul`.
+
+**Step 3 — Y component (inline, no named lemma):**
+```lean
+have hY : undistortY k p ε h = ε.y := by
+  simp only [undistortY, hp1, hp2, hR, mul_zero, zero_mul, add_zero, one_mul]
+```
+Y is handled inline — symmetric to X, but no named stepping-stone lemma was planned for it.
+
+**Step 4 — Conclude:**
+```lean
+exact SensorPoint.ext hX hY
+```
+`SensorPoint.ext : s.x = t.x → s.y = t.y → s = t`. Since `undistortPoint` is definitionally `⟨undistortX ..., undistortY ...⟩`, `hX` and `hY` serve as proofs of the field equalities.
+
+**Hard step:** None — structure equality follows from field equalities; field equalities follow from arithmetic simplification.
+
+**Potential issue:** `SensorPoint.ext` expects `(undistortPoint k p ε h).x = ε.x` but `hX` has type `undistortX k p ε h = ε.x`. These are definitionally equal so Lean's kernel accepts this, but if not, use `show` to coerce or unfold `undistortPoint` first.
+
+---
+
+## SLICE-OL-09 — `deltaP_characterisation`, `deltaC_characterisation`, `distortion_center_translation_commutes`
+
+All three theorems are component-level arithmetic closed by `ring` after unfolding definitions and splitting into x and y goals via `ext`.
+
+### Common proof shape
+
+```lean
+ext <;> simp [addSensorPoints, subSensorPoints] <;> ring
+```
+
+- `ext` splits the `SensorPoint` equality into two `ℝ` equalities (`.x` and `.y`).
+- `simp [addSensorPoints, subSensorPoints]` unfolds the definitions, exposing the raw arithmetic.
+- `ring` closes each component goal.
+
+### `deltaP_characterisation`
+
+Goal after `ext`, x-component: `(ε'_u.x + ΔP.x) - ΔP.x = ε'_u.x`  
+Closed by `ring` (`a + b - b = a`).
+
+### `deltaC_characterisation`
+
+Identical structure. Same proof.
+
+### `distortion_center_translation_commutes`
+
+Goal after `ext`, x-component: `((ε'_d.x + ΔP.x) - ΔC.x) - ΔP.x = ε'_d.x - ΔC.x`  
+After ring normalization: `ε'_d.x + ΔP.x - ΔC.x - ΔP.x = ε'_d.x - ΔC.x` → `ε'_d.x - ΔC.x = ε'_d.x - ΔC.x` ✓  
+Closed by `ring`.
+
+### Hard step
+
+None. All goals are linear arithmetic after unfolding.
+
+### AMB-OL-002 test
+
+If `addSensorPoints` used subtraction instead of addition, `deltaP_characterisation` would require `(ε'_u.x - ΔP.x) - ΔP.x = ε'_u.x` → `ε'_u.x - 2·ΔP.x = ε'_u.x` — false unless ΔP=0. The proof failing with wrong-sign definitions confirms the sign is meaningful.

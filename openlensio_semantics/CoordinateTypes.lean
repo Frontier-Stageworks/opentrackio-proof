@@ -22,6 +22,7 @@ import Mathlib.Tactic
   ϵ_x increases to the right; ϵ_y increases downward (§1.2 Fig 1).
 ─────────────────────────────────────────────────────────────────────────────-/
 
+@[ext]
 structure SensorPoint where
   x : ℝ
   y : ℝ
