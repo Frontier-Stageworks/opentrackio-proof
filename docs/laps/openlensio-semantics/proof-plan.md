@@ -95,23 +95,7 @@ Do NOT add a second focused bullet `·` for this branch — it will produce "No 
 
 ---
 
-## SLICE-OL-05 — `radialTerm_eq` and `radial_denominator_nonzero_zero_coeffs`
-
-### `radialTerm_eq`
-
-**Goal shape:** Definitional equality — `radialTerm k r h = <expression>`.
-
-**Classification:** Definitional equality.
-
-**Opening move:** `rfl` — `radialTerm` is defined as exactly that expression. Lean's kernel will accept the proof term directly.
-
-**Hard step:** None.
-
-**Automation budget:** One tactic: `rfl`.
-
----
-
-### `radial_denominator_nonzero_zero_coeffs`
+## SLICE-OL-05 — `radial_denominator_nonzero_zero_coeffs`
 
 **Goal shape:** `denominatorNonzero k r` where `denominatorNonzero k r` unfolds to `1 + k.k2 * r^2 + k.k4 * r^4 + k.k6 * r^6 ≠ 0`.
 
@@ -145,9 +129,9 @@ Classification: **equality** — between a noncomputable real division expressio
 
 ### Opening move
 
-`simp only [radialTerm_eq, hk1, hk2, hk3, hk4, hk5, hk6, mul_zero, add_zero]`
+`simp only [radialTerm, hk1, hk2, hk3, hk4, hk5, hk6]`
 
-This rewrites `radialTerm k r h` to its fraction form (via `radialTerm_eq`), substitutes all six zero hypotheses, then applies the arithmetic simp lemmas `mul_zero` and `add_zero` to reduce both numerator and denominator to `1`. The residual goal is `(1 : ℝ) / 1 = 1`.
+Unfolds `radialTerm` directly and substitutes all six zero hypotheses. Both numerator and denominator reduce to `1`. The residual goal is `(1 : ℝ) / 1 = 1`.
 
 ### Closing the residual
 
@@ -156,19 +140,10 @@ This rewrites `radialTerm k r h` to its fraction form (via `radialTerm_eq`), sub
 ### Full proof sketch
 
 ```lean
-  simp only [radialTerm_eq, hk1, hk2, hk3, hk4, hk5, hk6, mul_zero, add_zero]
+  simp only [radialTerm, hk1, hk2, hk3, hk4, hk5, hk6]
   norm_num
 ```
 
-### Fallback if simp leaves `zero_mul` residuals
-
-If `mul_zero` alone does not close `0 * r^n`, also add `zero_mul` to the simp set.
-Alternatively, `ring_nf` after the substitutions normalizes polynomial arithmetic.
-
-### Why no `field_simp` here
-
-`field_simp` would require a nonzero denominator side condition. Since we are not dividing at the goal level after simplification (the denominator reduces to 1 which simp handles), `field_simp` is unnecessary.
-
 ### Hard step
 
-None. The proof is pure arithmetic simplification after rewriting with the definition.
+None. The proof is pure arithmetic simplification after unfolding the definition.

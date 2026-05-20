@@ -94,7 +94,7 @@ All parameters are the inputs to `extractLensSemantics`. No hypothesis was added
 
 ---
 
-## SLICE-OL-05 — `radialTerm_eq` and `radial_denominator_nonzero_zero_coeffs`
+## SLICE-OL-05 — `radial_denominator_nonzero_zero_coeffs`
 
 **Build:** `lake build RadialPolynomial` — ✅ clean  
 **Date:** 2026-05-20
@@ -103,13 +103,11 @@ All parameters are the inputs to `extractLensSemantics`. No hypothesis was added
 
 No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`. Standard Mathlib axioms only.
 
-### Theorem statements unchanged
+### Theorem statement unchanged
 
-Match proof-capsule.md SLICE-OL-05 section exactly.
+Matches proof-capsule.md SLICE-OL-05 section. `radialTerm_eq` was removed — it was a trivially-true definitional tautology added speculatively; `simp only [radialTerm, ...]` serves the same purpose directly.
 
 ### Semantic match
-
-**`radialTerm_eq`:** The conclusion is the definition of `radialTerm` verbatim — a definitional equality proved by `rfl`. This exists to give downstream proofs a named rewrite lemma.
 
 **`radial_denominator_nonzero_zero_coeffs`:** Intent is to confirm `denominatorNonzero` is satisfiable (non-vacuous precondition) and to provide the canonical instance for zero denominator coefficients. The conclusion unfolds to `1 ≠ 0` after substitution — a genuine fact, not tautological.
 
@@ -160,10 +158,10 @@ After `simp only [radialTerm_eq, hk1..hk6]`, both numerator and denominator redu
 
 ### Proof structure
 
-- `simp only [radialTerm_eq, hk1, hk2, hk3, hk4, hk5, hk6]` — rewrites `radialTerm` to its fraction form and substitutes zeros; Lean's built-in ring simplification reduces the sums to 1.
+- `simp only [radialTerm, hk1, hk2, hk3, hk4, hk5, hk6]` — unfolds `radialTerm` and substitutes zeros; Lean's built-in ring simplification reduces the sums to 1.
 - `norm_num` — closes `(1 : ℝ) / 1 = 1`.
 
-**Note:** Initial proof included `mul_zero` and `add_zero` in the simp set. IDE linter reported them unused — they were removed. Lean's simp already handles `k * 0 → 0` via the substituted hypotheses directly.
+**Note:** Initial proof used `radialTerm_eq` as a rewrite lemma. That theorem was removed (trivial tautology added speculatively); replaced with direct `simp only [radialTerm, ...]`. Also removed `mul_zero`/`add_zero` after linter reported them unused.
 
 ### Anti-pattern scan
 
@@ -174,3 +172,44 @@ After `simp only [radialTerm_eq, hk1..hk6]`, both numerator and denominator redu
 | `h` parameter dropped to avoid domain obligation | ✅ Explicit `h` present |
 | Unused simp lemmas | ✅ Cleaned up after linter warning |
 | Wrong coefficient role (num/den swap) | ✅ Correct — k1,k3,k5 zeroed in numerator; k2,k4,k6 zeroed in denominator |
+
+---
+
+## SLICE-OL-07 — `undistortX`, `undistortY`, `undistortPoint`
+
+**Build:** `lake build DistortionModel` — ✅ clean  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`. Definition-only slice.
+
+### Definition match to paper
+
+| Definition | Paper equation | Match |
+|---|---|---|
+| `undistortX` | §4.1 Eq (16): R·ϵ_x + 2p1·ϵ_x·ϵ_y + p2·(r²+2ϵ_x²) | ✅ Exact |
+| `undistortY` | §4.1 Eq (16): R·ϵ_y + p1·(r²+2ϵ_y²) + 2p2·ϵ_x·ϵ_y | ✅ Exact |
+| `undistortPoint` | U(ϵ) = (U_x, U_y) | ✅ Packages x and y |
+
+### Domain predicate threading
+
+`h : denominatorNonzero k (sensorRadius ε)` is forwarded to `radialTerm` in both
+`undistortX` and `undistortY`. No new nonzero evidence is created inside the definitions.
+The predicate obligation is visible at every call site.
+
+### Component form audit (AMB-OL-004)
+
+The diagonal matrix form U(ϵ) = diag(R,R)·ϵ + tangential_terms from the paper is
+algebraically equivalent to the component form defined here. The choice of component form
+is intentional — it avoids matrix infrastructure and keeps all expressions in ℝ for direct
+use with `ring` in downstream proofs.
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Matrix form used | ✅ Component form — no matrix types |
+| `h` dropped | ✅ Explicit in all three signatures |
+| U⁻¹ defined prematurely | ✅ Not present — deferred to OL-DEFER-03 |
+| Wrong tangential formula | ✅ p1/p2 placement matches Eq (16): p1 on cross terms and y², p2 on cross terms and x² |

@@ -163,11 +163,6 @@ No hypothesis was added beyond what is needed to state the soundness property.
 ### Theorems
 
 ```lean
-theorem radialTerm_eq (k : RadialCoefficients) (r : ℝ) (h : denominatorNonzero k r) :
-    radialTerm k r h =
-    (1 + k.k1 * r ^ 2 + k.k3 * r ^ 4 + k.k5 * r ^ 6) /
-    (1 + k.k2 * r ^ 2 + k.k4 * r ^ 4 + k.k6 * r ^ 6)
-
 theorem radial_denominator_nonzero_zero_coeffs
     (k : RadialCoefficients) (r : ℝ)
     (hk2 : k.k2 = 0) (hk4 : k.k4 = 0) (hk6 : k.k6 = 0) :
@@ -175,8 +170,6 @@ theorem radial_denominator_nonzero_zero_coeffs
 ```
 
 ### Intent
-
-**`radialTerm_eq`:** States the defining equation of the radial factor R (§4.1 Eq 17) as a theorem for downstream use (rewriting in proofs of distortion lemmas).
 
 **`radial_denominator_nonzero_zero_coeffs`:** The canonical concrete domain-safety instance. When all denominator coefficients are zero the denominator equals 1, which is nonzero. Confirms that `denominatorNonzero` is satisfiable (non-vacuous as a precondition) and that callers can discharge it in the most common case (no rational denominator terms, i.e., plain polynomial R).
 
@@ -229,20 +222,71 @@ k coefficients has no radial distortion.
 
 ### Statement audit
 
-- Takes explicit `h : denominatorNonzero k r` so the statement is valid for any denominator-nonzero instance, not just the zero-coefficient one. This is the more general (stronger) form; callers can supply `radial_denominator_nonzero_zero_coeffs` when needed.
-- NOT vacuous: the conclusion `radialTerm k r h = 1` is false when e.g. k1 = 1 (numerator becomes 1 + r²).
-- No extra hypotheses beyond what's needed: the six zero conditions are exactly sufficient.
+- Takes explicit `h : denominatorNonzero k r` because `radialTerm` requires it as part of its signature — any caller of `radialTerm` already holds an `h`. This is not "the more general form"; `h` is structurally required by the function, not an independent precondition. Note: `h` is also derivable from `hk2`, `hk4`, `hk6` via `radial_denominator_nonzero_zero_coeffs`, so it is redundant as a logical hypothesis. It appears because the theorem statement must apply `radialTerm k r h`.
+- NOT vacuous: the conclusion `radialTerm k r h = 1` is false when e.g. k1 = 1 (numerator becomes 1 + r²). The six zero conditions are genuinely required.
+- Planned stepping stone: this lemma exists to support `brown_conrady_zero_identity` (SLICE-OL-08). If OL-08 does not call it, it should be removed at that point.
 
 ### Load-bearing definitions
 
 | Name | Role |
 |---|---|
-| `radialTerm` | Defined as numerator/denominator; both reduce to 1 when all k = 0 |
-| `radialTerm_eq` | Used as a rewrite lemma to expose the fraction |
+| `radialTerm` | Defined as numerator/denominator; both reduce to 1 when all k = 0; unfolded directly via `simp only [radialTerm, ...]` |
 | `denominatorNonzero` | Required by `radialTerm`; not a proof-hiding device here |
 
 ### Forbidden changes
 
-- Do not drop the `h` parameter and use a default proof — the explicit hypothesis is load-bearing design.
-- Do not change `radialTerm_eq` to accommodate the proof.
+- Do not drop the `h` parameter — `radialTerm` requires it.
 - Do not use `sorry`.
+
+---
+
+## SLICE-OL-07 — Model audit: `undistortX`, `undistortY`, `undistortPoint`
+
+**File:** `openlensio_semantics/DistortionModel.lean`  
+**Layer:** C  
+**No theorems — definition audit only**
+
+### Equations from paper
+
+§4.1 Eq (16), component (non-singular) form:
+
+```
+U_x(ϵ) = R·ϵ_x + 2·p1·ϵ_x·ϵ_y + p2·(r² + 2·ϵ_x²)
+U_y(ϵ) = R·ϵ_y + p1·(r² + 2·ϵ_y²) + 2·p2·ϵ_x·ϵ_y
+```
+
+where r = sensorRadius ϵ and R = radialTerm k r h.
+
+### Design choice (AMB-OL-004)
+
+Component form (above) chosen over the diagonal matrix form in the paper.
+The diagonal form U(ϵ) = diag(R,R)·ϵ + tangential_terms is algebraically equivalent
+but involves a 2×2 matrix, which would require defining matrix types or using Mathlib's
+`Matrix`. The component form stays in `ℝ` and lets `ring` close polynomial identities
+directly. The equivalence is definitional.
+
+### Model audit
+
+| Name | Type | Paper source | Invariants encoded |
+|---|---|---|---|
+| `undistortX` | `RadialCoefficients → TangentialCoefficients → SensorPoint → denominatorNonzero k (sensorRadius ε) → ℝ` | §4.1 Eq (16) U_x | denominatorNonzero via h |
+| `undistortY` | same shape, returns U_y | §4.1 Eq (16) U_y | denominatorNonzero via h |
+| `undistortPoint` | `... → SensorPoint` | §4.1 Eq (16) full U(ϵ) | packages x and y components |
+
+### Domain predicate threading
+
+`h : denominatorNonzero k (sensorRadius ε)` is the domain predicate. It is passed as an
+explicit argument to `undistortX`, `undistortY`, and `undistortPoint`. The same `h` is
+forwarded to `radialTerm` inside the body — no new nonzero evidence is created.
+
+### Deferred
+
+- Invertibility of U (U⁻¹, SLICE-OL-DEFER-03)
+- Continuity and monotonicity (deferred per work queue)
+- Zero-distortion identity `U(ϵ) = ϵ` when all coefficients zero (SLICE-OL-08)
+
+### Forbidden changes
+
+- Do not use the diagonal matrix form — component form is the chosen representation.
+- Do not drop `h` from the signatures.
+- Do not define U⁻¹ in this slice.

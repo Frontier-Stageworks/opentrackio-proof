@@ -9,8 +9,8 @@ metadata:
 
 **Source document:** OpenLensIO v1.0.1 PDF  
 (`OpenLensIO_v1-0-1.pdf`, title page: "OpenLensIO Lens Model Version 1.0.0", 17 February 2025)  
-**Status:** Gates 0–3 complete. Slices OL-00, OL-04, OL-01, OL-02, OL-03, OL-05 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-06.  
-**Phase:** Implementation — Layer B complete; Layer C/D entry complete (RadialPolynomial)
+**Status:** Gates 0–3 complete. Slices OL-00, OL-04, OL-01–OL-03, OL-05–OL-07 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-08.  
+**Phase:** Implementation — Layer B complete; Layer C underway (RadialPolynomial, DistortionModel done)
 
 ---
 
@@ -562,7 +562,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-07 — Brown-Conrady distortion function definition
+### SLICE-OL-07 — Brown-Conrady distortion function definition ✅ DONE (Stop 4 complete)
 
 **Layer:** C  
 **Goal:** Define `undistortX`, `undistortY`, `undistortPoint` in component (non-singular) form  

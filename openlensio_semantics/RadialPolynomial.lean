@@ -41,18 +41,6 @@ noncomputable def radialTerm (k : RadialCoefficients) (r : ℝ)
   (1 + k.k2 * r ^ 2 + k.k4 * r ^ 4 + k.k6 * r ^ 6)
 
 /-─────────────────────────────────────────────────────────────────────────────
-  radialTerm_eq
-
-  The defining equation for radialTerm, stated explicitly for downstream use
-  as a rewrite lemma in distortion and identity proofs.
-─────────────────────────────────────────────────────────────────────────────-/
-
-theorem radialTerm_eq (k : RadialCoefficients) (r : ℝ) (h : denominatorNonzero k r) :
-    radialTerm k r h =
-    (1 + k.k1 * r ^ 2 + k.k3 * r ^ 4 + k.k5 * r ^ 6) /
-    (1 + k.k2 * r ^ 2 + k.k4 * r ^ 4 + k.k6 * r ^ 6) := rfl
-
-/-─────────────────────────────────────────────────────────────────────────────
   radial_denominator_nonzero_zero_coeffs
 
   Canonical domain-safety instance: when all denominator coefficients are zero,
@@ -84,5 +72,5 @@ theorem radial_zero_coefficients_identity
     (hk4 : k.k4 = 0) (hk5 : k.k5 = 0) (hk6 : k.k6 = 0)
     (h : denominatorNonzero k r) :
     radialTerm k r h = 1 := by
-  simp only [radialTerm_eq, hk1, hk2, hk3, hk4, hk5, hk6]
+  simp only [radialTerm, hk1, hk2, hk3, hk4, hk5, hk6]
   norm_num

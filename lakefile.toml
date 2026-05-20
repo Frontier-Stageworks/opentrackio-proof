@@ -206,6 +206,10 @@ srcDir = "openlensio_semantics"
 name = "RadialPolynomial"
 srcDir = "openlensio_semantics"
 
+[[lean_lib]]
+name = "DistortionModel"
+srcDir = "openlensio_semantics"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
