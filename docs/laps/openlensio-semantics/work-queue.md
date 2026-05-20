@@ -9,8 +9,8 @@ metadata:
 
 **Source document:** OpenLensIO v1.0.1 PDF  
 (`OpenLensIO_v1-0-1.pdf`, title page: "OpenLensIO Lens Model Version 1.0.0", 17 February 2025)  
-**Status:** Gate 0 complete. Gate 1 pending explicit review.  
-**Phase:** Planning / pre-implementation
+**Status:** Gates 0–3 complete. Slices OL-00, OL-04, OL-01, OL-02, OL-03 DONE. Stop 4 (proof review) complete for OL-03. Awaiting authorization for SLICE-OL-05.  
+**Phase:** Implementation — Layer B complete; ready for Layer C (radial polynomial)
 
 ---
 
@@ -454,7 +454,7 @@ opentrackio_parser
 
 ## 7. Slice Breakdown
 
-### SLICE-OL-00 — Project skeleton and imports
+### SLICE-OL-00 — Project skeleton and imports ✅ DONE
 
 **Layer:** A/B boundary  
 **Goal:** Create `openlensio_semantics` Lean project with correct imports, no theorems yet  
@@ -469,7 +469,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-01 — Semantic bridge types
+### SLICE-OL-01 — Semantic bridge types ✅ DONE
 
 **Layer:** B  
 **Goal:** Define `LensSemantics`, `RadialCoefficients`, `TangentialCoefficients`, `ProjectionParameters`, `ValidLensSemantics`  
@@ -484,7 +484,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-02 — Semantic extraction function
+### SLICE-OL-02 — Semantic extraction function ✅ DONE
 
 **Layer:** B  
 **Goal:** Define `extractLensSemantics : Lens → Except SemanticError LensSemantics`; parse raw string coefficients to `ℚ`  
@@ -499,7 +499,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-03 — Semantic extraction soundness
+### SLICE-OL-03 — Semantic extraction soundness ✅ DONE (Stop 4 complete)
 
 **Layer:** B  
 **Goal:** `semanticExtraction_sound : extractLensSemantics l = Except.ok s → ValidLensSemantics s`  
@@ -514,7 +514,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-04 — Coordinate space types
+### SLICE-OL-04 — Coordinate space types ✅ DONE
 
 **Layer:** C  
 **Goal:** Define `SensorPoint`, image/camera/world coordinate types; define `sensorRadius`  
@@ -934,7 +934,9 @@ Create `OpenLensIOSemanticHarness.lean` parallel to `HarnessAdapter.lean`:
 - SLICE-OL-03 does not re-prove JSON key name correctness
 - SLICE-OL-05 does not re-prove OpenCV↔OTio distortion coefficient conversion
 - SLICE-OL-13 does not re-prove pixel-coordinate preservation from `PixelEquivalence.lean`
-**Stop condition:** Any slice opened that duplicates existing theorems without a bridge justification  
+- Actual field names and types in `LensModel.lean`, `SampleModel.lean`, `CameraModel.lean`, `TransformModel.lean`, `RationalValueWrappers.lean` are read directly from source before SLICE-OL-01 types are designed — no type names or field names assumed from memory
+- Actual theorem names in `opencv_opentrackio_proofs/DistortionConversion.lean`, `PixelEquivalence.lean`, and `PrincipalPointConversion.lean` are listed before any semantic theorem is named — to avoid duplicating a theorem that already exists under a different name  
+**Stop condition:** SLICE-OL-01 opened before this audit is complete  
 **Status:** PENDING — requires explicit review against `opencv_opentrackio_proofs/PixelEquivalence.lean` and `DistortionConversion.lean`
 
 ---
@@ -990,7 +992,7 @@ Create `OpenLensIOSemanticHarness.lean` parallel to `HarnessAdapter.lean`:
 ## 13. Suggested Implementation Order
 
 1. **Gate 0: Spec extraction** — this document (complete)
-2. **Gate 1: Existing-proof boundary audit** — review `PixelEquivalence.lean`, `DistortionConversion.lean`
+2. **Gate 1: Existing-proof boundary audit** — read actual field names and types from `LensModel.lean`, `SampleModel.lean`, `CameraModel.lean`, `RationalValueWrappers.lean`; list actual theorem names from `DistortionConversion.lean`, `PixelEquivalence.lean`, `PrincipalPointConversion.lean`; confirm no duplication before SLICE-OL-01
 3. **SLICE-OL-00**: Project skeleton
 4. **Gate 2: Ambiguity triage** — document AMB-OL-007 handling; confirm AMB-OL-002 sign
 5. **Gate 3: Representation review** — approve types in Section 5

@@ -190,6 +190,18 @@ srcDir = "opentrackio_parser"
 name = "HarnessAdapter"
 srcDir = "opentrackio_parser"
 
+[[lean_lib]]
+name = "CoordinateTypes"
+srcDir = "openlensio_semantics"
+
+[[lean_lib]]
+name = "LensSemantics"
+srcDir = "openlensio_semantics"
+
+[[lean_lib]]
+name = "SemanticBridge"
+srcDir = "openlensio_semantics"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
