@@ -247,3 +247,143 @@ None. All goals are linear arithmetic after unfolding.
 ### AMB-OL-002 test
 
 If `addSensorPoints` used subtraction instead of addition, `deltaP_characterisation` would require `(ε'_u.x - ΔP.x) - ΔP.x = ε'_u.x` → `ε'_u.x - 2·ΔP.x = ε'_u.x` — false unless ΔP=0. The proof failing with wrong-sign definitions confirms the sign is meaningful.
+
+---
+
+## SLICE-OL-10 — `projection_matrix_undistort_eq`
+
+### Goal shape
+
+```
+subSensorPoints (subSensorPoints (undistortFromDistorted k p ε_d ΔC ΔP h) ΔC) ΔP =
+undistortPoint k p (subSensorPoints (subSensorPoints ε_d ΔC) ΔP) h
+```
+
+Classification: **structural equality of `SensorPoint`** — after unfolding, reduces to two component arithmetic goals.
+
+### Opening move
+
+```lean
+ext <;> simp [undistortFromDistorted, addSensorPoints, subSensorPoints] <;> ring
+```
+
+- `ext` splits into x- and y-component equalities.
+- `simp [undistortFromDistorted, addSensorPoints, subSensorPoints]` unfolds the three definitions, exposing raw `ℝ` arithmetic.
+- `ring` closes each component goal.
+
+### Why it fits
+
+`undistortFromDistorted k p ε_d ΔC ΔP h` unfolds to:
+```
+addSensorPoints (addSensorPoints (undistortPoint k p ε' h) ΔC) ΔP
+```
+where `ε' = subSensorPoints (subSensorPoints ε_d ΔC) ΔP`.
+
+After `simp`, the x-component goal is:
+```
+(undistortPoint k p ε' h).x + ΔC.x + ΔP.x - ΔC.x - ΔP.x = (undistortPoint k p ε' h).x
+```
+
+`ring` treats `(undistortPoint k p ε' h).x` as an opaque variable `a` and closes `a + b + c - b - c = a`.
+
+### Expected hard step
+
+None. The proof is pure linear arithmetic after unfolding. The same `ext <;> simp <;> ring` pattern succeeds in OL-09 for identical structural reasons.
+
+### Definitions to unfold
+
+| Definition | Where | Role |
+|---|---|---|
+| `undistortFromDistorted` | ProjectionModel.lean | Exposes the `+ΔC+ΔP` wrapping |
+| `addSensorPoints` | DeltaSemantics.lean | Exposes component addition |
+| `subSensorPoints` | DeltaSemantics.lean | Exposes component subtraction |
+
+`undistortPoint` is NOT unfolded — it is treated as an opaque term by `ring`.
+
+### Helper lemmas needed
+
+None. The proof stands alone; it does not call any previous lemmas.
+
+### Automation budget
+
+Three tactics: `ext`, `simp [...]`, `ring`. The `simp` step is constrained to explicit definitions — no global simp set.
+
+### Hard step identification
+
+The theorem is not trivially true: if the order of `addSensorPoints` were `(undistortPoint + ΔP + ΔC)` instead of `(undistortPoint + ΔC + ΔP)`, then `subSensorPoints ... ΔC ΔP` would give `undistortPoint + ΔP - ΔP = undistortPoint` but the x-component arithmetic would differ by `ΔC.x - ΔC.x` vs `ΔP.x - ΔC.x` depending on order. The fact that the proof compiles confirms the definition order is consistent with the theorem statement.
+
+---
+
+## SLICE-OL-11 — `fov_undistort_eq`
+
+### Goal shape
+
+```
+undistortFromDistorted k p (addSensorPoints ε'_d ΔP) ΔC ΔP coerced_h =
+addSensorPoints (fovUndistortFromDistorted k p ε'_d ΔC h) ΔP
+```
+
+Classification: **structural equality of `SensorPoint`** — after unfolding and applying `distortion_center_translation_commutes`, reduces to `undistortPoint` calls with the same argument, closed by proof irrelevance.
+
+### Hard step and resolution
+
+`undistortFromDistorted` requires `h' : denominatorNonzero k (sensorRadius A_big)` (where `A_big` is the long subSensorPoints expression) while `fovUndistortFromDistorted` uses `h : denominatorNonzero k (sensorRadius A_small)`. These are propositionally equal via `distortion_center_translation_commutes` but NOT definitionally equal — `rfl` cannot bridge them directly.
+
+**Resolution:** Two explicit hypotheses (`h` and `h'`) in the theorem statement, plus a private helper `undistortPoint_congr` that uses `subst hε; rfl` to bridge the equality. `subst` works because `ε₁` is a free variable in the helper's local context, allowing substitution.
+
+**Plan deviation from Stop 2 draft:** The original plan proposed `(distortion_center_translation_commutes ...).symm ▸ h` in the theorem statement (single-hypothesis form). After a failed build attempt that revealed `addSensorPoints` unfolding breaks the simp pattern, and after analysis showing `▸` in term position risks elaboration issues, the two-hypothesis form was chosen as cleaner and verified correct.
+
+### Opening move
+
+```lean
+simp only [undistortFromDistorted, fovUndistortFromDistorted]
+```
+
+Unfolds the two function definitions. `addSensorPoints` is NOT included — including it would unfold `addSensorPoints ε'_d ΔP` to a struct literal, breaking the pattern that `distortion_center_translation_commutes` matches.
+
+### Closing move
+
+```lean
+congr 1; congr 1
+exact undistortPoint_congr k p (distortion_center_translation_commutes ε'_d ΔP ΔC) h' h
+```
+
+After `simp only`, the goal is:
+```
+addSensorPoints (addSensorPoints (undistortPoint k p A_big h') ΔC) ΔP =
+addSensorPoints (addSensorPoints (undistortPoint k p A_small h) ΔC) ΔP
+```
+
+`congr 1; congr 1` strips the two `addSensorPoints` wrappers, leaving:
+```
+undistortPoint k p A_big h' = undistortPoint k p A_small h
+```
+
+`undistortPoint_congr k p (distortion_center_translation_commutes ε'_d ΔP ΔC) h' h` closes this using `A_big = A_small` and proof irrelevance.
+
+### Why it fits
+
+`undistortPoint_congr` has a clear, documented role: bridge the `undistortPoint` equality under propositional SensorPoint equality. `distortion_center_translation_commutes` (OL-09) provides the SensorPoint equality. `congr 1; congr 1` peels the structural wrapper.
+
+### Expected hard step
+
+The `congr 1; congr 1` decomposition — `congr 1` on `addSensorPoints X Y = addSensorPoints X' Y` produces `addSensorPoints X = addSensorPoints X'` (with `Y = Y` auto-closed by `rfl`), and one more `congr 1` gives the `undistortPoint` equality goal.
+
+### Definitions to unfold
+
+| Definition | Role |
+|---|---|
+| `undistortFromDistorted` | Exposes `U((ε'_d + ΔP) − ΔC − ΔP) + ΔC + ΔP` |
+| `fovUndistortFromDistorted` | Exposes `U(ε'_d − ΔC) + ΔC` |
+| `addSensorPoints` | Exposes component addition |
+| `distortion_center_translation_commutes` | Rewrites the shifted argument |
+
+`undistortPoint` is NOT unfolded — opaque; proof irrelevance closes the remaining equality.
+
+### Helper lemmas used
+
+`distortion_center_translation_commutes` (OL-09) — called in both coercion and simp set.
+
+### Automation budget
+
+Two: `simp only [...]`, `rfl`.

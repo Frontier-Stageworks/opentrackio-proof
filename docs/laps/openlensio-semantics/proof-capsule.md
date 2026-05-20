@@ -418,3 +418,151 @@ theorem distortion_center_translation_commutes (ε'_d ΔP ΔC : SensorPoint) :
 - Do not change `addSensorPoints` to use subtraction — the AMB-OL-002 resolution explicitly requires addition.
 - Do not merge `deltaP_characterisation` and `deltaC_characterisation` into one — they document different paper equations.
 - Do not use `sorry`.
+
+---
+
+## SLICE-OL-10 — Model audit: `projectToImage`, `undistortFromDistorted`; theorem `projection_matrix_undistort_eq`
+
+**File:** `openlensio_semantics/ProjectionModel.lean` (new file)  
+**Layer:** C + E
+
+### Theorem
+
+```lean
+theorem projection_matrix_undistort_eq
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (ε_d ΔC ΔP : SensorPoint)
+    (h : denominatorNonzero k (sensorRadius (subSensorPoints (subSensorPoints ε_d ΔC) ΔP))) :
+    subSensorPoints (subSensorPoints (undistortFromDistorted k p ε_d ΔC ΔP h) ΔC) ΔP =
+    undistortPoint k p (subSensorPoints (subSensorPoints ε_d ΔC) ΔP) h
+```
+
+### Intent
+
+**`projectToImage` (Eq 3):** Defines the undistorted image coordinate from normalized camera coordinates `u = (x_p/z_p, y_p/z_p)`: `ε_u = ⟨F*u.x + ΔP.x, F*u.y + ΔP.y⟩`. F > 0 is a ValidLensSemantics precondition passed by callers; z_p ≠ 0 is handled by the caller before computing u. No theorem about `projectToImage` is proved in this slice — the consistency of Eq(3) with Eq(4) requires the forward distortion model (Eq 5) and is deferred.
+
+**`undistortFromDistorted` (Eq 4):** Defines `ε_u = U(ε_d − ΔC − ΔP) + ΔC + ΔP`.
+
+**`projection_matrix_undistort_eq`:** Structural consistency of Eq (4): removing the ΔC+ΔP offset from `undistortFromDistorted`'s output recovers `undistortPoint`'s output. States that `(U(ε_d − ΔC − ΔP) + ΔC + ΔP) − ΔC − ΔP = U(ε_d − ΔC − ΔP)`. Verifies the shift-undistort-shift pattern in the definition is correctly ordered.
+
+### Scope limitation (documented deviation from work queue)
+
+The work queue stated `projection_matrix_undistort_eq` as "consistency of Eq 3 with Eq 4". The full consistency (that `projectToImage` and `undistortFromDistorted` agree for corresponding inputs) requires the forward distortion model — specifically the relationship between a camera-frame point and its distorted image coordinate. That is not available until SLICE-OL-DEFER-03 or a future forward-model slice. The theorem as proved here is the achievable structural property.
+
+### Statement audit
+
+- NOT vacuous: the conclusion fails if the shifts in `undistortFromDistorted` were in the wrong order (e.g., if `addSensorPoints ΔP (addSensorPoints X ΔC)` were used and then `subSensorPoints` was applied in reversed order).
+- NOT trivially true by `rfl`: requires ring arithmetic `a + b + c - b - c = a`.
+- `h` is structurally required — `undistortFromDistorted` needs it to call `undistortPoint`.
+
+### Load-bearing definitions
+
+| Name | Shape | Paper |
+|---|---|---|
+| `projectToImage` | `⟨F*u.x + ΔP.x, F*u.y + ΔP.y⟩` | §2 Eq (3) |
+| `undistortFromDistorted` | `U(ε_d − ΔC − ΔP) + ΔC + ΔP` | §2 Eq (4) |
+| `addSensorPoints`, `subSensorPoints` | from DeltaSemantics | |
+| `undistortPoint` | from DistortionModel | |
+
+### Forbidden changes
+
+- Do not attempt the full Eq(3)/Eq(4) consistency theorem in this slice.
+- Do not use `sorry`.
+- Do not add `F > 0` as a hypothesis to `projection_matrix_undistort_eq` — it is not needed for the structural property proved here.
+
+---
+
+## SLICE-OL-11 — Model audit: `fovProjectToImage`, `fovUndistortFromDistorted`; theorem `fov_undistort_eq`
+
+**File:** `openlensio_semantics/FovModel.lean` (new file)  
+**Layer:** C + E
+
+### Definitions
+
+```lean
+-- Eq (9): §3 — FOV-form undistorted coordinate (no ΔP term)
+noncomputable def fovProjectToImage (F : ℝ) (u : SensorPoint) : SensorPoint :=
+  ⟨F * u.x, F * u.y⟩
+
+-- Eq (10): §3 — FOV-form undistort from distorted (no ΔP terms)
+noncomputable def fovUndistortFromDistorted
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (ε'_d ΔC : SensorPoint)
+    (h : denominatorNonzero k (sensorRadius (subSensorPoints ε'_d ΔC))) : SensorPoint :=
+  addSensorPoints (undistortPoint k p (subSensorPoints ε'_d ΔC) h) ΔC
+```
+
+### Helper lemma
+
+```lean
+private lemma undistortPoint_congr
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    {ε₁ ε₂ : SensorPoint} (hε : ε₁ = ε₂)
+    (h₁ : denominatorNonzero k (sensorRadius ε₁))
+    (h₂ : denominatorNonzero k (sensorRadius ε₂)) :
+    undistortPoint k p ε₁ h₁ = undistortPoint k p ε₂ h₂
+```
+
+Proved by `subst hε; rfl`. The `subst` substitutes the SensorPoint equality (ε₁ is a free variable in the lemma), leaving both proofs with the same Prop type; `rfl` closes by Lean 4 proof irrelevance.
+
+### Theorem
+
+```lean
+theorem fov_undistort_eq
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (ε'_d ΔC ΔP : SensorPoint)
+    (h  : denominatorNonzero k (sensorRadius (subSensorPoints ε'_d ΔC)))
+    (h' : denominatorNonzero k (sensorRadius (subSensorPoints (subSensorPoints (addSensorPoints ε'_d ΔP) ΔC) ΔP))) :
+    undistortFromDistorted k p (addSensorPoints ε'_d ΔP) ΔC ΔP h' =
+    addSensorPoints (fovUndistortFromDistorted k p ε'_d ΔC h) ΔP
+```
+
+Two explicit hypotheses: `h` for the FOV form's precondition, `h'` for the projection form's precondition. The relationship `h'` is derivable from `h` via `distortion_center_translation_commutes`; callers use `by rw [distortion_center_translation_commutes]; exact h` to produce `h'`.
+
+### Intent
+
+**`fovProjectToImage` (Eq 9):** `ε'_u = F·u` — the FOV-form projection uses no ΔP offset. ΔP is the perspective offset that shifts between the two coordinate conventions (§1.5). The FOV form centres coordinates at the intersection of the optical axis with the image plane, while the projection matrix form centres at ΔP.
+
+**`fovUndistortFromDistorted` (Eq 10):** `ε'_u = U(ε'_d − ΔC) + ΔC` — the FOV-form undistort applies U to the distortion-centred coordinate and re-adds ΔC. No ΔP shift. Compare with Eq (4): `ε_u = U(ε_d − ΔC − ΔP) + ΔC + ΔP`.
+
+**`fov_undistort_eq`:** Structural consistency of Eq (10) with Eq (4) via the ΔP translation (AMB-OL-002 resolution). When `ε_d = ε'_d + ΔP` (Eq 13), the output of `undistortFromDistorted` for ε_d equals the output of `fovUndistortFromDistorted` for ε'_d plus ΔP. This is the Lean formalization of why the two parametrisations agree.
+
+### Dropped theorem (LAPS anti-pattern)
+
+The work queue listed `fov_projection_translation : ε_u = ε'_u + ΔP` as a target. After expanding definitions, both sides reduce to `⟨F*u.x + ΔP.x, F*u.y + ΔP.y⟩` — this is true by `rfl` (definitional tautology). LAPS forbids trivially-true theorems. Dropped.
+
+### Statement audit
+
+**`fov_undistort_eq`:**
+- NOT vacuous: if `fovUndistortFromDistorted` had wrong ΔC placement, the conclusion would be false.
+- NOT trivially true: the coercion `(distortion_center_translation_commutes ...).symm ▸ h` is the load-bearing step — it certifies that the argument `ε'_d − ΔC` in the FOV form equals the argument `(ε'_d + ΔP) − ΔC − ΔP` in the projection form (by `distortion_center_translation_commutes` from OL-09).
+- `h` is the sole domain precondition. `hShifted` is derived internally via the coercion — not an extra hypothesis, not a burden on callers.
+
+### Hard step identification
+
+The dependent type coercion: `undistortFromDistorted` requires `h' : denominatorNonzero k (sensorRadius A_big)` where `A_big = subSensorPoints (subSensorPoints (addSensorPoints ε'_d ΔP) ΔC) ΔP`, while `fovUndistortFromDistorted` requires `h : denominatorNonzero k (sensorRadius A_small)` where `A_small = subSensorPoints ε'_d ΔC`. These conditions are propositionally equal (by `distortion_center_translation_commutes`) but not definitionally equal — Lean 4's `rfl` cannot close `h' = h` without a structural argument.
+
+Resolution: two explicit hypotheses (`h` and `h'`) in the theorem statement, plus `undistortPoint_congr` helper. The helper uses `subst hε` (valid when one side of the equality is a free variable, which it is in the helper's local context) to substitute the SensorPoint equality, leaving both proofs with the same Prop type, then `rfl` closes by Lean 4 proof irrelevance.
+
+The original plan proposed a single-hypothesis form with `▸` in the theorem statement. This was dropped: `▸` in term position (outside a `by` block) risks elaboration failures, and the two-hypothesis form is cleaner for downstream callers.
+
+### AMB-OL-002 dependency
+
+`distortion_center_translation_commutes` (OL-09, proved under AMB-OL-002 addition sign) is load-bearing. If AMB-OL-002 is resolved differently, all three of `addSensorPoints ε'_d ΔP`, `h'`'s type, and the theorem conclusion need sign changes.
+
+### Load-bearing definitions
+
+| Name | Shape | Paper |
+|---|---|---|
+| `fovProjectToImage` | `⟨F*u.x, F*u.y⟩` | §3 Eq (9) |
+| `fovUndistortFromDistorted` | `U(ε'_d − ΔC) + ΔC` | §3 Eq (10) |
+| `undistortFromDistorted` | `U(ε_d − ΔC − ΔP) + ΔC + ΔP` | §2 Eq (4) — from OL-10 |
+| `distortion_center_translation_commutes` | OL-09 theorem — establishes `A_big = A_small` | §3 |
+| `undistortPoint_congr` | Private helper — dependent type equality via `subst` + proof irrel | — |
+
+### Forbidden changes
+
+- Do not add `fov_projection_translation` — it is trivially true by rfl.
+- Do not add ΔP to `fovProjectToImage` or `fovUndistortFromDistorted` — these are the ΔP-free FOV forms.
+- Do not merge `h` and `h'` into one (via `▸` in the statement) — risks elaboration issues; two-hypothesis form is the verified clean shape.
+- Do not use `sorry`.

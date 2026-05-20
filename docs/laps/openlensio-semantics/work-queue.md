@@ -9,8 +9,8 @@ metadata:
 
 **Source document:** OpenLensIO v1.0.1 PDF  
 (`OpenLensIO_v1-0-1.pdf`, title page: "OpenLensIO Lens Model Version 1.0.0", 17 February 2025)  
-**Status:** Gates 0–3 complete. Slices OL-00, OL-01–OL-09 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-10.  
-**Phase:** Implementation — Layers B, C/D, C/E complete; next: projection model (OL-10)
+**Status:** Gates 0–3 complete. Slices OL-00, OL-01–OL-11 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-12.  
+**Phase:** Implementation — Layers B, C/D, C/E complete; next: angle-of-view / FOV equation (OL-12)
 
 ---
 
@@ -614,7 +614,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-10 — Projection matrix characterisation (Eq 3, 4)
+### SLICE-OL-10 — Projection matrix characterisation (Eq 3, 4) ✅ DONE
 
 **Layer:** C  
 **Goal:** Define projection from camera frame to image; define undistort equation (Eq 4)  
@@ -629,7 +629,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-11 — FOV characterisation (Eqs 9, 10)
+### SLICE-OL-11 — FOV characterisation (Eqs 9, 10) ✅ DONE
 
 **Layer:** C  
 **Goal:** Define FOV characterisation; relate to projection matrix characterisation via Eqs (12, 13)  

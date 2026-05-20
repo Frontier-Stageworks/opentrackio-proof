@@ -298,3 +298,131 @@ Initial proofs used `ext <;> simp [...] <;> ring`. The linter reported `ring` un
 | `deltaP` and `deltaC` merged into one theorem | ✅ Kept separate — different paper equations |
 | `distortion_center_translation_commutes` trivially true | ✅ Non-trivial: requires ΔP cancellation across three points |
 | Unused tactics | ✅ Cleaned after linter warnings |
+
+---
+
+## SLICE-OL-10 — `projection_matrix_undistort_eq`
+
+**Build:** `lake build ProjectionModel` — ✅ clean (3291 jobs)  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`. Standard Mathlib axioms only.
+
+### Theorem statement unchanged
+
+Matches proof-capsule.md SLICE-OL-10 section exactly.
+
+### Semantic match
+
+**Intent:** Structural consistency of Eq (4) — removing the ΔC+ΔP offset from `undistortFromDistorted`'s output recovers `undistortPoint`'s output.  
+**Formal conclusion:** `subSensorPoints (subSensorPoints (undistortFromDistorted k p ε_d ΔC ΔP h) ΔC) ΔP = undistortPoint k p (subSensorPoints (subSensorPoints ε_d ΔC) ΔP) h`.  
+**Non-vacuity:** If the order of the `addSensorPoints` calls inside `undistortFromDistorted` were swapped (e.g., `+ΔP` before `+ΔC`), the arithmetic would still cancel — but if the subtraction order in the theorem conclusion were also swapped, the ring goals would change. The theorem is non-trivial in the sense that the shift/unshift order in the definition must be consistent with the theorem statement.
+
+### Scope limitation documented
+
+The full Eq(3)/Eq(4) consistency theorem (that `projectToImage` and `undistortFromDistorted` agree for corresponding inputs) requires the forward distortion model. That is deferred per the proof capsule. No theorem about `projectToImage` is attempted in this slice.
+
+### Load-bearing definition alignment
+
+- `undistortFromDistorted`: `addSensorPoints (addSensorPoints (undistortPoint ...) ΔC) ΔP` — exactly Eq (4)'s `U(...) + ΔC + ΔP`. Not changed.
+- `projectToImage`: `⟨F * u.x + ΔP.x, F * u.y + ΔP.y⟩` — exactly Eq (3). Not involved in the theorem proved.
+- `addSensorPoints`, `subSensorPoints`: from DeltaSemantics. Not changed.
+
+### Proof structure
+
+```lean
+ext <;> simp [undistortFromDistorted, addSensorPoints, subSensorPoints] <;> ring
+```
+
+- `ext` splits into x- and y-component equalities.
+- `simp [...]` unfolds the three definitions, exposing `(undistortPoint ...).x + ΔC.x + ΔP.x - ΔC.x - ΔP.x` on the LHS.
+- `ring` closes `a + b + c - b - c = a` with `undistortPoint...x` as the opaque variable.
+
+**Hard step:** None. The theorem is pure linear arithmetic after unfolding. Same pattern as OL-09.
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Hidden sorry | ✅ None |
+| Vacuous statement | ✅ Non-trivial: depends on definition order |
+| `F > 0` hypothesis added unnecessarily | ✅ Not added — not needed for structural property |
+| Full Eq(3)/Eq(4) consistency claimed | ✅ Scope limitation documented; only structural property proved |
+| `undistortPoint` unfolded inside proof | ✅ Treated as opaque; `ring` closes without further unfolding |
+| `projectToImage` given a theorem it does not support | ✅ Definition-only in this slice; no theorem about it |
+
+---
+
+## SLICE-OL-11 — `fov_undistort_eq`
+
+**Build:** `lake build FovModel` — ✅ clean (3292 jobs)  
+**Date:** 2026-05-20
+
+### Kernel status
+
+No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`. `undistortPoint_congr` is a private helper proved by `subst; rfl` — no kernel-level axioms beyond standard Lean 4 proof irrelevance.
+
+### Theorem statement
+
+```lean
+theorem fov_undistort_eq
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (ε'_d ΔC ΔP : SensorPoint)
+    (h  : denominatorNonzero k (sensorRadius (subSensorPoints ε'_d ΔC)))
+    (h' : denominatorNonzero k (sensorRadius (subSensorPoints (subSensorPoints (addSensorPoints ε'_d ΔP) ΔC) ΔP))) :
+    undistortFromDistorted k p (addSensorPoints ε'_d ΔP) ΔC ΔP h' =
+    addSensorPoints (fovUndistortFromDistorted k p ε'_d ΔC h) ΔP
+```
+
+Matches proof-capsule.md SLICE-OL-11 section exactly (two-hypothesis form, helper lemma documented).
+
+### Semantic match
+
+**Intent:** Structural consistency of Eq (10) with Eq (4): when `ε_d = ε'_d + ΔP`, the output of `undistortFromDistorted` for ε_d equals `fovUndistortFromDistorted` for ε'_d plus ΔP.  
+**Formal conclusion:** equality of the two function outputs.  
+**Non-vacuity:** If `fovUndistortFromDistorted` had wrong ΔC placement (e.g., `addSensorPoints (undistortPoint ...) zero` instead of `addSensorPoints (undistortPoint ...) ΔC`), the conclusion would be false. The theorem is not trivially true.
+
+### Dropped theorem documented
+
+`fov_projection_translation` was in the work queue but is trivially true by `rfl` (both sides are `⟨F*u.x + ΔP.x, F*u.y + ΔP.y⟩` by definition). Dropped per LAPS anti-pattern rule.
+
+### Helper lemma justification
+
+`undistortPoint_congr` is a private helper with exactly one role: bridge `undistortPoint` equality under propositional SensorPoint argument equality. It earns its place — the main theorem explicitly calls it as the final tactic step. The helper is proof-correct: `subst hε` substitutes the free variable `ε₁` with `ε₂`, leaving `h₁ h₂ : denominatorNonzero k (sensorRadius ε₂)` (same Prop type), and `rfl` closes by Lean 4 proof irrelevance.
+
+### Proof structure and hard step
+
+```lean
+  simp only [undistortFromDistorted, fovUndistortFromDistorted]
+  congr 1; congr 1
+  exact undistortPoint_congr k p (distortion_center_translation_commutes ε'_d ΔP ΔC) h' h
+```
+
+- `simp only [undistortFromDistorted, fovUndistortFromDistorted]` unfolds the two equations without touching `addSensorPoints` (keeping the pattern for `distortion_center_translation_commutes` intact).
+- `congr 1; congr 1` peels the two `addSensorPoints` wrappers, isolating `undistortPoint A_big h' = undistortPoint A_small h`.
+- `undistortPoint_congr` closes using `distortion_center_translation_commutes ε'_d ΔP ΔC : A_big = A_small` and Lean 4 proof irrelevance.
+
+**Hard step:** The dependent type coercion — `h' : P A_big` and `h : P A_small` have different types (propositionally equal, not definitionally). The `undistortPoint_congr` helper resolves this via `subst; rfl`.
+
+**Failed attempt documented:** Initial proof had `addSensorPoints` in the simp set, which expanded `addSensorPoints ε'_d ΔP` to struct literals, breaking the pattern for `distortion_center_translation_commutes`. Fix: exclude `addSensorPoints` from the simp set; use `congr 1; congr 1` + helper instead.
+
+### Load-bearing definition alignment
+
+- `fovProjectToImage`: `⟨F*u.x, F*u.y⟩` — Eq (9). No ΔP. Not changed.
+- `fovUndistortFromDistorted`: `addSensorPoints (undistortPoint k p (subSensorPoints ε'_d ΔC) h) ΔC` — Eq (10) form `U(ε'_d − ΔC) + ΔC`. Not changed.
+- `undistortFromDistorted`: from OL-10. Not changed.
+- `distortion_center_translation_commutes`: from OL-09. Not changed.
+
+### Anti-pattern scan
+
+| Anti-pattern | Result |
+|---|---|
+| Hidden sorry | ✅ None |
+| `fov_projection_translation` included as trivial theorem | ✅ Dropped — documented as trivially true by rfl |
+| ΔP added to FOV definitions | ✅ Not present — FOV forms are ΔP-free |
+| `addSensorPoints` in simp set breaking pattern | ✅ Excluded — documented in failed-attempt note |
+| `undistortPoint_congr` helper without explicit role | ✅ Has explicit role — called in final tactic step |
+| Vacuous theorem | ✅ Non-vacuous (fails for wrong ΔC placement) |
+| AMB-OL-002 sign buried | ✅ Dependency on `distortion_center_translation_commutes` explicit |

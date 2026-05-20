@@ -214,6 +214,14 @@ srcDir = "openlensio_semantics"
 name = "DeltaSemantics"
 srcDir = "openlensio_semantics"
 
+[[lean_lib]]
+name = "ProjectionModel"
+srcDir = "openlensio_semantics"
+
+[[lean_lib]]
+name = "FovModel"
+srcDir = "openlensio_semantics"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
