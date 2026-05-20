@@ -92,24 +92,24 @@ All equations extracted from the PDF. Source version: as read above.
 | OL-SPEC-011 | §1.5 | ΔP = [ΔP_x, ΔP_y]^T, perspective offset | ΔP | Image | mm | — | Normative | No | Open |
 | OL-SPEC-012 | §1.5 | ΔP = translation from ϵ_u/ϵ_d shared centre to centre of projection ϵ′_u | ΔP | Image | mm | — | Normative | No | Open |
 | OL-SPEC-013 | §1.5 | ΔC = translation from ϵ′_u centre to distortion centre | ΔC | Image | mm | — | Normative | No | Open |
-| OL-SPEC-014 | §2 Eq(3) | ϵ_u = F·[x/z_p, y/z_p]^T + ΔP | F,ΔP,z_p | Camera→Image | mm | F>0, z_p≠0 | Normative | No | Open |
-| OL-SPEC-015 | §2 Eq(4) | ϵ_u = U(ϵ_d − ΔC − ΔP) + ΔC + ΔP | U,ϵ_d,ΔC,ΔP | Image | mm | Denominator of R ≠ 0 | Normative | No | Open |
+| OL-SPEC-014 | §2 Eq(3) | ϵ_u = F·[x/z_p, y/z_p]^T + ΔP | F,ΔP,z_p | Camera→Image | mm | F>0, z_p≠0 | Normative | Yes | ✅ `projectToImage` def + `projection_matrix_undistort_eq` (OL-10) |
+| OL-SPEC-015 | §2 Eq(4) | ϵ_u = U(ϵ_d − ΔC − ΔP) + ΔC + ΔP | U,ϵ_d,ΔC,ΔP | Image | mm | Denominator of R ≠ 0 | Normative | Yes | ✅ `undistortFromDistorted` def + `projection_matrix_undistort_eq` (OL-10) |
 | OL-SPEC-016 | §2 Eq(5) | ϵ_d = U⁻¹(ϵ_u − ΔC − ΔP) + ΔC + ΔP | U⁻¹,ϵ_u,ΔC,ΔP | Image | mm | U invertible (see AMB-OL-010) | Normative | No | Assumption-gated |
-| OL-SPEC-017 | §2 Eq(6) | r_u/F = tan(α/2), centred at ΔP | r_u,F,α | Image | mm/rad | F>0, r_u≥0 | Normative | No | Open |
+| OL-SPEC-017 | §2 Eq(6) | r_u/F = tan(α/2), centred at ΔP | r_u,F,α | Image | mm/rad | F>0, r_u≥0 | Normative | Yes | ✅ `angle_of_view_eq` (OL-12); `angleOfView` def |
 | OL-SPEC-018 | §2.1 Eq(7) | ϵ_Ω = (1/Ω)·F·[x/z_p,y/z_p]^T + ΔP | Ω,F,ΔP | Image | mm | Ω>0, F>0, z_p≠0 | Normative | No | Open |
 | OL-SPEC-019 | §2.1 Eq(8) | ϵ_Ω = (1/Ω)·U(ϵ_d − ΔC − ΔP) | Ω,ϵ_d,ΔC,ΔP | Image | mm | Ω>0; no +ΔC+ΔP (see AMB-OL-003) | Normative | No | Assumption-gated |
-| OL-SPEC-020 | §3 Eq(9) | ϵ′_u = F·[x/z_p,y/z_p]^T | F,z_p | Camera→Image | mm | F>0, z_p≠0 | Normative | No | Open |
-| OL-SPEC-021 | §3 Eq(10) | ϵ′_u = U(ϵ′_d − ΔC) + ΔC | U,ϵ′_d,ΔC | Image | mm | Denominator ≠ 0 | Normative | No | Open |
+| OL-SPEC-020 | §3 Eq(9) | ϵ′_u = F·[x/z_p,y/z_p]^T | F,z_p | Camera→Image | mm | F>0, z_p≠0 | Normative | Yes | ✅ `fovProjectToImage` def (OL-11) |
+| OL-SPEC-021 | §3 Eq(10) | ϵ′_u = U(ϵ′_d − ΔC) + ΔC | U,ϵ′_d,ΔC | Image | mm | Denominator ≠ 0 | Normative | Yes | ✅ `fovUndistortFromDistorted` def + `fov_undistort_eq` (OL-11) |
 | OL-SPEC-022 | §3 Eq(11) | ϵ′_d = U⁻¹(ϵ′_u − ΔC) + ΔC | U⁻¹ | Image | mm | U invertible (AMB-OL-010) | Normative | No | Assumption-gated |
-| OL-SPEC-023 | §3 Eqs(12,13) | ϵ_u = ϵ′_u + ΔP; ϵ_d = ϵ′_d + ΔP | ΔP | Image | mm | see AMB-OL-002 | Normative | No | Open (use Eq 13 as authority) |
-| OL-SPEC-024 | §3.1 Eq(14) | θ_Ω′ = 2·arctan(w_Ω′/(2F)) | θ,w_Ω′,F | — | rad/mm | F>0, w_Ω′>0 | Normative | No | Open |
+| OL-SPEC-023 | §3 Eqs(12,13) | ϵ_u = ϵ′_u + ΔP; ϵ_d = ϵ′_d + ΔP | ΔP | Image | mm | see AMB-OL-002 | Normative | Yes | ✅ `distortion_center_translation_commutes` + `fov_undistort_eq` (OL-09, OL-11) |
+| OL-SPEC-024 | §3.1 Eq(14) | θ_Ω′ = 2·arctan(w_Ω′/(2F)) | θ,w_Ω′,F | — | rad/mm | F>0, w_Ω′>0 | Normative | Yes | ✅ `fovAngleFromWidth` def (OL-12); no roundtrip theorem (definitional consequence of `angleOfView`) |
 | OL-SPEC-025 | §3.1 Eq(15) | ϵ′_Ω′ = (1/Ω′)·(U(ϵ_d−ΔC−ΔP)+ΔC) | Ω′,ϵ_d,ΔC,ΔP | Image | mm | Ω′>0; AMB-OL-009 | Normative | No | Assumption-gated |
 | OL-SPEC-026 | §3.1 prose | Projection and FOV forms can generate equivalent renders | — | — | — | Conditions unstated (AMB-OL-008) | Normative claim | No | Assumption-gated |
-| OL-SPEC-027 | §4.1 Eq(16) | U(ϵ) component form: U_x = R·ϵ_x + 2p₁ϵ_xϵ_y + p₂(r²+2ϵ_x²) | R,p₁,p₂,ϵ | Image (distortion-centred) | mm | Denominator of R ≠ 0 (AMB-OL-007) | Normative | No | Open |
-| OL-SPEC-028 | §4.1 Eq(16) | U(ϵ) component form: U_y = R·ϵ_y + p₁(r²+2ϵ_y²) + 2p₂ϵ_xϵ_y | R,p₁,p₂,ϵ | Image (distortion-centred) | mm | Denominator of R ≠ 0 | Normative | No | Open |
-| OL-SPEC-029 | §4.1 Eq(17) | R = (1+k₁r²+k₃r⁴+k₅r⁶)/(1+k₂r²+k₄r⁴+k₆r⁶) | k₁…k₆, r | Image | mm^{−2m} per term | Denominator ≠ 0 (AMB-OL-007) | Normative | No | Open |
+| OL-SPEC-027 | §4.1 Eq(16) | U(ϵ) component form: U_x = R·ϵ_x + 2p₁ϵ_xϵ_y + p₂(r²+2ϵ_x²) | R,p₁,p₂,ϵ | Image (distortion-centred) | mm | Denominator of R ≠ 0 (AMB-OL-007) | Normative | Yes | ✅ `undistortX` def + `brown_conrady_zero_identity` (OL-07, OL-08) |
+| OL-SPEC-028 | §4.1 Eq(16) | U(ϵ) component form: U_y = R·ϵ_y + p₁(r²+2ϵ_y²) + 2p₂ϵ_xϵ_y | R,p₁,p₂,ϵ | Image (distortion-centred) | mm | Denominator of R ≠ 0 | Normative | Yes | ✅ `undistortY` def + `brown_conrady_zero_identity` (OL-07, OL-08) |
+| OL-SPEC-029 | §4.1 Eq(17) | R = (1+k₁r²+k₃r⁴+k₅r⁶)/(1+k₂r²+k₄r⁴+k₆r⁶) | k₁…k₆, r | Image | mm^{−2m} per term | Denominator ≠ 0 (AMB-OL-007) | Normative | Yes | ✅ `radialTerm` def + `radial_zero_coefficients_identity` (OL-05, OL-06) |
 | OL-SPEC-030 | §4.1 Eq(17) | k₁,k₃,k₅ are numerator coefficients; k₂,k₄,k₆ are denominator coefficients, alternating | — | — | see AMB-OL-005 | — | Normative | No | Open |
-| OL-SPEC-031 | §4.2 Eq(18) | ε_shader_x = wshader·ϵ_x/w + wshader/2; ε_shader_y = wshader·ϵ_y/h + wshader/2 | wshader,w,h,ϵ | Image→Shader | px/mm | w>0, h>0, wshader>0 | Normative | No | Open |
+| OL-SPEC-031 | §4.2 Eq(18) | ε_shader_x = wshader·ϵ_x/w + wshader/2; ε_shader_y = wshader·ϵ_y/h + wshader/2 | wshader,w,h,ϵ | Image→Shader | px/mm | w>0, h>0, wshader>0 | Normative | Yes | ✅ `pixel_metric_roundtrip`, `image_texture_coordinate_roundtrip` (OL-13) |
 | OL-SPEC-032 | §4.3 Eq(19) | c_u = F²·\|S_o−Φ\|/(N·S_o·(Φ−F)) | F,Φ,S_o,N | Undistorted screen | mm | Under investigation | NOT normative | No | Defer |
 | OL-SPEC-033 | §4.4 Eq(20) | υ_n(r) = 1 − (α₁r²+α₂r⁴+α₃r⁶) | α₁,α₂,α₃,r | Image | — | — | Normative | No | Defer |
 | OL-SPEC-034 | §A.1 Eqs(21-24) | Ideal overscan algorithm | Ω,wΩ,ϵ_u^i | Image | mm | Informative only | Informative | No | Defer (low priority) |
@@ -662,7 +662,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-13 — Pixel/shader coordinate conversion
+### SLICE-OL-13 — Pixel/shader coordinate conversion ✅ DONE (Stop 4 complete)
 
 **Layer:** E  
 **Goal:** Define image-to-shader coordinate conversion (Eq 18); prove roundtrip  
@@ -676,36 +676,39 @@ opentrackio_parser
 **Proof difficulty:** Low  
 **Expected tactics:** `ring`, `field_simp [hw, hh]`  
 **Stop condition:** Roundtrip proved  
-**Acceptance criteria:** Units documented: mm → normalised shader coordinates; inverse requires w,h,wshader > 0
+**Acceptance criteria:** Units documented: mm → normalised shader coordinates; inverse requires w,h,wshader > 0  
+**Result:** `lake build ShaderCoords` ✅ clean. `pixel_metric_roundtrip`: `field_simp` alone closes. `image_texture_coordinate_roundtrip`: `field_simp <;> ring`. Lean `ring` redundancy in first theorem caught and removed.
 
 ---
 
-### SLICE-OL-14 — Executable semantic oracle
+### SLICE-OL-14 — Executable semantic oracle ✅ DONE (Stop 4 complete)
 
 **Layer:** F  
 **Goal:** Float-based executable counterparts for undistort and projection; oracle output  
 **Inputs:** Slices OL-07 through OL-11 (exact definitions)  
-**Outputs:** `executableUndistortPoint : Float → Float → ...`, oracle JSON output  
+**Outputs:** `ExecutableSemanticOracle.lean` — 10 Float definitions  
 **Theorem targets:** None (testing only)  
 **Blockers:** Must clearly label as Float approximation, not proved exact semantics  
 **Proof difficulty:** N/A  
 **Expected tactics:** N/A  
 **Stop condition:** Oracle runs against test fixtures; output format compatible with battery-tester  
-**Acceptance criteria:** Executable boundary documented; no exact-semantic theorems claimed for Float output
+**Acceptance criteria:** Executable boundary documented; no exact-semantic theorems claimed for Float output  
+**Result:** `lake build ExecutableSemanticOracle` ✅ clean. All 4 `#eval` outputs manually verified. Structure grouped-field syntax bug caught and fixed (Lean 4 requires one field per line in `structure where`).
 
 ---
 
-### SLICE-OL-15 — Differential semantic testing
+### SLICE-OL-15 — Differential semantic testing ✅ DONE (Stop 4 complete)
 
 **Layer:** F  
 **Goal:** Compare oracle output against Mo-Sys C++ and CamDKit for canonical fixtures  
 **Inputs:** SLICE-OL-14, battery-tester harness  
-**Outputs:** Differential test results; tolerance policy document  
+**Outputs:** `battery-tester/semantic_oracle/` — Python reference oracle, 7 fixtures, comparison runner  
 **Theorem targets:** None (testing only)  
-**Blockers:** Requires reference implementations to be available  
+**Blockers:** External undistort math not available in `opentrackio-cpp` or `ris-osvp-metadata-camdkit` — descoped to Python reference oracle  
 **Proof difficulty:** N/A  
 **Stop condition:** Fixtures pass within tolerance; domain failures classified separately  
-**Acceptance criteria:** Mismatch cases documented; singularity/invalid-domain test cases included
+**Acceptance criteria:** Mismatch cases documented; singularity/invalid-domain test cases included  
+**Result:** `python3 run.py` → 7/7 PASS. Python 3.9 union-type annotation bug caught and fixed. External blocker documented in capsule and review.
 
 ---
 
@@ -749,13 +752,13 @@ opentrackio_parser
 | `brown_conrady_zero_identity` | All-zero coefficients → U(ϵ) = ϵ | `allZero k p → undistortPoint k p ϵ h = ϵ` | §4.1 | denominatorNonzero | Low | simp, ring | No | No |
 | `sensorRadius_nonneg` | Screen radius is nonneg | `∀ ϵ, sensorRadius ϵ ≥ 0` | §1.1 | None | Low | positivity | No | No |
 | `radial_denominator_nonzero_under_constraints` | Under validity predicate, denominator ≠ 0 | `ValidDistortionCoeffs k → ∀ r ∈ domain, denom k r ≠ 0` | §4.1 Eq(17) | ValidDistortionCoeffs | Medium | linarith, nlinarith | No | Yes |
-| `pixel_metric_roundtrip` | mm → shader → mm roundtrip | `fromShader (toShader p) = p` | §4.2 Eq(18) | w,h,wshader > 0 | Low | ring, field_simp | No | No |
+| `pixel_metric_roundtrip` | mm → shader → mm roundtrip | `fromShader (toShader p) = p` | §4.2 Eq(18) | w,h,wshader > 0 | Low | field_simp | **Yes** | No |
 | `deltaP_characterisation` | ϵ_u and ϵ'_u differ by ΔP | `projMatChar.ϵ_u = fovChar.ϵ_u + ΔP` | §3 Eqs(12,13) | AMB-OL-002 assumption | Low | ring | No | No |
 | `distortion_center_translation_commutes` | Shifting ΔC commutes with U application | Statement TBD | §1.5 | denominatorNonzero | Medium | ring | No | No |
 | `projection_matrix_undistort_eq` | Eq (4) is internally consistent | `U(ϵ_d − ΔC − ΔP) + ΔC + ΔP = ϵ_u` | §2 Eq(4) | denominatorNonzero | Medium | simp, ring | No | No |
 | `fov_undistort_eq` | Eq (10) is consistent with Eq (4) via translation | see §3 | §3 Eq(10) | AMB-OL-002 | Medium | ring | No | No |
-| `angle_of_view_eq` | r_u/F = tan(α/2) | `r_u / F = Real.tan (α / 2)` | §2 Eq(6) | F>0, r_u≥0 | Medium | Mathlib trig | Yes | No |
-| `image_texture_coordinate_roundtrip` | Image ↔ texture roundtrip | `toImage (toTexture ϵ) = ϵ` | §4.2 Eq(18) | w,h,wshader > 0 | Low | ring | No | No |
+| `angle_of_view_eq` | r_u/F = tan(α/2) | `Real.tan (angleOfView F r_u / 2) = r_u / F` | §2 Eq(6) | F>0 (junk-value semantics; callers enforce) | Medium | simp [Real.tan_arctan] | **Yes** | No |
+| `image_texture_coordinate_roundtrip` | shader → mm → shader roundtrip | `toShader (fromShader q) = q` | §4.2 Eq(18) | w,h,wshader > 0 | Low | field_simp, ring | **Yes** | No |
 | `decode_to_semantic_validity` | Parser decode + semantic bridge → valid semantics | `decode json = ok l → extract l = ok s → ValidLensSemantics s` | §1.3 + bridge | None | Medium | cases, simp | No | Yes |
 | `projection_fov_equiv` | Projection and FOV forms agree modulo ΔP | TBD | §3 Eqs(12,13) | AMB-OL-002, AMB-OL-008 | High | TBD | No | Yes |
 | `radial_denominator_nonzero_zero_k` | All-zero k → denominator = 1 ≠ 0 | `allZero k → denom k r = 1` | §4.1 | None | Low | norm_num, ring | No | No |
@@ -1010,11 +1013,11 @@ Create `OpenLensIOSemanticHarness.lean` parallel to `HarnessAdapter.lean`:
 17. **SLICE-OL-10**: Projection matrix characterisation
 18. **SLICE-OL-11**: FOV characterisation
 19. **SLICE-OL-12**: Angle-of-view / FOV equation
-20. **SLICE-OL-13**: Pixel/shader coordinate roundtrip
-21. **Gate 6: Executable model review**
-22. **SLICE-OL-14**: Executable semantic oracle
-23. **SLICE-OL-15**: Differential semantic testing
-24. **Gate 7: High-risk analysis review** — then decide on overscan, invertibility, etc.
+20. **SLICE-OL-13**: Pixel/shader coordinate roundtrip ✅
+21. **Gate 6: Executable model review** ✅
+22. **SLICE-OL-14**: Executable semantic oracle ✅
+23. **SLICE-OL-15**: Differential semantic testing ✅ (descoped — see OL-15 review)
+24. **Gate 7: High-risk analysis review** — DEFERRED
 
 ---
 
