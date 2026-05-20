@@ -202,6 +202,10 @@ srcDir = "openlensio_semantics"
 name = "SemanticBridge"
 srcDir = "openlensio_semantics"
 
+[[lean_lib]]
+name = "RadialPolynomial"
+srcDir = "openlensio_semantics"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"

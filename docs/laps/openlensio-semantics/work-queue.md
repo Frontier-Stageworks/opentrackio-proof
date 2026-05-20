@@ -9,8 +9,8 @@ metadata:
 
 **Source document:** OpenLensIO v1.0.1 PDF  
 (`OpenLensIO_v1-0-1.pdf`, title page: "OpenLensIO Lens Model Version 1.0.0", 17 February 2025)  
-**Status:** Gates 0–3 complete. Slices OL-00, OL-04, OL-01, OL-02, OL-03 DONE. Stop 4 (proof review) complete for OL-03. Awaiting authorization for SLICE-OL-05.  
-**Phase:** Implementation — Layer B complete; ready for Layer C (radial polynomial)
+**Status:** Gates 0–3 complete. Slices OL-00, OL-04, OL-01, OL-02, OL-03, OL-05 DONE. All Stop 4 reviews complete. Awaiting authorization for SLICE-OL-06.  
+**Phase:** Implementation — Layer B complete; Layer C/D entry complete (RadialPolynomial)
 
 ---
 
@@ -529,7 +529,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-05 — Radial polynomial definition and denominator safety
+### SLICE-OL-05 — Radial polynomial definition and denominator safety ✅ DONE (Stop 4 complete)
 
 **Layer:** C + D  
 **Goal:** Define `radialTerm`; prove `radial_denominator_nonzero_under_constraints`  
@@ -547,7 +547,7 @@ opentrackio_parser
 
 ---
 
-### SLICE-OL-06 — Zero-coefficient radial identity
+### SLICE-OL-06 — Zero-coefficient radial identity ✅ DONE (Stop 4 complete)
 
 **Layer:** E (algebraic)  
 **Goal:** `radial_zero_coefficients_identity : k1=0 → k2=0 → k3=0 → k4=0 → k5=0 → k6=0 → radialTerm k r h = 1`  
