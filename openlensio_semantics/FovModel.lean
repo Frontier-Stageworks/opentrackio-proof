@@ -53,13 +53,24 @@ noncomputable def fovUndistortFromDistorted
   Structural consistency of Eq (10) with Eq (4) via the ΔP translation:
     undistortFromDistorted for (ε'_d + ΔP) = fovUndistortFromDistorted for ε'_d + ΔP
 
-  The coercion (distortion_center_translation_commutes ...).symm ▸ h converts
-  h : denominatorNonzero k (sensorRadius (ε'_d − ΔC)) to the type needed by
-  undistortFromDistorted: denominatorNonzero k (sensorRadius ((ε'_d + ΔP) − ΔC − ΔP)).
-  These are propositionally equal by distortion_center_translation_commutes (OL-09).
+  The theorem takes two domain hypotheses:
+    h  : denominatorNonzero k (sensorRadius (ε'_d − ΔC))
+    h' : denominatorNonzero k (sensorRadius ((ε'_d + ΔP) − ΔC − ΔP))
+  These are proofs of propositionally-equal (by distortion_center_translation_commutes)
+  but definitionally-distinct SensorPoint expressions. Both are needed because
+  undistortFromDistorted and fovUndistortFromDistorted are defined with different
+  argument forms; the two domain proofs cannot be conflated at the definition level.
 
-  Proof: simp only with distortion_center_translation_commutes rewrites the shifted
-  argument back to ε'_d − ΔC; rfl closes by Lean 4 proof irrelevance.
+  Proof strategy:
+    1. `simp only [undistortFromDistorted, fovUndistortFromDistorted]` unfolds both
+       definitions, exposing two `undistortPoint` calls at structurally different
+       SensorPoint arguments.
+    2. `congr 1; congr 1` reduces the goal to showing the two `undistortPoint` calls
+       are equal — i.e., that U applied at ε'_d−ΔC with proof h equals U applied at
+       (ε'_d+ΔP)−ΔC−ΔP with proof h'.
+    3. `undistortPoint_congr` closes this by supplying the SensorPoint equality
+       (distortion_center_translation_commutes ε'_d ΔP ΔC) and appealing to Lean 4
+       proof irrelevance: both h and h' are proofs of the same Prop after substitution.
 ─────────────────────────────────────────────────────────────────────────────-/
 
 /-─────────────────────────────────────────────────────────────────────────────

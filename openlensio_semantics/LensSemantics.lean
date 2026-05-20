@@ -78,13 +78,37 @@ structure LensSemantics where
 /-─────────────────────────────────────────────────────────────────────────────
   ValidLensSemantics
 
-  Semantic domain requirements for a LensSemantics value.
+  A MINIMAL semantic validity gate for a LensSemantics value. This predicate
+  is NOT a comprehensive physical validity certificate — it encodes only the
+  invariants required for the current campaign (OL-00 through OL-15) to
+  proceed safely.
 
-  focalLength_pos: F > 0 required by §1.1 (focal length is a positive length).
+  Encoded invariant:
+    focalLength_pos — F > 0 required by §1.1 (focal length is a positive length).
 
-  Denominator nonzero is intentionally absent here. It is a per-point
-  condition (depends on the input radius r) and is introduced as an
-  explicit hypothesis in SLICE-OL-05 (AMB-OL-007).
+  Intentionally omitted invariants (and why):
+
+    denominatorNonzero — the radial polynomial denominator is a per-point
+      condition that depends on the input radius r and cannot be encoded
+      as a static predicate on LensSemantics. It is supplied as an explicit
+      hypothesis at each call site (SLICE-OL-05, AMB-OL-007).
+
+    coefficient range bounds — the paper does not specify valid ranges for
+      k1..k6, p1, p2. No physical bounds are stated in OpenLensIO v1.0.1.
+      These could be added as future predicate clauses if a normative range
+      is established.
+
+    physical calibration bounds on ΔC, ΔP — no normative bounds are stated
+      in the paper. Sensor-dimension constraints are enforced locally by
+      theorem hypotheses (e.g., `hw : 0 < w`) rather than in this predicate.
+
+    Float safety margins — floating-point overflow and underflow conditions
+      for the executable oracle are not modelled in the exact-real layer.
+      The Float oracle (ExecutableSemanticOracle.lean) handles domain checks
+      independently via Option and absolute-tolerance guards. See AMB-OL-016.
+
+  If ValidLensSemantics is strengthened in a future authorized slice,
+  semanticExtraction_sound's proof obligation grows accordingly.
 ─────────────────────────────────────────────────────────────────────────────-/
 
 def ValidLensSemantics (l : LensSemantics) : Prop :=

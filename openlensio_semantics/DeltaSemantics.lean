@@ -33,6 +33,15 @@ def subSensorPoints (p q : SensorPoint) : SensorPoint :=
   Formal statement of §3 Eq (12): ε_u = ε'_u + ΔP.
   Stated as a roundtrip: shifting by ΔP and then unshifting returns the
   original FOV-form undistorted coordinate. Sign per AMB-OL-002.
+
+  ⚠ Formal note (audit finding VAC-01): deltaP_characterisation and
+  deltaC_characterisation are formally α-equivalent — they prove the same
+  algebraic fact `sub(add(a, b), b) = a` with different bound variable names
+  and identical proof scripts. The duplication is intentional: Eq (12) and
+  Eq (13) apply the same algebraic relationship to different coordinate-space
+  roles (undistorted vs. distorted coordinates respectively). A single theorem
+  would suffice formally; both are retained for equation-traceability to the
+  paper. The semantic distinction is interpretive, not algebraic.
 ─────────────────────────────────────────────────────────────────────────────-/
 
 theorem deltaP_characterisation (ε'_u ΔP : SensorPoint) :
@@ -45,6 +54,12 @@ theorem deltaP_characterisation (ε'_u ΔP : SensorPoint) :
   Formal statement of §3 Eq (13): ε_d = ε'_d + ΔP.
   Same algebraic form as deltaP_characterisation but for the distorted
   coordinate pair. Kept separate to document the distinct paper equation.
+
+  ⚠ Formal note (audit finding VAC-01): this theorem is formally α-equivalent
+  to deltaP_characterisation (same statement, same proof, different variable
+  names). The coordinate-role distinction — undistorted (ε'_u / Eq 12) vs.
+  distorted (ε'_d / Eq 13) — is interpretive, not algebraic. Both theorems are
+  retained for paper-equation traceability. See deltaP_characterisation note.
 ─────────────────────────────────────────────────────────────────────────────-/
 
 theorem deltaC_characterisation (ε'_d ΔP : SensorPoint) :

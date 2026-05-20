@@ -68,11 +68,19 @@ noncomputable def undistortFromDistorted
 /-─────────────────────────────────────────────────────────────────────────────
   projection_matrix_undistort_eq
 
-  Structural consistency of Eq (4): removing the ΔC+ΔP offset from
-  undistortFromDistorted's output recovers undistortPoint's output.
+  Algebraic offset-cancellation consistency of Eq (4): removing the ΔC+ΔP
+  offset from undistortFromDistorted's output recovers undistortPoint's output.
+  Formally: (U(ε_d − ΔC − ΔP) + ΔC + ΔP) − ΔC − ΔP = U(ε_d − ΔC − ΔP),
+  i.e., a + b + c − b − c = a, proved by ring after unfolding the definition.
 
-  Proof: unfold undistortFromDistorted to expose (U(...) + ΔC + ΔP),
-  then subtracting ΔC and ΔP cancels: a + b + c − b − c = a per ring.
+  Scope limitation: this theorem proves algebraic consistency of the Eq(4)
+  offset structure (the ΔC+ΔP wrapping/unwrapping cancels), NOT full
+  Eq(3)/Eq(4) forward/inverse equivalence. In particular:
+    – it does not relate projectToImage (Eq 3) to undistortFromDistorted (Eq 4);
+    – it does not prove that U is invertible;
+    – it does not prove that the forward distortion model composes correctly.
+  Full forward/inverse equivalence requires the forward distortion model,
+  deferred to OL-DEFER-03.
 ─────────────────────────────────────────────────────────────────────────────-/
 
 theorem projection_matrix_undistort_eq

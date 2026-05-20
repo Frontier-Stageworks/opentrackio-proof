@@ -232,6 +232,45 @@ The asymmetry between the overscan forms and their non-overscan counterparts, an
 
 ---
 
+## AMB-OL-016 — Float oracle semantic divergence from exact-real definitions (MATERIAL)
+
+**Status:** Open — documented risk, no resolution planned for current campaign
+**Source:** Vacuity audit finding EX-01 (2026-05-20)
+**Relevant files:** `ExecutableSemanticOracle.lean` (SLICE-OL-14), `battery-tester/semantic_oracle/reference_oracle.py` (SLICE-OL-15)
+
+**What is the divergence:**
+
+1. **Domain-validity architecture mismatch.** The exact-real layer encodes domain validity as a Prop-level precondition (`h : denominatorNonzero k r`) embedded in function signatures. The Float oracle encodes it as an `Option` return: `radialTerm_float` returns `none` when the denominator is within absolute tolerance `1e-10` of zero. These are structurally incompatible — the Float oracle cannot directly call exact-real functions, and there is no Lean theorem connecting the two validity mechanisms.
+
+2. **Tolerance-based vs. exact nonzero.** `denominatorNonzero` requires the denominator is exactly ≠ 0 over ℝ. `radialTerm_float` uses `denom.abs < 1e-10` as its rejection threshold. This creates two distinct failure modes:
+   - A denominator with |d| < 1e-10 is rejected by the Float oracle but satisfies `denominatorNonzero` (if d ≠ 0 exactly).
+   - A denominator with |d| >> 1e-10 but very close to zero in practice is accepted by the Float oracle but may produce large floating-point errors.
+   Neither failure mode is captured by the current Lean semantics.
+
+3. **Function signature divergence.** `undistortX_float` takes a pre-computed `R : Float` (the radial term, already unwrapped from `Option`). The exact `undistortX` takes `h : denominatorNonzero` and calls `radialTerm` internally. Any bridging theorem would need to relate a post-match `Float` value to an ℝ-level division by a nonzero denominator — this requires a Float-to-ℝ correctness claim not present in the campaign.
+
+4. **No Float↔ℝ bridging theorem.** No Lean theorem in the campaign connects the Float oracle's output to the exact-real definitions. The `ExecutableSemanticOracle.lean` file carries a prominent warning: `⚠ FLOAT APPROXIMATION ONLY — NOT A PROVED THEOREM ⚠`.
+
+**Role of the executable oracle:**
+The Float oracle and Python reference oracle are **differential-testing infrastructure** — they provide executable computation against hand-computed expected values for confidence. They are NOT verified executable extractions. The Lean kernel has not checked any connection between Float behavior and ℝ behavior.
+
+The Python oracle (SLICE-OL-15) passed 7/7 fixtures. This confirms the Python implementation matches hand-computed values; it does not prove the implementation is correct relative to the Lean theorems.
+
+**Implementation risk:** Medium for current campaign (no Float correctness claims are made). High for any future work that attempts to use the Float oracle as a verified component or to derive Float-level guarantees from the exact theorems.
+
+**Proof impact on current campaign:** None — no existing theorem depends on Float/ℝ agreement.
+
+**Can current proofs proceed?** Yes — the separation is clean. The Float oracle and exact-real layer are independent artifacts with documented boundaries.
+
+**Future Float bridging:**
+- Status: Deferred — not part of the current campaign.
+- Risk: High. A bridging theorem would require IEEE 754 rounding error bounds, which are not in scope for an exact-real Lean 4 proof campaign using Mathlib.
+- If attempted: requires a new LAPS campaign with its own proof capsule, proof plan, and clear scope contract. Must not collapse the exact-real and Float layers.
+
+**Proposed resolution:** No resolution in the current campaign. Document the separation and maintain the `⚠ FLOAT APPROXIMATION ONLY` warning in `ExecutableSemanticOracle.lean`. Any future Float campaign must be authorized separately.
+
+---
+
 ## Summary Table
 
 | ID | Title | Status | Proof Impact | Can Proceed? |
@@ -251,3 +290,4 @@ The asymmetry between the overscan forms and their non-overscan counterparts, an
 | AMB-OL-013 | Default p₁, p₂ = 0 | Unresolved | Low | Yes, with assumption |
 | AMB-OL-014 | U argument frame | Derivable | Low | Yes |
 | AMB-OL-015 | Which Ω for equivalence | Unresolved | Medium | Separately per form |
+| AMB-OL-016 | Float oracle semantic divergence | Open — deferred | None (current); High (future Float campaign) | Yes — layers independent |
