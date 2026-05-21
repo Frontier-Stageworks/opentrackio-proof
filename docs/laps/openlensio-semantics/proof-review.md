@@ -120,8 +120,9 @@ Non-vacuity of `denominatorNonzero`: the predicate fails for `k.k2 = -1, r = 1` 
 
 ### Proof structure
 
-- `radialTerm_eq`: `rfl` — definitional equality.
 - `radial_denominator_nonzero_zero_coeffs`: `simp [denominatorNonzero, hk2, hk4, hk6]` — substitutes zero coefficients, simplifies arithmetic, closes `1 ≠ 0` via `one_ne_zero`.
+
+Note: `radialTerm_eq` was removed before the review — trivially-true definitional tautology; `simp only [radialTerm, ...]` is used at call sites instead.
 
 ### Anti-pattern scan
 
@@ -275,7 +276,7 @@ Match proof-capsule.md SLICE-OL-09 section exactly.
 
 ### AMB-OL-002 sign verified
 
-All three theorems use `addSensorPoints` (addition). The proof plan noted: if the sign were subtraction, `deltaP_characterisation` would require `(p.x - q.x) - q.x = p.x` → `p.x - 2·q.x = p.x` — false unless q=0. The theorems compiling without `sorry` confirms the addition sign is correct and consistent. AMB-OL-002 resolution is embedded in the definitions.
+All three theorems use `addSensorPoints` (addition). The proof plan noted: if the sign were subtraction, `deltaP_characterisation` would require `(p.x - q.x) - q.x = p.x` → `p.x - 2·q.x = p.x` — false unless q=0. The theorems compiling without `sorry` confirms the addition sign is correct and consistent. The Eq (13) sign convention is embedded in the definitions. (AMB-OL-002 was a register error — closed as FALSE_POSITIVE.)
 
 ### Semantic match
 

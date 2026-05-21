@@ -44,7 +44,7 @@ The full `openlensio_semantics` Lean 4 proof campaign, covering:
 
 **LAPS artifacts:**
 
-- `ambiguity-register.md` (15 entries, AMB-OL-001–015)
+- `ambiguity-register.md` (16 entries, AMB-OL-001–016; AMB-OL-016 added during this audit for Float oracle architecture gap)
 - `proof-capsule.md`
 - `proof-plan.md`
 - `proof-review.md`
@@ -90,7 +90,7 @@ No `sorry`, `admit`, `unsafe`, or `partial` found in any file.
 
 | Definition | File | Lean shape | Invariants encoded | Invariants deferred |
 |-----------|------|-----------|-------------------|---------------------|
-| `SensorPoint` | CoordinateTypes | `{x y : ℝ}` | none (bare product) | coordinate-space tag (AMB-OL-004) |
+| `SensorPoint` | CoordinateTypes | `{x y : ℝ}` | none (bare product) | coordinate-space tag (deferred design choice; work-queue §5) |
 | `sensorRadius` | CoordinateTypes | `√(x²+y²) : ℝ` | nonnegativity via `sqrt` | — |
 | `RadialCoefficients` | LensSemantics | `{k1..k6 : ℝ}` | none | denominator nonzero (AMB-OL-007) |
 | `TangentialCoefficients` | LensSemantics | `{p1 p2 : ℝ}` | none | — |
@@ -219,7 +219,7 @@ The campaign covers: coordinate types, radial polynomial, Brown-Conrady undistor
 |------|--------|-----------|
 | Forward distortion model | Deferred to OL-DEFER-03 | ProjectionModel comment, work-queue.md |
 | Full Eq(3)/Eq(4) consistency | Deferred | Same |
-| Phantom-type coordinate tagging | Deferred | AMB-OL-004 |
+| Phantom-type coordinate tagging | Deferred | work-queue §5 |
 | Multi-frame decimals / `Canon_REK_v1.0` | Out of scope | work-queue.md |
 | Differential testing vs. C++ / CamDKit | Blocked — no implementation | proof-capsule.md OL-15 |
 | Float-to-ℝ bridging theorem | Not attempted | See Finding EX-01 |
@@ -415,7 +415,7 @@ The comment describes a `▸` (rewrite-by-proof) strategy that was explored but 
 | `proof-plan.md` | Yes | Covers OL-00 through OL-15 |
 | `proof-review.md` | Yes | Covers OL-00 through OL-15 |
 | `work-queue.md` | Yes | Updated through OL-15; sections 2, 7, 8, 13 current |
-| `ambiguity-register.md` | Yes | 15 entries, AMB-OL-001–015 |
+| `ambiguity-register.md` | Yes | 16 entries, AMB-OL-001–016 |
 | `first-slice-contract.md` | Yes | OL-00 through OL-04 |
 | `gate1-audit.md` | Yes | Gate 1 audit result |
 | `audit-report.md` | **This file** | Created in this audit run |

@@ -5,13 +5,14 @@
   translation theorems from OpenLensIO §3 Eqs (12) and (13).
 
   Eq (13): ε_d = ε'_d + ΔP.
-  Inline text near Eq (10) states the same relationship as ε'_d = ε_d − ΔP — a
-  rearrangement, not a contradiction. The specification is self-consistent.
+  Inline text near Eq (10) (verified against PDF): also says "where ε_d = ε'_d + ΔP" —
+  identical form to Eq (13). The specification is self-consistent and unambiguous.
   Mathematical check: substituting Eq (13) into Eq (4):
     U(ε_d − ΔC − ΔP) = U((ε'_d + ΔP) − ΔC − ΔP) = U(ε'_d − ΔC)  ✓ (matches Eq 10)
 
   Note: AMB-OL-002 in the ambiguity register initially logged this as a sign
-  contradiction (misquoting the inline text sign). Corrected in second-pass-audit.md.
+  contradiction (misquoted the inline text sign as addition-wrong-form). Corrected
+  in second-pass-audit.md; inline text form verified against PDF 2026-05-21.
 -/
 
 import LensSemantics

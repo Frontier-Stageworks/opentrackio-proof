@@ -39,6 +39,8 @@ AMB-OL-002 resolution (load-bearing): Eq (13) is the authority.
 
 The phrase **"not the inline text's subtraction"** directly contradicts the ambiguity register. The Lean source file states the inline text uses **subtraction**. The ambiguity register states the inline text uses **addition**. Only one can correctly describe the actual specification text.
 
+**PDF-verified correction (2026-05-21):** Neither campaign artifact was correct about the inline text form. The actual PDF (p. 6) says "where ε_d = ε′_d + ΔP" — addition form, ε_d isolated, identical to Eq (13). The DeltaSemantics.lean claim of "subtraction" was also wrong. Both artifacts mischaracterized the inline text; only the PDF is authoritative. The FALSE_POSITIVE conclusion is unaffected: the inline text and Eq (13) agree, so there was never a contradiction.
+
 ### Algebraic normalization
 
 Let the two claimed forms be:
@@ -94,28 +96,31 @@ The ambiguity register did not directly quote the specification. The entry reads
 
 > "Inline text near Eq (10) states: 'where ϵ′_d = ϵ_d + ΔP'"
 
-This is presented as a quote but is inconsistent with the description in the same campaign's own Lean source file. The most probable cause is a sign-transcription error: the auditor read "ε'_d = ε_d − ΔP" (or equivalently, "ε_d = ε'_d + ΔP") from the specification and transcribed it into the register with the wrong sign.
+This is presented as a quote but used the wrong sign, manufacturing a contradiction with Eq (13).
 
-The DeltaSemantics.lean comment "addition, not the inline text's subtraction" was attempting to explain that the Lean code uses Eq (13)'s additive form (ε_d = ε'_d + ΔP) rather than the inline text's subtraction form (ε'_d = ε_d − ΔP) — but these are the same equation written two ways. The distinction the comment was drawing was stylistic, not semantic.
+**PDF-verified correction (2026-05-21):** The actual inline text in OpenLensIO_v1-0-1.pdf (p. 6, between Eq (10) and Eq (11)) reads: "where ε_d = ε′_d + ΔP". This is the **identical form** to Eq (13) — not a different rearrangement. The inline text and Eq (13) are the same statement. There was never any two-form ambiguity; the spec is unambiguous throughout.
+
+The DeltaSemantics.lean comment (before PDF verification) said "addition, not the inline text's subtraction" — implying the inline text used a subtraction form. This was also incorrect; the inline text uses addition, same as Eq (13). That comment has been updated.
 
 ### Impact on proofs
 
-**The theorems are unaffected.** The campaign correctly formalizes ε_d = ε'_d + ΔP. The algebraic derivation `distortion_center_translation_commutes` and `fov_undistort_eq` are correct regardless of whether the inline text is a typo or a rearrangement. The error is in the audit interpretation, not in the Lean code.
+**The theorems are unaffected.** The campaign correctly formalizes ε_d = ε′_d + ΔP. The algebraic derivation `distortion_center_translation_commutes` and `fov_undistort_eq` are correct. The error was entirely in the audit narrative.
 
 ### Impact on campaign documentation
 
-The following claims derived from AMB-OL-002 require correction:
+The following claims derived from AMB-OL-002 required correction (now applied):
 
-1. The "typo" characterization should be withdrawn. The spec is self-consistent; no typo has been established.
-2. The "load-bearing assumption" framing should be corrected. The campaign chose to formalize Eq (13)'s notation; no choice between contradictory readings was required.
-3. The paper's description of AMB-OL-002 as uncovering a "sign inconsistency" and a "specification typo" should be removed or corrected.
-4. The "HIGH implementation risk" rating should be reduced. This was based on a false contradiction.
+1. The "typo" characterization withdrawn. No typo exists.
+2. The "load-bearing assumption" framing corrected. The spec is unambiguous; no assumption was needed.
+3. The paper's "sign inconsistency" and "typo" language removed.
+4. The "HIGH implementation risk" rating removed.
+5. The characterization of the inline text as a "subtraction form" corrected to match the PDF.
 
 ### Revised classification
 
 **AMB-OL-002: FALSE_POSITIVE**
 
-The apparent contradiction between the inline text and Eq (13) does not exist. Both express ε_d = ε'_d + ΔP, differing only in which side is isolated. The ambiguity register misquoted the inline text sign, manufacturing a contradiction. The campaign's theorems are correct; the audit narrative around them is not.
+The apparent contradiction between the inline text and Eq (13) does not exist. The PDF shows both write the same thing: `ε_d = ε′_d + ΔP`. The ambiguity register misquoted the inline text sign, manufacturing a contradiction. The campaign's theorems are correct; the audit narrative around them was not, and has been corrected.
 
 ---
 
@@ -348,13 +353,16 @@ Both were resolved via direct spec text quotes ("currently under investigation" 
 
 ### FP-01: AMB-OL-002 — Sign contradiction between inline text and Eq (13)
 
-**Finding:** The claimed contradiction between "ε'_d = ε_d + ΔP" (attributed to inline text near Eq 10) and "ε_d = ε'_d + ΔP" (Eq 13) is a false positive. Internal campaign artifact evidence:
+**Finding:** The claimed contradiction between "ε'_d = ε_d + ΔP" (attributed to inline text near Eq 10) and "ε_d = ε'_d + ΔP" (Eq 13) is a false positive.
 
-- `DeltaSemantics.lean` header (written by the campaign authors during proof development) describes the contrast as "addition, not the inline text's **subtraction**." This directly states the inline text uses subtraction.
-- If the inline text says "ε'_d = ε_d − ΔP" (subtraction), this rearranges to "ε_d = ε'_d + ΔP" — identical to Eq (13). No contradiction.
-- The ambiguity register entered this subtraction-form inline text as "ε'_d = ε_d **+** ΔP" (addition), reversing the sign and manufacturing a contradiction.
+**PDF-verified (2026-05-21):** The actual inline text in OpenLensIO_v1-0-1.pdf (p. 6, between Eq (10) and Eq (11)) reads: "where ε_d = ε′_d + ΔP" — the same addition form as Eq (13). The inline text and Eq (13) are identical statements. There is no subtraction form anywhere in the spec on this relationship.
 
-**The error is a sign transcription error in the ambiguity register, not in the specification.**
+The pre-PDF-verification reasoning (from campaign artifacts) was:
+- `DeltaSemantics.lean` header said "addition, not the inline text's subtraction" → inferred the inline text used subtraction.
+- This inference was wrong: the DeltaSemantics.lean comment was itself inaccurate about the inline text form.
+- The ambiguity register entered the inline text as "ε'_d = ε_d + ΔP" (wrong sign entirely), manufacturing a contradiction.
+
+**The error is a fabricated contradiction in the ambiguity register. The specification is unambiguous: both Eq (13) and the inline text write `ε_d = ε′_d + ΔP`.**
 
 **Consequential false claims to correct:**
 - The spec does not contain a typo regarding ΔP sign.
@@ -477,7 +485,7 @@ Withdrawn as genuine ambiguities (reclassified):
 AMB-OL-002 must be corrected:
 - Remove "typo" characterization.
 - Remove "HIGH" impact.
-- Change status to: FALSE_POSITIVE — the inline text uses subtraction form (ε'_d = ε_d − ΔP), algebraically equivalent to Eq (13). The register misquoted it with + instead of −.
+- Change status to: FALSE_POSITIVE — the inline text (verified against PDF) uses the same addition form as Eq (13): "where ε_d = ε′_d + ΔP". No contradiction exists. The register fabricated a contradiction by attributing a wrong form to the inline text.
 - Retain the mathematical verification (Eqs (4)/(10) consistency check) as evidence that Eq (13)'s sign is correct, but reframe it as confirmatory of a consistent specification rather than as tiebreaker between contradictory readings.
 
 AMB-OL-004 must be updated:
@@ -515,9 +523,9 @@ This should be revised to reflect that the inline text and Eq (13) are consisten
 
 ```
 Formal encoding of Eq (13): ε_d = ε'_d + ΔP.
-The inline text near Eq (10) expresses the same relation as ε'_d = ε_d − ΔP
-(a rearrangement, not a contradiction). AMB-OL-002 in the register incorrectly
-described the inline text sign; see second-pass audit for correction.
+The inline text near Eq (10) (verified against PDF) also says "where ε_d = ε'_d + ΔP"
+— identical form to Eq (13). AMB-OL-002 in the register incorrectly attributed a
+different sign to the inline text; see second-pass audit and PDF verification for correction.
 ```
 
 ---
@@ -526,7 +534,7 @@ described the inline text sign; see second-pass audit for correction.
 
 ### Lesson 1: Direct quotation is not optional for contradiction claims
 
-The most consequential error in the first-pass audit was claiming a specification contradiction based on a paraphrase rather than a verbatim quote. The ambiguity register entry for AMB-OL-002 presents the inline text's content as a quote ("states: 'where ϵ′_d = ϵ_d + ΔP'") but the quotation was inaccurate. The actual inline text appears to use a subtraction form, which is algebraically equivalent to Eq (13).
+The most consequential error in the first-pass audit was claiming a specification contradiction based on a paraphrase rather than a verbatim quote. The ambiguity register entry for AMB-OL-002 presents the inline text's content as a quote ("states: 'where ϵ′_d = ϵ_d + ΔP'") but the quotation was inaccurate. The actual inline text (verified against PDF 2026-05-21) says "where ε_d = ε′_d + ΔP" — the same addition form as Eq (13), not a different rearrangement. The contradiction was entirely fabricated by the register's misquotation.
 
 Rule: Before recording a contradiction, the exact specification text for both sides of the contradiction must be quoted verbatim, and both forms must be algebraically normalized into a canonical form to confirm they differ.
 

@@ -602,11 +602,11 @@ opentrackio_parser
 **Inputs:** `SensorPoint`, `ProjectionParameters`, §1.5, §2 Eqs(4,5), §3 Eqs(10,12,13)  
 **Outputs:** `applyDeltaP`, `applyDeltaC`, translation lemmas  
 **Theorem targets:**
-- `deltaP_characterisation : ϵ_u = ϵ'_u + ΔP` (Eq 12, with AMB-OL-002 assumption documented)
+- `deltaP_characterisation : ϵ_u = ϵ'_u + ΔP` (Eq 12; addition sign per Eq (13), confirmed consistent)
 - `deltaC_characterisation : ϵ_d = ϵ'_d + ΔP` (Eq 13)
 - `distortion_center_translation_commutes`
 
-**Blockers:** AMB-OL-002 — must use Eq (13) sign, not inline text. State explicitly.  
+**Blockers:** None (AMB-OL-002 was a register error — closed as FALSE_POSITIVE; see second-pass-audit.md).  
 **Proof difficulty:** Low (algebraic, no real analysis)  
 **Expected tactics:** `ring`, `simp [applyDeltaP]`  
 **Stop condition:** Theorems proved; AMB-OL-002 documented in proof capsule  
@@ -657,7 +657,7 @@ opentrackio_parser
 **Blockers:** Requires `Real.tan` from Mathlib  
 **Proof difficulty:** Medium (real analysis)  
 **Expected tactics:** `simp [Real.tan_eq_sin_div_cos]`, Mathlib trig lemmas  
-**Stop condition:** Definition compiles; equation stated with F>0 precondition  
+**Stop condition:** Definition compiles; equation stated without F>0 precondition (hF unused by proof; domain enforcement is caller's responsibility via ValidLensSemantics)  
 **Acceptance criteria:** No `sorry`; preconditions match paper (centred at ΔP per §2 Eq 6)
 
 ---
@@ -753,10 +753,10 @@ opentrackio_parser
 | `sensorRadius_nonneg` | Screen radius is nonneg | `∀ ϵ, sensorRadius ϵ ≥ 0` | §1.1 | None | Low | positivity | No | No |
 | `radial_denominator_nonzero_under_constraints` | Under validity predicate, denominator ≠ 0 | `ValidDistortionCoeffs k → ∀ r ∈ domain, denom k r ≠ 0` | §4.1 Eq(17) | ValidDistortionCoeffs | Medium | linarith, nlinarith | No | Yes |
 | `pixel_metric_roundtrip` | mm → shader → mm roundtrip | `fromShader (toShader p) = p` | §4.2 Eq(18) | w,h,wshader > 0 | Low | field_simp | **Yes** | No |
-| `deltaP_characterisation` | ϵ_u and ϵ'_u differ by ΔP | `projMatChar.ϵ_u = fovChar.ϵ_u + ΔP` | §3 Eqs(12,13) | AMB-OL-002 assumption | Low | ring | No | No |
+| `deltaP_characterisation` | ϵ_u and ϵ'_u differ by ΔP | `projMatChar.ϵ_u = fovChar.ϵ_u + ΔP` | §3 Eqs(12,13) | Addition sign per Eq (13); confirmed consistent | Low | ring | No | No |
 | `distortion_center_translation_commutes` | Shifting ΔC commutes with U application | Statement TBD | §1.5 | denominatorNonzero | Medium | ring | No | No |
 | `projection_matrix_undistort_eq` | Eq (4) is internally consistent | `U(ϵ_d − ΔC − ΔP) + ΔC + ΔP = ϵ_u` | §2 Eq(4) | denominatorNonzero | Medium | simp, ring | No | No |
-| `fov_undistort_eq` | Eq (10) is consistent with Eq (4) via translation | see §3 | §3 Eq(10) | AMB-OL-002 | Medium | ring | No | No |
+| `fov_undistort_eq` | Eq (10) is consistent with Eq (4) via translation | see §3 | §3 Eq(10) | Addition sign per Eq (13); confirmed consistent (AMB-OL-002 FALSE_POSITIVE) | Medium | ring | No | No |
 | `angle_of_view_eq` | r_u/F = tan(α/2) | `Real.tan (angleOfView F r_u / 2) = r_u / F` | §2 Eq(6) | F>0 (junk-value semantics; callers enforce) | Medium | simp [Real.tan_arctan] | **Yes** | No |
 | `image_texture_coordinate_roundtrip` | shader → mm → shader roundtrip | `toShader (fromShader q) = q` | §4.2 Eq(18) | w,h,wshader > 0 | Low | field_simp, ring | **Yes** | No |
 | `decode_to_semantic_validity` | Parser decode + semantic bridge → valid semantics | `decode json = ok l → extract l = ok s → ValidLensSemantics s` | §1.3 + bridge | None | Medium | cases, simp | No | Yes |
@@ -796,7 +796,7 @@ opentrackio_parser
 | `projection_matrix_undistort_eq` | Composition of definitions; needs F>0 and denominator safety tracked | ValidLensSemantics carries these |
 | `distortion_center_translation_commutes` | Translation and polynomial composition; needs careful bookkeeping | Clean ΔC-shifted coordinate type |
 | `angle_of_view_eq` | Requires Mathlib `Real.tan`; connection between r_u and α needs care | Restrict to α ∈ (0, π) |
-| `fov_undistort_eq` | Depends on AMB-OL-002 resolution | Use Eq (13) sign as assumption |
+| `fov_undistort_eq` | Depends on Eq (13) sign convention | Sign confirmed consistent; AMB-OL-002 closed as FALSE_POSITIVE |
 | `projection_fov_equiv` | Translation composition; assumption-gated on AMB-OL-008 | Explicit preconditions from paper analysis |
 
 ### High Risk — separate analysis required
@@ -948,7 +948,7 @@ Create `OpenLensIOSemanticHarness.lean` parallel to `HarnessAdapter.lean`:
 **Required artifacts:** `ambiguity-register.md` with all HIGH-impact ambiguities resolved or explicitly assumption-gated  
 **Pass criteria:** AMB-OL-002, AMB-OL-003, AMB-OL-007, AMB-OL-010 each have a documented handling decision  
 **Stop condition:** Any proof slice opens while depending on an unresolved HIGH-impact ambiguity  
-**Status:** PENDING — AMB-OL-002 handled by assumption; AMB-OL-003, AMB-OL-007, AMB-OL-010 assumption-gated but not fully resolved
+**Status:** PENDING — AMB-OL-002 confirmed consistent (FALSE_POSITIVE — see second-pass-audit.md); AMB-OL-003, AMB-OL-007, AMB-OL-010 assumption-gated but not fully resolved
 
 ---
 
@@ -1049,7 +1049,7 @@ Create `OpenLensIOSemanticHarness.lean` parallel to `HarnessAdapter.lean`:
 - [x] Existing parser proofs not duplicated (Layer A boundary explicit; parser types imported, not re-proved)
 - [x] Existing OpenCV↔OpenTrackIO conversion proofs not duplicated (noted in §3 boundary; Gate 1 check required)
 - [x] New `openlensio_semantics` boundary defined (§3 + dependency graph)
-- [x] Ambiguities listed (15 entries in ambiguity-register.md; HIGH-impact ones flagged)
+- [x] Ambiguities listed (16 entries in ambiguity-register.md; HIGH-impact ones flagged; AMB-OL-016 added during post-campaign audit)
 - [x] High-risk proofs separated (§9 risk matrix + §14 defer list)
 - [x] LAPS stop gates defined (7 gates in §12 with required artifacts and pass criteria)
 - [x] Executable/differential strategy separated from proof strategy (§10 + §11)

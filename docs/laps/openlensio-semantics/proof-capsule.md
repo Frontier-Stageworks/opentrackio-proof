@@ -29,7 +29,7 @@ The theorem confirms `r ≥ 0` for all sensor points — required for downstream
 
 ### Statement audit
 
-- `SensorPoint` is `{x y : ℝ}`. Phantom-type tagging deferred per AMB-OL-004.
+- `SensorPoint` is `{x y : ℝ}`. Phantom-type coordinate-frame tagging deferred (see work-queue §5). Note: AMB-OL-004 is about the diagonal vs. component notation of U — it is unrelated to phantom types.
 - The theorem holds unconditionally; no hypothesis needed. The origin (`p = ⟨0,0⟩`) is reachable and yields `sensorRadius p = 0`, so the theorem is not vacuous.
 
 ### Load-bearing definitions
@@ -61,7 +61,7 @@ The theorem confirms `r ≥ 0` for all sensor points — required for downstream
 | `TangentialCoefficients` | `{p1 p2 : ℝ}` | Brown-Conrady p1,p2 coefficients | Naming only |
 | `TangentialCoefficients.zero` | `⟨0, 0⟩` | Default when absent (AMB-OL-013) | Encoded |
 | `LensSemantics` | `{focalLength radial tangential distCentre perspOffset}` | All over ℝ | Fields present |
-| `ValidLensSemantics` | `0 < l.focalLength` | F > 0 required by §1.1 | Encoded in predicate |
+| `ValidLensSemantics` | `0 < l.focalLength` | F > 0: physical-domain assumption for focal length | Encoded in predicate |
 
 ### Deferred invariants (by design)
 
@@ -168,6 +168,8 @@ theorem radial_denominator_nonzero_zero_coeffs
     (hk2 : k.k2 = 0) (hk4 : k.k4 = 0) (hk6 : k.k6 = 0) :
     denominatorNonzero k r
 ```
+
+Note: `radialTerm_eq` (definitional equality of `radialTerm`) was considered but removed — it was a trivially-true tautology that served no proof purpose; `simp only [radialTerm, ...]` is used directly at call sites instead.
 
 ### Intent
 
@@ -364,16 +366,17 @@ tangential_zero_coefficients_identity       →  hX : undistortX ... = R·ε.x
 **File:** `openlensio_semantics/DeltaSemantics.lean` (new file)  
 **Layer:** C + E
 
-### AMB-OL-002 resolution (load-bearing)
+### Eq (13) formalization note
 
-Paper Eq (13) is the authority: `ε_d = ε'_d + ΔP` (addition).
-The inline text near Eq (10) states `ε'_d = ε_d + ΔP` — this is a typo with the wrong sign.
-Mathematical verification: Eq (13) sign is consistent with the rest of the model:
-  `ε_u = U(ε_d − ΔC − ΔP) + ΔC + ΔP` (Eq 4)  
-  with `ε_d = ε'_d + ΔP` → argument = `ε'_d − ΔC` = argument of Eq (10). ✓
+Eq (13) states `ε_d = ε'_d + ΔP`. The inline text near Eq (10) (verified against PDF) also
+says "where ε_d = ε'_d + ΔP" — the same form, not a different rearrangement. The specification
+is self-consistent and unambiguous.
+Mathematical verification: substituting Eq (13) into Eq (4):
+  `U(ε_d − ΔC − ΔP) = U((ε'_d + ΔP) − ΔC − ΔP) = U(ε'_d − ΔC)` ✓ (matches Eq 10)
 
-**All ΔP shift operations in this slice use addition, not subtraction.**
-If this resolution is wrong, all three theorems below have the wrong sign.
+**All ΔP shift operations in this slice use addition** (the Eq (13) form `ε_d = ε'_d + ΔP`).
+Note: AMB-OL-002 was initially recorded as a sign contradiction. It was corrected in the
+second-pass audit (second-pass-audit.md) — the register had misquoted the inline text sign.
 
 ### Definitions
 
@@ -401,7 +404,7 @@ theorem distortion_center_translation_commutes (ε'_d ΔP ΔC : SensorPoint) :
 
 ### Intent
 
-**`deltaP_characterisation`:** Documents Eq (12) — the ΔP shift is invertible; shifting and unshifting returns to the original FOV-form coordinate. Confirms the AMB-OL-002 sign choice is consistent: addition.
+**`deltaP_characterisation`:** Documents Eq (12) — the ΔP shift is invertible; shifting and unshifting returns to the original FOV-form coordinate.
 
 **`deltaC_characterisation`:** Documents Eq (13) — same algebraic form for distorted coordinates. Both are instances of `(p + q) − q = p`; they are stated separately to document which paper equation each corresponds to.
 
@@ -411,11 +414,11 @@ theorem distortion_center_translation_commutes (ε'_d ΔP ΔC : SensorPoint) :
 
 - `deltaP_characterisation` and `deltaC_characterisation` are algebraically identical (`(p + q) − q = p`). They are kept as separate theorems for documentation: one for Eq (12) (undistorted), one for Eq (13) (distorted). Neither is vacuous — the conclusion is false if the sign were subtraction instead of addition.
 - `distortion_center_translation_commutes` is NOT the same as the previous two. It involves three points and captures a two-step cancellation.
-- AMB-OL-002 sign is load-bearing for all three. If the sign in the definitions were reversed, all theorems would fail.
+- The addition sign (`addSensorPoints`) is the Eq (13) form. If the definitions used subtraction, all theorems would fail.
 
 ### Forbidden changes
 
-- Do not change `addSensorPoints` to use subtraction — the AMB-OL-002 resolution explicitly requires addition.
+- Do not change `addSensorPoints` to use subtraction — the Eq (13) form explicitly uses addition.
 - Do not merge `deltaP_characterisation` and `deltaC_characterisation` into one — they document different paper equations.
 - Do not use `sorry`.
 
@@ -525,7 +528,7 @@ Two explicit hypotheses: `h` for the FOV form's precondition, `h'` for the proje
 
 **`fovUndistortFromDistorted` (Eq 10):** `ε'_u = U(ε'_d − ΔC) + ΔC` — the FOV-form undistort applies U to the distortion-centred coordinate and re-adds ΔC. No ΔP shift. Compare with Eq (4): `ε_u = U(ε_d − ΔC − ΔP) + ΔC + ΔP`.
 
-**`fov_undistort_eq`:** Structural consistency of Eq (10) with Eq (4) via the ΔP translation (AMB-OL-002 resolution). When `ε_d = ε'_d + ΔP` (Eq 13), the output of `undistortFromDistorted` for ε_d equals the output of `fovUndistortFromDistorted` for ε'_d plus ΔP. This is the Lean formalization of why the two parametrisations agree.
+**`fov_undistort_eq`:** Structural consistency of Eq (10) with Eq (4) via the ΔP translation (Eq 13). When `ε_d = ε'_d + ΔP`, the output of `undistortFromDistorted` for ε_d equals the output of `fovUndistortFromDistorted` for ε'_d plus ΔP. This is the Lean formalization of why the two parametrisations agree.
 
 ### Dropped theorem (LAPS anti-pattern)
 
@@ -535,8 +538,8 @@ The work queue listed `fov_projection_translation : ε_u = ε'_u + ΔP` as a tar
 
 **`fov_undistort_eq`:**
 - NOT vacuous: if `fovUndistortFromDistorted` had wrong ΔC placement, the conclusion would be false.
-- NOT trivially true: the coercion `(distortion_center_translation_commutes ...).symm ▸ h` is the load-bearing step — it certifies that the argument `ε'_d − ΔC` in the FOV form equals the argument `(ε'_d + ΔP) − ΔC − ΔP` in the projection form (by `distortion_center_translation_commutes` from OL-09).
-- `h` is the sole domain precondition. `hShifted` is derived internally via the coercion — not an extra hypothesis, not a burden on callers.
+- NOT trivially true: `undistortPoint_congr` is the load-bearing step — it bridges two domain hypotheses that carry the same mathematical condition at definitionally distinct SensorPoint expressions.
+- Two explicit domain hypotheses `h` and `h'` are required. `h'` is derivable from `h` via `distortion_center_translation_commutes`, but is supplied explicitly by callers. The two-hypothesis form is the verified clean shape (see Hard Step Identification below).
 
 ### Hard step identification
 
@@ -546,9 +549,9 @@ Resolution: two explicit hypotheses (`h` and `h'`) in the theorem statement, plu
 
 The original plan proposed a single-hypothesis form with `▸` in the theorem statement. This was dropped: `▸` in term position (outside a `by` block) risks elaboration failures, and the two-hypothesis form is cleaner for downstream callers.
 
-### AMB-OL-002 dependency
+### Sign convention note
 
-`distortion_center_translation_commutes` (OL-09, proved under AMB-OL-002 addition sign) is load-bearing. If AMB-OL-002 is resolved differently, all three of `addSensorPoints ε'_d ΔP`, `h'`'s type, and the theorem conclusion need sign changes.
+`distortion_center_translation_commutes` (OL-09) is load-bearing. The addition sign in `addSensorPoints ε'_d ΔP` reflects Eq (13): `ε_d = ε'_d + ΔP`. This is confirmed correct — AMB-OL-002 was a register error (misquoted inline text sign) and was closed as a FALSE_POSITIVE in the second-pass audit. No sign ambiguity remains.
 
 ### Load-bearing definitions
 
@@ -589,7 +592,7 @@ noncomputable def fovAngleFromWidth (F w : ℝ) : ℝ :=
 ### Theorem
 
 ```lean
-theorem angle_of_view_eq (F r_u : ℝ) (hF : 0 < F) :
+theorem angle_of_view_eq (F r_u : ℝ) :
     Real.tan (angleOfView F r_u / 2) = r_u / F
 ```
 
@@ -608,7 +611,7 @@ theorem angle_of_view_eq (F r_u : ℝ) (hF : 0 < F) :
 ### Statement audit
 
 - NOT vacuous: `Real.tan_arctan` is a non-trivial Mathlib lemma; the theorem does not hold by `rfl`.
-- `hF : 0 < F` is included even though not needed for the proof (division by F in `r_u / F` is well-typed for all F in Lean 4) because F is focal length and must be positive in the physical domain (per paper §1.3). Including the hypothesis documents the domain and prevents unphysical instantiations.
+- No `hF : 0 < F` hypothesis in the final theorem. Lean 4's real division is total (0/0 = 0), so the statement is well-typed for all F. At F = 0, both sides are 0 — technically true but vacuous. Physical use requires F > 0; callers enforce this via `ValidLensSemantics`. The hypothesis was omitted as unused by the proof kernel; domain restriction belongs to callers.
 
 ### Load-bearing definitions
 
@@ -626,9 +629,8 @@ This is unconditional in Mathlib (holds for all reals, including negative inputs
 ### Forbidden changes
 
 - Do not replace `Real.arctan` with a custom definition.
-- Do not drop `hF` — it documents the valid domain even if not needed for the proof kernel.
+- Do not add `hF : 0 < F` to `angle_of_view_eq` — it is unused by the proof kernel and misleading. Domain restriction belongs to callers via `ValidLensSemantics`.
 - Do not add `angleOfView F w / 2 = arctan w/2 / F` as a separate theorem — trivially true and unneeded.
-- Do not add `hF : 0 < F` back to `angle_of_view_eq` — it is unused and misleading. Domain restriction belongs to callers (ValidLensSemantics).
 - Do not use `sorry`.
 
 ---

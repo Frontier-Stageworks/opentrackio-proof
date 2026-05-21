@@ -45,8 +45,7 @@ Gates 0, 1, 2, 3 must pass before implementation begins:
 1. `lake build openlensio_semantics` succeeds without `sorry`
 2. `ValidLensSemantics` includes at minimum:
    - `focalLength > 0`
-   - `sensorWidth > 0`
-   - An explicit denominator nonzero condition for the coefficient tuple
+   Note: the final implementation encodes only `0 < focalLength`. `sensorWidth > 0` and denominator nonzero are carried as per-call hypotheses rather than bundled into `ValidLensSemantics` — a deliberate design choice documented in AMB-OL-007 and the proof capsule.
 3. `semanticExtraction_sound` is proved without `sorry`
 4. The statement of `semanticExtraction_sound` is reviewed: confirm that `ValidLensSemantics` is not vacuously satisfied by checking it against at least one invalid input
 5. AMB-OL-007 documented in proof capsule: denominator nonzero is a hypothesis, not proved

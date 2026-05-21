@@ -29,13 +29,13 @@ All ambiguities extracted directly from OpenLensIO v1.0.1 PDF
 **Status:** Closed — FALSE_POSITIVE (register error; see `second-pass-audit.md`)  
 **Paper location:** Section 3, inline text near Eq (10) and Eq (13)
 
-**Correction (2026-05-20):** The original register entry misquoted the inline text sign and manufactured a non-existent contradiction. The actual specification text:
-- Inline text near Eq (10): `ϵ′_d = ϵ_d − ΔP` (subtraction form, ϵ′_d isolated)
+**Correction (2026-05-20, verified against PDF 2026-05-21):** The original register entry misquoted the inline text sign and manufactured a non-existent contradiction. The actual specification text (verified against OpenLensIO_v1-0-1.pdf):
+- Inline text near Eq (10): `ϵ_d = ϵ′_d + ΔP` (same form as Eq (13), addition, ϵ_d isolated)
 - Eq (13): `ϵ_d = ϵ′_d + ΔP` (addition form, ϵ_d isolated)
 
-These are the same algebraic relationship, rearranged. Rearranging Eq (13): `ϵ_d − ΔP = ϵ′_d`, i.e., `ϵ′_d = ϵ_d − ΔP` ✓ — exactly the inline text form. The specification is self-consistent. No typo exists.
+The inline text and Eq (13) are identical — not two different rearrangements, literally the same statement. The specification is self-consistent and unambiguous. No typo exists.
 
-**How the error entered the register:** The register wrote "where ϵ′_d = ϵ_d + ΔP" (addition) for the inline text. The contemporaneous DeltaSemantics.lean header note confirms the inline text uses subtraction ("not the inline text's subtraction near Eq (10)"). These two campaign artifacts contradicted each other; the Lean source is the more reliable record.
+**How the error entered the register:** The register wrote "where ϵ′_d = ϵ_d + ΔP" (wrong sign) for the inline text, manufacturing a sign contradiction. The second-pass audit correctly identified it as a FALSE_POSITIVE (though it assumed the inline text used a subtraction form; the PDF shows it uses the same addition form as Eq (13)).
 
 **Mathematical check (still valid):** Substituting Eq (13) into Eq (4):
 - U(ε_d − ΔC − ΔP) = U((ε'_d + ΔP) − ΔC − ΔP) = U(ε'_d − ΔC) ✓ (matches Eq 10)
