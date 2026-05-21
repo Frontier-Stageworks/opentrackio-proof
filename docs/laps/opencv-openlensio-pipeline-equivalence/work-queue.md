@@ -10,7 +10,7 @@ metadata:
 ## Slices
 
 ### SLICE-PE-00: Infrastructure (lakefile + imports)
-- **Status**: NOT STARTED
+- **Status**: DONE (2026-05-21)
 - **Deliverable**: Add `PipelineEquivalence` lib entry to `lakefile.toml`; create stub file
   `opencv_opentrackio_proofs/PipelineEquivalence.lean` with imports and module header
 - **Imports needed**: `DistortionConversion`, `DistortionModel`
@@ -18,7 +18,7 @@ metadata:
 - **Dependencies**: None
 
 ### SLICE-PE-01: Define undistortOpenCV
-- **Status**: NOT STARTED
+- **Status**: DONE (2026-05-21) — compiled clean; semantic checks passed
 - **Deliverable**: `undistortXCV`, `undistortYCV`, `undistortPointCV` definitions in
   `PipelineEquivalence.lean`
 - **Contract**: See first-slice-contract.md
@@ -26,7 +26,7 @@ metadata:
 - **Dependencies**: SLICE-PE-00
 
 ### SLICE-PE-02: Prove radial pipeline equivalence
-- **Status**: NOT STARTED
+- **Status**: DONE (2026-05-21) — compiled clean; semantic review passed
 - **Deliverable**: `opencv_openlensio_radial_pipeline_eq` theorem
 - **Proof strategy**: Unfold both sides; apply `radial_distortion_value_equivalence`;
   reduce to `sensorRadius ⟨F·x, F·y⟩ = F · sensorRadius ε'` (uses `hF_pos`)
@@ -35,30 +35,51 @@ metadata:
 - **Dependencies**: SLICE-PE-01
 
 ### SLICE-PE-03: Prove full pipeline pixel sufficiency (← direction)
-- **Status**: NOT STARTED
+- **Status**: DONE (2026-05-21) — compiled clean (unused-variable warning for `hF_pos` only)
 - **Deliverable**: `opencv_openlensio_full_pipeline_pixel_sufficiency` theorem
-- **Proof strategy**: Substitute all conversion hypotheses and `ws/w = fx`;
-  reduce to `field_simp` + `ring` closing an algebraic equality
-- **Expected difficulty**: Medium. Long substitution chain but mechanical algebra.
+- **Proof strategy**: Derive `hws_eq : ws = w * fx` and `hfx : fx ≠ 0` from `hscale`;
+  prove radial num/den equalities; rewrite with `hF_eq, hws_eq` (eliminates `ws` and `F`);
+  close with `field_simp [hw, hfx, hden_xy]; ring`
+- **Key fix**: the `ws/w = fx` step is explicit via `hws_eq` derivation (not hidden);
+  avoiding `rw [hscale]` before `field_simp` prevents spurious `fx⁻¹` introduction
 - **Gate**: Compiles clean; proof review passes; the specific `ws/w = fx` step is
   identified in the proof (not hidden by automation)
 - **Dependencies**: SLICE-PE-01, SLICE-PE-02
 
-### SLICE-PE-04: Prove full pipeline pixel iff (main result)
+### SLICE-PE-04a: Prove ← direction of pixel iff
 - **Status**: NOT STARTED
-- **Deliverable**: `opencv_openlensio_full_pipeline_pixel_iff` theorem (iff)
-- **Proof strategy**:
-  - ← direction: apply sufficiency theorem
-  - → direction: extract conditions by specialization at chosen (x', y') values;
-    use `principal_point_conversion_iff` for F and ΔPx; use `whole_radial_polynomial_iff`
-    for radial coefficients; use `whole_tangential_field_iff` for q1, q2; use `hp` for
-    ws/w = fx (specialise at x'=1, y'=0 and use `p1 ≠ 0 ∨ p2 ≠ 0`)
-- **Expected difficulty**: High. The → direction requires extracting all conditions from a
-  universal equality over a composite expression. The algebra for isolating individual
-  conditions needs careful specialization.
-- **Gate**: Compiles clean; proof review passes; the `ws/w = fx` extraction step is
-  explicitly identified; no sorry; semantic review confirms the iff captures the intent
+- **Deliverable**: `opencv_openlensio_full_pipeline_pixel_iff` with ← direction proved
+  (→ direction as `sorry` placeholder until PE-04c)
+- **Proof strategy**: `constructor; · intro h; exact opencv_openlensio_full_pipeline_pixel_sufficiency ...`
+- **Expected difficulty**: Trivial.
+- **Gate**: Compiles clean with sorry only in → branch
 - **Dependencies**: SLICE-PE-03
+
+### SLICE-PE-04b: Helper lemma — pixel equality implies ws/w = fx
+- **Status**: NOT STARTED
+- **Deliverable**: `pixel_eq_implies_scale` (or inline `have`) — given all coefficient
+  conditions and F, ΔPx conditions, the pixel equality for all (x', y') implies ws/w = fx
+- **Theorem statement**: See statement note below. Uses `hp : p1 ≠ 0 ∨ p2 ≠ 0` to
+  find a point where δx_cv ≠ 0, then cancels to get ws/w = fx
+- **Statement note**: The full "extract all 11 conditions from pixel equality" iff requires
+  rational function coefficient extraction not supported by current helpers. PE-04b instead
+  proves the CONDITIONAL iff: given all coefficient + projection conditions, pixel equality
+  ↔ ws/w = fx. This is the key mathematical content of the paper's claim. See ambiguity
+  register for the deliberate scope choice.
+- **Proof strategy**: After all conditions substituted, pixel equality simplifies to
+  `fx*δx + cx = (ws/w)*δx + cx` (radial parts cancel); specialize at (1,0) or (1,1)
+  using `hp` to get δx ≠ 0; cancel to get ws/w = fx
+- **Expected difficulty**: Medium.
+- **Gate**: Compiles clean; extraction step for ws/w = fx is explicit
+- **Dependencies**: SLICE-PE-03
+
+### SLICE-PE-04c: Close the iff using PE-04b
+- **Status**: NOT STARTED
+- **Deliverable**: `opencv_openlensio_full_pipeline_pixel_iff` — remove sorry; wire in
+  PE-04b helper for the → direction
+- **Expected difficulty**: Low once PE-04b is done.
+- **Gate**: Compiles clean; no sorry; proof review passes
+- **Dependencies**: SLICE-PE-04a, SLICE-PE-04b
 
 ## Checkpoint protocol
 

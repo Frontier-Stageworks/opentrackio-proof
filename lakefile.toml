@@ -19,6 +19,10 @@ name = "MutationTests"
 srcDir = "opencv_opentrackio_proofs"
 
 [[lean_lib]]
+name = "PipelineEquivalence"
+srcDir = "opencv_opentrackio_proofs"
+
+[[lean_lib]]
 name = "RationalValueWrappers"
 srcDir = "opentrackio_parser"
 
