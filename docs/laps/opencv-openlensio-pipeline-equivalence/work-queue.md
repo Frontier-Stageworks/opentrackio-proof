@@ -47,7 +47,7 @@ metadata:
 - **Dependencies**: SLICE-PE-01, SLICE-PE-02
 
 ### SLICE-PE-04a: Prove ← direction of pixel iff
-- **Status**: NOT STARTED
+- **Status**: DONE (2026-05-21) — compiles clean (sorry warning only for → direction)
 - **Deliverable**: `opencv_openlensio_full_pipeline_pixel_iff` with ← direction proved
   (→ direction as `sorry` placeholder until PE-04c)
 - **Proof strategy**: `constructor; · intro h; exact opencv_openlensio_full_pipeline_pixel_sufficiency ...`
