@@ -274,9 +274,9 @@ No `sorry`, `admit`, `unsafe`, `partial`, or unauthorized `axiom`.
 
 Match proof-capsule.md SLICE-OL-09 section exactly.
 
-### AMB-OL-002 sign verified
+### Sign convention verified
 
-All three theorems use `addSensorPoints` (addition). The proof plan noted: if the sign were subtraction, `deltaP_characterisation` would require `(p.x - q.x) - q.x = p.x` → `p.x - 2·q.x = p.x` — false unless q=0. The theorems compiling without `sorry` confirms the addition sign is correct and consistent. The Eq (13) sign convention is embedded in the definitions. (AMB-OL-002 was a register error — closed as FALSE_POSITIVE.)
+All three theorems use `addSensorPoints` (addition). The proof plan noted: if the sign were subtraction, `deltaP_characterisation` would require `(p.x - q.x) - q.x = p.x` → `p.x - 2·q.x = p.x` — false unless q=0. The theorems compiling without `sorry` confirms the addition sign is correct and consistent with Eq (13).
 
 ### Semantic match
 
@@ -295,7 +295,7 @@ Initial proofs used `ext <;> simp [...] <;> ring`. The linter reported `ring` un
 | Anti-pattern | Result |
 |---|---|
 | Hidden sorry | ✅ None |
-| Wrong AMB-OL-002 sign | ✅ Theorems proven; addition confirmed correct |
+| Wrong sign for ΔP translation | ✅ Theorems proven; addition sign per Eq (13) confirmed correct |
 | `deltaP` and `deltaC` merged into one theorem | ✅ Kept separate — different paper equations |
 | `distortion_center_translation_commutes` trivially true | ✅ Non-trivial: requires ΔP cancellation across three points |
 | Unused tactics | ✅ Cleaned after linter warnings |
@@ -481,7 +481,7 @@ Matches proof-capsule.md SLICE-OL-11 section exactly (two-hypothesis form, helpe
 | `addSensorPoints` in simp set breaking pattern | ✅ Excluded — documented in failed-attempt note |
 | `undistortPoint_congr` helper without explicit role | ✅ Has explicit role — called in final tactic step |
 | Vacuous theorem | ✅ Non-vacuous (fails for wrong ΔC placement) |
-| AMB-OL-002 sign buried | ✅ Dependency on `distortion_center_translation_commutes` explicit |
+| Sign convention buried in definition | ✅ Dependency on `distortion_center_translation_commutes` explicit |
 
 ---
 

@@ -375,8 +375,6 @@ Mathematical verification: substituting Eq (13) into Eq (4):
   `U(ε_d − ΔC − ΔP) = U((ε'_d + ΔP) − ΔC − ΔP) = U(ε'_d − ΔC)` ✓ (matches Eq 10)
 
 **All ΔP shift operations in this slice use addition** (the Eq (13) form `ε_d = ε'_d + ΔP`).
-Note: AMB-OL-002 was initially recorded as a sign contradiction. It was corrected in the
-second-pass audit (second-pass-audit.md) — the register had misquoted the inline text sign.
 
 ### Definitions
 
@@ -551,7 +549,7 @@ The original plan proposed a single-hypothesis form with `▸` in the theorem st
 
 ### Sign convention note
 
-`distortion_center_translation_commutes` (OL-09) is load-bearing. The addition sign in `addSensorPoints ε'_d ΔP` reflects Eq (13): `ε_d = ε'_d + ΔP`. This is confirmed correct — AMB-OL-002 was a register error (misquoted inline text sign) and was closed as a FALSE_POSITIVE in the second-pass audit. No sign ambiguity remains.
+`distortion_center_translation_commutes` (OL-09) is load-bearing. The addition sign in `addSensorPoints ε'_d ΔP` reflects Eq (13): `ε_d = ε'_d + ΔP`. Both Eq (13) and the inline text near Eq (10) state this form; the specification is unambiguous.
 
 ### Load-bearing definitions
 

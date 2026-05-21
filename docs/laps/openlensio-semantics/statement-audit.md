@@ -246,7 +246,7 @@ theorem fov_undistort_eq
     undistortFromDistorted k p (addSensorPoints ε'_d ΔP) ΔC ΔP h' =
     addSensorPoints (fovUndistortFromDistorted k p ε'_d ΔC h) ΔP
 ```
-**Intended meaning:** When ε_d = ε'_d + ΔP (Eq 13, AMB-OL-002), the projection-form undistortion (Eq 4) equals the FOV-form undistortion (Eq 10) plus ΔP. This is the structural consistency theorem connecting the two characterisations.
+**Intended meaning:** When ε_d = ε'_d + ΔP (Eq 13), the projection-form undistortion (Eq 4) equals the FOV-form undistortion (Eq 10) plus ΔP. This is the structural consistency theorem connecting the two characterisations.
 
 **⚠ Scope limitation:** This theorem proves structural output consistency — that both forms compute the same SensorPoint given the Eq(13) translation hypothesis. It is NOT a full Eq(3)/Eq(4) equivalence proof. In particular:
 - It does not prove that the forward projections agree.

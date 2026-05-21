@@ -66,7 +66,7 @@ metadata:
 - Floating-point error bounds
 
 **Highest-risk proof areas:**
-- `projection_fov_equiv` — depends on AMB-OL-002, AMB-OL-003, AMB-OL-008
+- `projection_fov_equiv` — depends on AMB-OL-003, AMB-OL-008
 - `undistorted_roundtrip_preserves_pixel` — depends on AMB-OL-010 (U invertibility)
 - Overscan containment — informative section, requires real analysis
 - Denominator safety across full domain — may require domain restriction hypotheses
@@ -101,7 +101,7 @@ All equations extracted from the PDF. Source version: as read above.
 | OL-SPEC-020 | §3 Eq(9) | ϵ′_u = F·[x/z_p,y/z_p]^T | F,z_p | Camera→Image | mm | F>0, z_p≠0 | Normative | Yes | ✅ `fovProjectToImage` def (OL-11) |
 | OL-SPEC-021 | §3 Eq(10) | ϵ′_u = U(ϵ′_d − ΔC) + ΔC | U,ϵ′_d,ΔC | Image | mm | Denominator ≠ 0 | Normative | Yes | ✅ `fovUndistortFromDistorted` def + `fov_undistort_eq` (OL-11) |
 | OL-SPEC-022 | §3 Eq(11) | ϵ′_d = U⁻¹(ϵ′_u − ΔC) + ΔC | U⁻¹ | Image | mm | U invertible (AMB-OL-010) | Normative | No | Assumption-gated |
-| OL-SPEC-023 | §3 Eqs(12,13) | ϵ_u = ϵ′_u + ΔP; ϵ_d = ϵ′_d + ΔP | ΔP | Image | mm | see AMB-OL-002 | Normative | Yes | ✅ `distortion_center_translation_commutes` + `fov_undistort_eq` (OL-09, OL-11) |
+| OL-SPEC-023 | §3 Eqs(12,13) | ϵ_u = ϵ′_u + ΔP; ϵ_d = ϵ′_d + ΔP | ΔP | Image | mm | Spec is unambiguous on sign | Normative | Yes | ✅ `distortion_center_translation_commutes` + `fov_undistort_eq` (OL-09, OL-11) |
 | OL-SPEC-024 | §3.1 Eq(14) | θ_Ω′ = 2·arctan(w_Ω′/(2F)) | θ,w_Ω′,F | — | rad/mm | F>0, w_Ω′>0 | Normative | Yes | ✅ `fovAngleFromWidth` def (OL-12); no roundtrip theorem (definitional consequence of `angleOfView`) |
 | OL-SPEC-025 | §3.1 Eq(15) | ϵ′_Ω′ = (1/Ω′)·(U(ϵ_d−ΔC−ΔP)+ΔC) | Ω′,ϵ_d,ΔC,ΔP | Image | mm | Ω′>0; AMB-OL-009 | Normative | No | Assumption-gated |
 | OL-SPEC-026 | §3.1 prose | Projection and FOV forms can generate equivalent renders | — | — | — | Conditions unstated (AMB-OL-008) | Normative claim | No | Assumption-gated |
@@ -426,7 +426,7 @@ opentrackio_parser
 [ProjectionModel]         (Layer C + E)
   projectionMatrixCharacterisation (Eq 3, 4)
   fovCharacterisation (Eq 9, 10)
-  projection_fov_equiv (Eqs 12,13 — assumption-gated on AMB-OL-002,008)
+  projection_fov_equiv (Eqs 12,13 — assumption-gated on AMB-OL-008)
   angle_of_view_eq (Eq 6)
         |
         ▼
@@ -606,10 +606,10 @@ opentrackio_parser
 - `deltaC_characterisation : ϵ_d = ϵ'_d + ΔP` (Eq 13)
 - `distortion_center_translation_commutes`
 
-**Blockers:** None (AMB-OL-002 was a register error — closed as FALSE_POSITIVE; see second-pass-audit.md).  
+**Blockers:** None.  
 **Proof difficulty:** Low (algebraic, no real analysis)  
 **Expected tactics:** `ring`, `simp [applyDeltaP]`  
-**Stop condition:** Theorems proved; AMB-OL-002 documented in proof capsule  
+**Stop condition:** Theorems proved; sign convention per Eq (13) confirmed  
 **Acceptance criteria:** Proof capsule explicitly states which paper location is authoritative for the sign
 
 ---
@@ -639,11 +639,11 @@ opentrackio_parser
 - `fov_projection_translation : ϵ_u = ϵ'_u + ΔP` (from definitions, not new axiom)
 - `fov_undistort_eq` (consistency of Eq 10 with Eq 4 via translation)
 
-**Blockers:** AMB-OL-002 (sign of ϵ'_d) — document assumption  
+**Blockers:** None (sign convention per Eq (13); spec is unambiguous)  
 **Proof difficulty:** Medium  
 **Expected tactics:** `ring`, `simp`, substitution  
 **Stop condition:** Both characterisations defined; translation theorems proved  
-**Acceptance criteria:** AMB-OL-002 documented; translation relationship proved algebraically, not axiomatically
+**Acceptance criteria:** Translation relationship proved algebraically, not axiomatically
 
 ---
 
@@ -756,13 +756,13 @@ opentrackio_parser
 | `deltaP_characterisation` | ϵ_u and ϵ'_u differ by ΔP | `projMatChar.ϵ_u = fovChar.ϵ_u + ΔP` | §3 Eqs(12,13) | Addition sign per Eq (13); confirmed consistent | Low | ring | No | No |
 | `distortion_center_translation_commutes` | Shifting ΔC commutes with U application | Statement TBD | §1.5 | denominatorNonzero | Medium | ring | No | No |
 | `projection_matrix_undistort_eq` | Eq (4) is internally consistent | `U(ϵ_d − ΔC − ΔP) + ΔC + ΔP = ϵ_u` | §2 Eq(4) | denominatorNonzero | Medium | simp, ring | No | No |
-| `fov_undistort_eq` | Eq (10) is consistent with Eq (4) via translation | see §3 | §3 Eq(10) | Addition sign per Eq (13); confirmed consistent (AMB-OL-002 FALSE_POSITIVE) | Medium | ring | No | No |
+| `fov_undistort_eq` | Eq (10) is consistent with Eq (4) via translation | see §3 | §3 Eq(10) | Addition sign per Eq (13); spec is unambiguous | Medium | ring | No | No |
 | `angle_of_view_eq` | r_u/F = tan(α/2) | `Real.tan (angleOfView F r_u / 2) = r_u / F` | §2 Eq(6) | F>0 (junk-value semantics; callers enforce) | Medium | simp [Real.tan_arctan] | **Yes** | No |
 | `image_texture_coordinate_roundtrip` | shader → mm → shader roundtrip | `toShader (fromShader q) = q` | §4.2 Eq(18) | w,h,wshader > 0 | Low | field_simp, ring | **Yes** | No |
 | `decode_to_semantic_validity` | Parser decode + semantic bridge → valid semantics | `decode json = ok l → extract l = ok s → ValidLensSemantics s` | §1.3 + bridge | None | Medium | cases, simp | No | Yes |
-| `projection_fov_equiv` | Projection and FOV forms agree modulo ΔP | TBD | §3 Eqs(12,13) | AMB-OL-002, AMB-OL-008 | High | TBD | No | Yes |
+| `projection_fov_equiv` | Projection and FOV forms agree modulo ΔP | TBD | §3 Eqs(12,13) | AMB-OL-008 | High | TBD | No | Yes |
 | `radial_denominator_nonzero_zero_k` | All-zero k → denominator = 1 ≠ 0 | `allZero k → denom k r = 1` | §4.1 | None | Low | norm_num, ring | No | No |
-| `deltaP_preserves_distortion` | Adding ΔP to undistorted coord matches shifted model | TBD | §1.5 | AMB-OL-002 | Medium | ring | No | No |
+| `deltaP_preserves_distortion` | Adding ΔP to undistorted coord matches shifted model | TBD | §1.5 | denominatorNonzero | Medium | ring | No | No |
 | `deltaC_preserves_distortion` | Shifting ΔC consistently applies throughout U | TBD | §1.5 | denominatorNonzero | Medium | ring | No | No |
 
 **Deferred theorems (do not open in first campaign):**
@@ -796,7 +796,7 @@ opentrackio_parser
 | `projection_matrix_undistort_eq` | Composition of definitions; needs F>0 and denominator safety tracked | ValidLensSemantics carries these |
 | `distortion_center_translation_commutes` | Translation and polynomial composition; needs careful bookkeeping | Clean ΔC-shifted coordinate type |
 | `angle_of_view_eq` | Requires Mathlib `Real.tan`; connection between r_u and α needs care | Restrict to α ∈ (0, π) |
-| `fov_undistort_eq` | Depends on Eq (13) sign convention | Sign confirmed consistent; AMB-OL-002 closed as FALSE_POSITIVE |
+| `fov_undistort_eq` | Depends on Eq (13) sign convention | Sign confirmed; spec is unambiguous |
 | `projection_fov_equiv` | Translation composition; assumption-gated on AMB-OL-008 | Explicit preconditions from paper analysis |
 
 ### High Risk — separate analysis required
@@ -946,9 +946,9 @@ Create `OpenLensIOSemanticHarness.lean` parallel to `HarnessAdapter.lean`:
 
 ### Gate 2 — Ambiguities triaged
 **Required artifacts:** `ambiguity-register.md` with all HIGH-impact ambiguities resolved or explicitly assumption-gated  
-**Pass criteria:** AMB-OL-002, AMB-OL-003, AMB-OL-007, AMB-OL-010 each have a documented handling decision  
+**Pass criteria:** AMB-OL-003, AMB-OL-007, AMB-OL-010 each have a documented handling decision  
 **Stop condition:** Any proof slice opens while depending on an unresolved HIGH-impact ambiguity  
-**Status:** PENDING — AMB-OL-002 confirmed consistent (FALSE_POSITIVE — see second-pass-audit.md); AMB-OL-003, AMB-OL-007, AMB-OL-010 assumption-gated but not fully resolved
+**Status:** PENDING — AMB-OL-003, AMB-OL-007, AMB-OL-010 assumption-gated but not fully resolved
 
 ---
 
@@ -997,7 +997,7 @@ Create `OpenLensIOSemanticHarness.lean` parallel to `HarnessAdapter.lean`:
 1. **Gate 0: Spec extraction** — this document (complete)
 2. **Gate 1: Existing-proof boundary audit** — read actual field names and types from `LensModel.lean`, `SampleModel.lean`, `CameraModel.lean`, `RationalValueWrappers.lean`; list actual theorem names from `DistortionConversion.lean`, `PixelEquivalence.lean`, `PrincipalPointConversion.lean`; confirm no duplication before SLICE-OL-01
 3. **SLICE-OL-00**: Project skeleton
-4. **Gate 2: Ambiguity triage** — document AMB-OL-007 handling; confirm AMB-OL-002 sign
+4. **Gate 2: Ambiguity triage** — document AMB-OL-007 handling; confirm ΔP sign convention
 5. **Gate 3: Representation review** — approve types in Section 5
 6. **SLICE-OL-01**: Semantic bridge types
 7. **SLICE-OL-02**: Semantic extraction function

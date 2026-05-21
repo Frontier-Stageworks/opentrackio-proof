@@ -7,7 +7,7 @@
 
   The FOV form uses coordinates centred at the optical axis. The projection
   matrix form (Eqs 3, 4) includes ΔP offsets. The two forms are related by
-  Eqs (12) and (13): ε_u = ε'_u + ΔP, ε_d = ε'_d + ΔP (AMB-OL-002 resolution).
+  Eqs (12) and (13): ε_u = ε'_u + ΔP, ε_d = ε'_d + ΔP.
 
   Theorem: fov_undistort_eq
     Structural consistency of Eq (10) with Eq (4): when ε_d = ε'_d + ΔP,
@@ -37,7 +37,7 @@ noncomputable def fovProjectToImage (F : ℝ) (u : SensorPoint) : SensorPoint :=
 
   §3: ε'_u = U(ε'_d − ΔC) + ΔC  (no ΔP terms)
   Eq (4) is the projection matrix form: ε_u = U(ε_d − ΔC − ΔP) + ΔC + ΔP.
-  When ε_d = ε'_d + ΔP (Eq 13, AMB-OL-002), the argument to U is the same:
+  When ε_d = ε'_d + ΔP (Eq 13), the argument to U is the same:
     (ε'_d + ΔP) − ΔC − ΔP = ε'_d − ΔC  (distortion_center_translation_commutes).
 ─────────────────────────────────────────────────────────────────────────────-/
 

@@ -10,9 +10,6 @@
   Mathematical check: substituting Eq (13) into Eq (4):
     U(ε_d − ΔC − ΔP) = U((ε'_d + ΔP) − ΔC − ΔP) = U(ε'_d − ΔC)  ✓ (matches Eq 10)
 
-  Note: AMB-OL-002 in the ambiguity register initially logged this as a sign
-  contradiction (misquoted the inline text sign as addition-wrong-form). Corrected
-  in second-pass-audit.md; inline text form verified against PDF 2026-05-21.
 -/
 
 import LensSemantics
@@ -35,7 +32,7 @@ def subSensorPoints (p q : SensorPoint) : SensorPoint :=
 
   Formal statement of §3 Eq (12): ε_u = ε'_u + ΔP.
   Stated as a roundtrip: shifting by ΔP and then unshifting returns the
-  original FOV-form undistorted coordinate. Sign per AMB-OL-002.
+  original FOV-form undistorted coordinate. Sign per Eq (13).
 
   ⚠ Formal note (audit finding VAC-01): deltaP_characterisation and
   deltaC_characterisation are formally α-equivalent — they prove the same

@@ -244,7 +244,7 @@ Closed by `ring`.
 
 None. All goals are linear arithmetic after unfolding.
 
-### AMB-OL-002 test
+### Sign convention test
 
 If `addSensorPoints` used subtraction instead of addition, `deltaP_characterisation` would require `(ε'_u.x - ΔP.x) - ΔP.x = ε'_u.x` → `ε'_u.x - 2·ΔP.x = ε'_u.x` — false unless ΔP=0. The proof failing with wrong-sign definitions confirms the sign is meaningful.
 

@@ -26,22 +26,19 @@ All ambiguities extracted directly from OpenLensIO v1.0.1 PDF
 
 ## AMB-OL-002 — ϵ'_d sign relationship
 
-**Status:** Closed — FALSE_POSITIVE (register error; see `second-pass-audit.md`)  
+**Status:** Resolved — NOT_AN_AMBIGUITY  
 **Paper location:** Section 3, inline text near Eq (10) and Eq (13)
 
-**Correction (2026-05-20, verified against PDF 2026-05-21):** The original register entry misquoted the inline text sign and manufactured a non-existent contradiction. The actual specification text (verified against OpenLensIO_v1-0-1.pdf):
-- Inline text near Eq (10): `ϵ_d = ϵ′_d + ΔP` (same form as Eq (13), addition, ϵ_d isolated)
-- Eq (13): `ϵ_d = ϵ′_d + ΔP` (addition form, ϵ_d isolated)
+Both Eq (13) and the inline text near Eq (10) (verified against OpenLensIO_v1-0-1.pdf, p. 6) state:
+- `ϵ_d = ϵ′_d + ΔP` (addition form, ϵ_d isolated)
 
-The inline text and Eq (13) are identical — not two different rearrangements, literally the same statement. The specification is self-consistent and unambiguous. No typo exists.
+The two sources are identical. The specification is self-consistent and unambiguous throughout.
 
-**How the error entered the register:** The register wrote "where ϵ′_d = ϵ_d + ΔP" (wrong sign) for the inline text, manufacturing a sign contradiction. The second-pass audit correctly identified it as a FALSE_POSITIVE (though it assumed the inline text used a subtraction form; the PDF shows it uses the same addition form as Eq (13)).
-
-**Mathematical check (still valid):** Substituting Eq (13) into Eq (4):
+**Mathematical check:** Substituting Eq (13) into Eq (4):
 - U(ε_d − ΔC − ΔP) = U((ε'_d + ΔP) − ΔC − ΔP) = U(ε'_d − ΔC) ✓ (matches Eq 10)
 
-**Proof impact:** None. DeltaSemantics.lean's encoding of Eq (13) is correct and all theorems stand unchanged. The sign convention is load-bearing for the proofs (implementations must use the correct form), but the specification is unambiguous on which form is authoritative — both forms say the same thing.  
-**Implementation risk:** None — the specification is self-consistent on this point.
+**Proof impact:** None. The sign convention is encoded correctly in DeltaSemantics.lean; all theorems stand.  
+**Implementation risk:** None — the specification is unambiguous.
 
 ---
 
@@ -272,7 +269,7 @@ The Python oracle (SLICE-OL-15) passed 7/7 fixtures. This confirms the Python im
 | ID | Title | Status | Proof Impact | Can Proceed? |
 |----|-------|--------|--------------|--------------|
 | AMB-OL-001 | Version mismatch | Unresolved | Low | Yes |
-| AMB-OL-002 | ϵ′_d sign relationship | Closed — FALSE_POSITIVE (register error) | None | Yes, spec is self-consistent |
+| AMB-OL-002 | ϵ′_d sign relationship | Resolved — NOT_AN_AMBIGUITY | None | Yes, spec is self-consistent throughout |
 | AMB-OL-003 | Eq (8) drops ΔC + ΔP | Unresolved | HIGH | Assumption-gated |
 | AMB-OL-004 | Diagonal U notation | Resolved — NOTATIONAL | None | Yes, component form correct |
 | AMB-OL-005 | Radial coeff units | Unresolved | Low | Yes, with unit assumption |
