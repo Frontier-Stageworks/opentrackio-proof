@@ -43,9 +43,7 @@ Within that boundary, the model includes the major OpenTrackIO sample structures
 - top-level sample fields;
 - sample encoders, decoders, normalization, and executable harnesses.
 
-The work was developed in small proof slices. This mattered. Early slices established reusable invariant-carrying types such as positive rationals, nonempty arrays, nonempty strings, finite version digits, and lens encoder groups with at least one of focus, iris, or zoom present. Later slices composed those pieces into camera, lens, timing, transform, and sample models.
-
-This incremental structure prevented the proof work from becoming a large, opaque proof script. It also made it easier to see where the real protocol decisions were being made.
+Reusable invariant-carrying types — positive rationals, nonempty arrays, nonempty strings, finite version digits, and lens encoder groups with at least one of focus, iris, or zoom present — are defined first, then composed into camera, lens, timing, transform, and sample models.
 
 ## Type-carried invariants
 
@@ -83,15 +81,11 @@ Closed-world enum decoders were also proved for timing mode, synchronization sou
 
 Finally, normalization theorems establish that sample normalization is idempotent and preserves decoded semantics. The project also defines a `WellFormedSampleJson` predicate to describe schema-clean JSON inputs, including duplicate-key and nested unknown-field constraints.
 
-## Why the proofs are not merely vacuous
+## Proof Strength
 
-A common risk in formal verification is proving the wrong thing. For example, proving that a decoder is sound is not impressive if the decoder always rejects every input. Proving `ValidSample := True` would also be meaningless.
+Key invariants are stored in types, not in vague predicates — invalid values often cannot be constructed at all. Decoders were tested on representative inputs, confirming they have successful paths. The roundtrip theorem directly exercises both the real encoder and the real decoder, proving agreement between executable functions rather than a hand-written predicate: a constant encoder fails for populated samples, a decoder that ignores fields fails to recover the original value, and a key-name mismatch breaks the theorem.
 
-The project addresses this in several ways.
-
-First, key invariants are stored in types, not in vague predicates. Invalid values often cannot be constructed at all. Second, decoders were smoke-tested on representative inputs, showing that they do have successful paths. Third, the roundtrip theorem directly mentions both the real encoder and the real decoder. It proves agreement between executable functions, not just a hand-written predicate.
-
-An anti-vacuity audit was also written for the project. It classifies artifacts by strength: strong semantic proofs, type-carried invariants, executable witnesses, infrastructure, and deferred work. This keeps the project honest. Some components, such as the sample model shell and executable harness, are useful infrastructure but not deep semantic proofs. The strongest semantic artifacts are the encode/decode roundtrip theorem, error-correctness theorems, closed enum decoders, and type-carried invariants enforced by decoders.
+Some components, such as the sample model shell and executable harness, are useful infrastructure but not deep semantic proofs. The strongest semantic artifacts are the encode/decode roundtrip theorem, error-correctness theorems, closed enum decoders, and type-carried invariants enforced by decoders.
 
 ## Executable harness and differential testing
 
