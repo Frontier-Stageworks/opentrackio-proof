@@ -3,7 +3,7 @@
 Lean 4 formal verification of the OpenTrackIO protocol and the OpenCV ↔ OpenTrackIO
 camera parameter conversion theorems.
 
-The repo contains three projects. They share a single Lean toolchain and Lake build.
+The repo contains four projects. They share a single Lean toolchain and Lake build.
 
 ---
 
@@ -62,6 +62,48 @@ numeric upper bounds, regex constraints, and full schema conformance checking ar
 explicitly outside the proved parser core.
 
 [Full details](opentrackio_parser/README.md)
+
+---
+
+## openlensio_semantics — Lens model semantics
+
+Lean 4 formal verification of the [OpenLensIO](https://openlensio.org) v1.0.1
+Brown-Conrady distortion pipeline (D→U direction). 14 public theorems across
+11 source files, all proved over exact reals (ℝ) using Mathlib's noncomputable
+infrastructure.
+
+Key definitions:
+
+- `RadialCoefficients` — k1–k6 coefficients in alternating numerator/denominator
+  form matching the OpenLensIO rational polynomial layout
+- `TangentialCoefficients` — p1, p2 tangential distortion coefficients
+- `LensSemantics` / `ValidLensSemantics` — lens parameter record with
+  `0 < focalLength` validity predicate
+- `undistortPoint` — full Brown-Conrady undistortion with `denominatorNonzero`
+  domain predicate
+- `undistortFromDistorted` / `fovUndistortFromDistorted` — projection-matrix form
+  (Eq 4) and FOV form (Eq 10) undistortion
+
+Key theorems:
+
+- `brown_conrady_zero_identity` — all-zero coefficients reduce undistortion to identity
+- `distortion_center_translation_commutes` — the ΔP principal-point offset cancels
+  in the undistortion argument (load-bearing lemma for FOV ↔ projection consistency)
+- `fov_undistort_eq` — Eq (10) is structurally consistent with Eq (4) under the
+  ΔP coordinate translation (Eq 13)
+- `pixel_metric_roundtrip` / `image_texture_coordinate_roundtrip` — sensor
+  coordinate space conversions are exact inverses
+- `semanticExtraction_sound` — lens parameter extraction from raw data satisfies
+  `ValidLensSemantics`
+
+Central finding: OpenLensIO and OpenCV tangential distortion operate in different
+coordinate frames. Coefficient equality does not imply semantic equivalence; the
+formal model makes this distinction explicit.
+
+An executable float-layer oracle (`ExecutableSemanticOracle.lean`) and a Python
+reference implementation (`battery-tester/semantic_oracle/reference_oracle.py`)
+are provided for differential validation. The oracle layer is not formally proved
+— it bridges to the exact-real layer for verification.
 
 ---
 
