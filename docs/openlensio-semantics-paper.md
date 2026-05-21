@@ -1,29 +1,12 @@
-# Executable Semantics for OpenLensIO: Formal Verification of Camera-Model Interoperability
+# Executable Semantics for OpenLensIO
 
-**Mark Stalzer**
-*opentrackio-proof project*
+Parser correctness is not semantic correctness. Two implementations can decode identical byte sequences to identical numeric values and still render different images, because the coordinate systems and composition order of their lens models differ. This work formalizes the OpenLensIO v1.0.1 lens model in Lean 4 as executable function definitions and proves structural correctness theorems about those definitions. The formal model spans 11 Lean source files and 14 public theorems, together with a Python differential testing harness.
 
----
-
-## Abstract
-
-Parser correctness is not semantic correctness. Two implementations can decode identical byte sequences to identical numeric values and still render different images, because the coordinate systems and composition order of their lens models differ. This work presents a Lean 4 formal verification of the OpenLensIO v1.0.1 lens model that extends beyond parser roundtrip proofs into executable camera-model semantics. The formal model defines the Brown-Conrady distortion pipeline, proves structural consistency theorems connecting the projection and FOV characterizations, and provides an executable semantic reference suitable for differential testing against external implementations. A central finding is that the OpenLensIO and OpenCV tangential distortion models operate in different coordinate frames: coefficient equality does not imply semantic equivalence, and interoperability must be established compositionally. The formal model spans 11 Lean source files and 14 public theorems, together with a Python differential testing harness.
+A prior verification established parser correctness for the OpenTrackIO data model: encoders and decoders are mutual inverses, decoders are sound with respect to structural invariant predicates, and semantic extraction is sound with respect to a minimal validity predicate. Those results are useful, but they answer the wrong question for interoperability. Interoperability at the data level means two systems agree on numeric values. Interoperability at the semantic level means those values, when consumed by a camera model, produce the same geometric result. The gap between those properties is where rendering disagreements live in practice.
 
 ---
 
-## 1. Introduction
-
-The OpenTrackIO standard specifies a JSON protocol for camera tracking metadata in virtual production. A prior verification established parser correctness: the encoder and decoder are mutual inverses, the decoder is sound with respect to a structural invariant predicate, and semantic extraction is sound with respect to a minimal validity predicate. Those results are useful, but they answer the wrong question for interoperability.
-
-Interoperability at the data level means that two systems agree on numeric values. Interoperability at the semantic level means that those values, when consumed by a camera model, produce the same geometric result. The gap between these properties is where rendering disagreements live in practice.
-
-This work formalizes the semantic level. The OpenLensIO v1.0.1 lens model is encoded in Lean 4 as executable function definitions and structural correctness theorems are proved about those definitions. The formal model spans 11 Lean source files and 14 public theorems, together with a Python differential testing harness.
-
-Lean 4 provides specific operational advantages that prose specifications and test suites cannot match. Definitions are machine-checked; theorems about them are kernel-verified. Every hypothesis is named and tracked — an assumption cannot be silently introduced to make a proof work. Downstream theorems break as compile errors when definitions change, making semantic drift detectable. And the formal model produces executable code that can be run against external implementations.
-
----
-
-## 2. Why Semantic Interoperability Matters
+## Why semantic interoperability matters
 
 Consider two implementations that both decode OpenLensIO tangential distortion coefficients p1 and p2 correctly — they agree on the values. But if one evaluates the tangential correction in coordinates centered at the distortion center while the other evaluates it in coordinates centered at the image principal point, they apply a different correction at every pixel. The images disagree. The disagreement is not a parsing bug. It is a coordinate-frame semantic bug.
 
@@ -33,7 +16,7 @@ Parser tests cannot catch this class of disagreement. Unit tests on isolated fun
 
 ---
 
-## 3. From Parser Correctness to Camera Semantics
+## From parser correctness to camera semantics
 
 A prior proof established that data written in OpenTrackIO format can be read back accurately. It does not establish any claim about what happens after the data is read.
 
@@ -54,9 +37,9 @@ Each step is an opportunity for a semantic disagreement: an offset applied in th
 
 ---
 
-## 4. Coordinate Systems and Specification Ambiguities
+## Coordinate systems and specification questions
 
-Formalizing the OpenLensIO model surfaced several semantic ambiguities. Most are genuine interoperability hazards, not notation preferences. Formalization raised 16 questions about the specification. Ten remain open; five were resolved as non-issues (the ΔP sign convention, the diagonal U notation, the aperture formula's non-normative status, the overscan appendix's informative status, and the distortion-center frame being derivable from call sites); and one concerns the Float-to-exact-real architecture gap rather than the specification itself (discussed in Section 7).
+Formalizing the OpenLensIO model surfaced several semantic questions. Most are genuine interoperability hazards, not notation preferences. Formalization raised 16 questions about the specification. Ten remain open; five were resolved as non-issues (the ΔP sign convention, the diagonal U notation, the aperture formula's non-normative status, the overscan appendix's informative status, and the distortion-center frame being derivable from call sites); and one concerns the Float-to-exact-real architecture gap rather than the specification itself (discussed in the Scope and Caveats section).
 
 **The ΔP coordinate relationship.** The specification states the projection/FOV coordinate relationship consistently: both Equation 13 and the inline text near Equation 10 write `ε_d = ε'_d + ΔP` in the same form. The sign convention is load-bearing: all theorems relating the FOV and projection characterizations depend on it, and an implementation encoding the wrong direction produces incorrect output for any lens with nonzero ΔP.
 
@@ -64,15 +47,15 @@ Formalizing the OpenLensIO model surfaced several semantic ambiguities. Most are
 
 **The rational radial polynomial's denominator.** The radial factor R is a degree-6 rational polynomial in r². The denominator can in principle be zero for pathological coefficient values. The specification is silent on this. The formal model makes it explicit: `denominatorNonzero` is a per-point domain predicate that callers must supply, making the failure mode impossible to ignore at the call site.
 
-**The FOV and projection characterizations.** OpenLensIO defines two parameterizations of the same lens: the projection matrix form (with ΔP) and the FOV form (without ΔP, using optical-axis-centered coordinates). The specification states they are equivalent under the ΔP translation but does not prove it. Formally establishing this connection is one of the primary results (Section 6).
+**The FOV and projection characterizations.** OpenLensIO defines two parameterizations of the same lens: the projection matrix form (with ΔP) and the FOV form (without ΔP, using optical-axis-centered coordinates). The specification states they are equivalent under the ΔP translation but does not prove it. Formally establishing this connection is one of the primary results.
 
 **The overscan offset inconsistency.** The overscan equations (Equations 8 and 15) drop the ΔC and ΔP offsets asymmetrically between the two forms. The specification does not explain the asymmetry. Overscan proofs are deferred pending resolution.
 
 ---
 
-## 5. Executable Semantic Modeling
+## Executable semantic modeling
 
-The formal model defines the complete OpenLensIO semantic pipeline as Lean 4 functions — sensor radius, radial term, Brown-Conrady undistortion components, projection and FOV forms, shader coordinate conversion, angle-of-view equations — and proves theorems about those functions. This matters for two reasons: theorems about concrete functions can be tested against external implementations, and defining a function forces every specification ambiguity to be resolved. A function that actually computes cannot leave coordinate frames or signs unspecified.
+The formal model defines the complete OpenLensIO semantic pipeline as Lean 4 functions — sensor radius, radial term, Brown-Conrady undistortion components, projection and FOV forms, shader coordinate conversion, angle-of-view equations — and proves theorems about those functions. This matters for two reasons: theorems about concrete functions can be tested against external implementations, and defining a function forces every specification question to be resolved. A function that actually computes cannot leave coordinate frames or signs unspecified.
 
 All semantic functions are defined over exact real numbers (ℝ) using Mathlib's noncomputable infrastructure. This is the layer that carries formal proofs. A parallel executable Float layer provides `undistortPoint_float`, `undistortFromDistorted_float`, and so on, in a separate file that opens with an explicit warning: these are IEEE 754 double-precision approximations, not verified implementations. No theorem connects Float behavior to the exact-real semantics; that bridge would require error-bound machinery that is outside the scope of this work.
 
@@ -82,7 +65,7 @@ The exact-real and executable layers serve different purposes and are kept stric
 
 ---
 
-## 6. Key Verification Results
+## Key theorems
 
 The 14 public theorems fall into three groups.
 
@@ -94,11 +77,11 @@ The 14 public theorems fall into three groups.
 
 ---
 
-## 7. Verification Scope and Caveats
+## Scope and caveats
 
 Formal verification establishes precise claims with precise preconditions. Several scope limits are worth naming explicitly.
 
-**Definitional tautology.** The projection offset cancellation theorem, after unfolding `undistortFromDistorted`, reduces to `a + b + c − b − c = a`. This correctly documents that the definition has the right offset structure, but it does not prove that the projection and FOV forms agree on outputs — the full consistency theorem in Section 6 is the result that does.
+**Definitional tautology.** The projection offset cancellation theorem, after unfolding `undistortFromDistorted`, reduces to `a + b + c − b − c = a`. This correctly documents that the definition has the right offset structure, but it does not prove that the projection and FOV forms agree on outputs — the full consistency theorem above is the result that does.
 
 **Formally identical theorems.** Two theorems about ΔP and ΔC translation prove the same algebraic fact with different variable names. Both are retained for traceability to specific specification equations; their distinctness is interpretive (coordinate-space roles differ), not formal.
 
@@ -110,7 +93,7 @@ Formal verification establishes precise claims with precise preconditions. Sever
 
 ---
 
-## 8. Differential Testing and Interoperability Infrastructure
+## Differential testing and interoperability
 
 The longer-term goal is proof-backed interoperability testing: running external implementations against the formal semantic reference model to detect disagreements. Any divergence identifies an implementation computing something different from the formal specification.
 
@@ -122,9 +105,7 @@ The value of proof-backed testing over ordinary unit testing is traceability. An
 
 ---
 
-## 9. Proof Boundaries and Deferred Work
-
-The following are explicitly not proved in this work.
+## What is not proved
 
 **Forward distortion model.** Undistortion U is formalized; the forward distortion D is not. Without D, roundtrip properties such as `U(D(ε)) = ε` cannot be stated. The specification notes that D requires iterative numerical methods. Full forward/inverse equivalence is deferred.
 
@@ -140,7 +121,7 @@ The following are explicitly not proved in this work.
 
 ---
 
-## 10. Conclusion
+## Conclusion
 
 Parser correctness is the floor, not the ceiling, of interoperability. Camera implementations can agree at the data layer and disagree at the geometric layer, and those disagreements can be invisible to ordinary testing if both sides validate against their own conventions.
 
@@ -149,12 +130,8 @@ The practical contributions of this work are:
 - A formal executable semantic reference model for the Brown-Conrady distortion pipeline, defined in exact-real arithmetic and kernel-verified by Lean 4, that can serve as ground truth for cross-implementation comparison.
 - Structural consistency proofs connecting the projection and FOV characterizations, with a load-bearing dependency on a specific sign convention in the specification — a dependency that ordinary implementation testing would not have surfaced as a named, trackable assumption.
 - A Python differential testing implementation and shared fixture suite, ready to run against external implementations (Mo-Sys C++, CamDKit, renderer pipelines) as API access becomes available.
-- A catalogue of 10 open specification questions, several with material interoperability impact. The most consequential are the denominator nonzero condition left implicit in the specification, the U⁻¹ inversion being described only as an iterative numerical procedure with no closed form, and the asymmetric ΔC/ΔP handling in the overscan equations that remains unexplained.
+- A catalogue of 10 open specification questions, several with material interoperability impact. The most consequential are the denominator nonzero condition left implicit in the specification, the U⁻¹ inversion described only as an iterative numerical procedure with no closed form, and the asymmetric ΔC/ΔP handling in the overscan equations that remains unexplained.
 
-The formalization process itself surfaces what prose reading misses. The ΔP coordinate relationship required verifying that both the projection and FOV forms apply undistortion to the same distortion-centered argument. The distortion-center frame semantics were clarified because a function definition cannot leave them implicit. The overscan asymmetry had to be deferred rather than silently resolved. These are not artifacts of the proof methodology — they are the specification questions that any implementation must answer, made explicit and traceable.
+The formalization process itself surfaces what prose reading misses. The ΔP coordinate relationship required verifying that both the projection and FOV forms apply undistortion to the same distortion-centered argument. The distortion-center frame semantics were clarified because a function definition cannot leave them implicit. The overscan asymmetry had to be deferred rather than silently resolved. These are the specification questions that any implementation must answer, made explicit and traceable.
 
-The result is a step toward treating OpenLensIO not as a convention that implementations roughly follow, but as a precise executable specification that implementations can be tested against.
-
----
-
-*All Lean source files, LAPS artifacts, and the Python differential testing harness are in the opentrackio-proof repository. The formal model targets Lean 4 with Mathlib v4.29.0.*
+That is the practical value of this work: it turns OpenLensIO from a convention that implementations roughly follow into a precise executable specification that implementations can be tested against.
