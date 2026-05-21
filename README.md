@@ -1,7 +1,20 @@
 # opentrackio-proof
 
-Lean 4 formal verification of the OpenTrackIO protocol and the OpenCV ↔ OpenTrackIO
-camera parameter conversion theorems.
+[OpenTrackIO](https://www.opentrackio.org) is a SMPTE RIS open standard for
+camera tracking metadata in virtual production. It defines the data model for
+real-time transmission of camera position, orientation, and lens parameters
+from tracking systems to LED volumes, compositing engines, and render farms.
+Errors in these parameters produce visible artifacts in final frames, so the
+mathematical correctness of parameter conversions and data model round-trips
+is a production-critical property.
+
+This repository provides Lean 4 machine-checked proofs of the key mathematical
+claims in the OpenTrackIO ecosystem: that the OpenCV ↔ OpenTrackIO lens
+calibration conversions are correct and unique; that the OpenTrackIO JSON data
+model round-trips losslessly through its decoder; and that the OpenLensIO v1.0.1
+Brown-Conrady distortion pipeline satisfies its structural consistency equations.
+The proofs cover all inputs in their stated domains — not sampled cases, not
+fuzzing bounds, not approximations.
 
 The repo contains four projects. They share a single Lean toolchain and Lake build.
 
