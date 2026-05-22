@@ -55,30 +55,23 @@ metadata:
 - **Gate**: Compiles clean with sorry only in → branch
 - **Dependencies**: SLICE-PE-03
 
-### SLICE-PE-04b: Helper lemma — pixel equality implies ws/w = fx
-- **Status**: NOT STARTED
-- **Deliverable**: `pixel_eq_implies_scale` (or inline `have`) — given all coefficient
-  conditions and F, ΔPx conditions, the pixel equality for all (x', y') implies ws/w = fx
-- **Theorem statement**: See statement note below. Uses `hp : p1 ≠ 0 ∨ p2 ≠ 0` to
-  find a point where δx_cv ≠ 0, then cancels to get ws/w = fx
-- **Statement note**: The full "extract all 11 conditions from pixel equality" iff requires
-  rational function coefficient extraction not supported by current helpers. PE-04b instead
-  proves the CONDITIONAL iff: given all coefficient + projection conditions, pixel equality
-  ↔ ws/w = fx. This is the key mathematical content of the paper's claim. See ambiguity
-  register for the deliberate scope choice.
-- **Proof strategy**: After all conditions substituted, pixel equality simplifies to
-  `fx*δx + cx = (ws/w)*δx + cx` (radial parts cancel); specialize at (1,0) or (1,1)
-  using `hp` to get δx ≠ 0; cancel to get ws/w = fx
-- **Expected difficulty**: Medium.
-- **Gate**: Compiles clean; extraction step for ws/w = fx is explicit
+### SLICE-PE-04b: Helper lemma — pixel equality implies tangential gap = 0
+- **Status**: DONE (2026-05-22)
+- **Deliverable**: `pixel_eq_implies_tangential_gap` lemma in `Pipeline/PixelIffHelpers.lean`.
+  Given all conversion hypotheses and `h : ∀ x' y', CV = OTI`, proves
+  `∀ x' y', (fx - ws/w) * T(x',y') = 0`.
+- **Key technical point**: `rw [h_tang]` fails due to associativity — `A+B` is not a
+  contiguous subterm in `((C+A)+B)+D`. Fix: split into `h_tang1` and `h_tang2` and
+  rewrite individual terms. `field_simp [hF2]` closes each individual component goal.
+- **Gate**: `lake build PipelineEquivalence` — no errors.
 - **Dependencies**: SLICE-PE-03
 
 ### SLICE-PE-04c: Close the iff using PE-04b
-- **Status**: NOT STARTED
-- **Deliverable**: `opencv_openlensio_full_pipeline_pixel_iff` — remove sorry; wire in
-  PE-04b helper for the → direction
-- **Expected difficulty**: Low once PE-04b is done.
-- **Gate**: Compiles clean; no sorry; proof review passes
+- **Status**: DONE (2026-05-22)
+- **Deliverable**: `opencv_openlensio_full_pipeline_pixel_iff` in `Pipeline/PixelIff.lean`
+  — sorry removed; → direction proved via
+  `tangential_gap_forces_scale (pixel_eq_implies_tangential_gap ...)`.
+- **Gate**: `lake build PipelineEquivalence` — 3298 jobs, no errors, no sorry.
 - **Dependencies**: SLICE-PE-04a, SLICE-PE-04b
 
 ## Checkpoint protocol

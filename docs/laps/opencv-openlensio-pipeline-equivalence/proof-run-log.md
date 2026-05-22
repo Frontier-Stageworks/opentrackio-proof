@@ -38,3 +38,38 @@ metadata:
 - Replace closing `rw [hscale, hF_eq]; field_simp [hw, hws]; ring` with `rw [hF_eq, hws_eq]; field_simp [hw, hfx, hden_xy]; ring`. This eliminates `ws` via `hws_eq` (so `w/(w*fx)*fx = 1`) and clears fractions with nonzero witnesses `hw`, `hfx`, `hden_xy`.
 
 **Lean check**: `lake env lean opencv_opentrackio_proofs/PipelineEquivalence.lean` — no errors (one unused-variable warning for `hF_pos`) (2026-05-21).
+
+## SLICE-PE-04b: pixel_eq_implies_tangential_gap
+
+### Attempt 1 (2026-05-22)
+
+**Strategy**: 
+- Add `pixel_eq_implies_tangential_gap` to `PixelIffHelpers.lean`.
+- `intro x' y'`, instantiate h_rad, h_tang, h_offset, h_scale.
+- `rw [h_rad, h_tang] at hspec`.
+- `linear_combination hspec + R_x * h_scale + h_offset`.
+
+**Outcome**: `rw [h_rad]` succeeded. `rw [h_tang]` failed.
+
+**Error**: `Tactic rewrite failed: Did not find an occurrence of the pattern`
+```
+2 * q1 * (F * x') * (F * y') + q2 * ((F * x') ^ 2 + (F * y') ^ 2 + 2 * (F * x') ^ 2)
+```
+
+**Root cause (classified)**: Associativity mismatch. The OTI tangential term is a sum of two terms `A + B` inside a left-associative four-term sum `((R_x*F + A) + B) + ΔPx`. The sum `A + B` is not a contiguous subterm at any associativity level — `A` is the right child of `R_x*F + A`, and `B` is the right child of `(R_x*F+A) + B`. The pattern `A + B` is not reachable by syntactic `rw`.
+
+**Next move**: Split h_tang into two separate lemmas `h_tang1 : A = A'` and `h_tang2 : B = B'`, and do `rw [h_rad, h_tang1, h_tang2]`. Individual subterms A and B ARE accessible.
+
+### Attempt 2 (2026-05-22)
+
+**Strategy**: Replace `h_tang` with `h_tang1 : 2*q1*(F*x')*(F*y') = 2*p1*x'*y'` and `h_tang2 : q2*((F*x')^2+(F*y')^2+2*(F*x')^2) = p2*(x'^2+y'^2+2*x'^2)`. After `rw [h_rad, h_tang1, h_tang2]`, all OTI tangential atoms match CV tangential atoms, and `linear_combination` closes via ring.
+
+**Outcome**: Clean compile. Both `h_tang1` and `h_tang2` are proved by `rw [hq_i]; field_simp [hF2]` (field_simp closes each goal without `ring`). `rw [h_rad, h_tang1, h_tang2] at hspec` succeeds — each individual tangential term is a contiguous subterm at its associativity level. `linear_combination` closes the goal. `PixelIff.lean` → direction filled; `lake build PipelineEquivalence` completes with no errors (2026-05-22).
+
+## SLICE-PE-04c: Remove sorry — forward direction composition
+
+### Attempt 1 (2026-05-22)
+
+**Strategy**: Replace `intro _h; sorry` in `PixelIff.lean` with `intro h; exact tangential_gap_forces_scale ... (pixel_eq_implies_tangential_gap ... h)`.
+
+**Outcome**: Clean compile. `lake build PipelineEquivalence` — 3298 jobs, all succeed (2026-05-22). No sorry remains in the Pipeline/ files.

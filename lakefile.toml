@@ -21,6 +21,7 @@ srcDir = "opencv_opentrackio_proofs"
 [[lean_lib]]
 name = "PipelineEquivalence"
 srcDir = "opencv_opentrackio_proofs"
+globs = ["PipelineEquivalence", "Pipeline.+"]
 
 [[lean_lib]]
 name = "RationalValueWrappers"
