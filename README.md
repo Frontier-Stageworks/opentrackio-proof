@@ -22,12 +22,20 @@ The repo contains four projects. They share a single Lean toolchain and Lake bui
 
 ## opencv_opentrackio_proofs — Conversion theorem proofs
 
-15 theorems proving that the OpenCV ↔ OpenTrackIO lens calibration parameter
-conversions from the SMPTE RIS paper are mathematically correct and unique
-(necessary, not merely sufficient).
+18 theorems proving that the OpenCV ↔ OpenTrackIO lens calibration parameter
+conversions from the SMPTE RIS paper are mathematically correct, unique
+(necessary, not merely sufficient), and that the two full pipelines produce
+identical pixel output under exactly the conditions the conversions require.
 
 Covers the principal-point conversion, all radial and tangential distortion
-parameter conversions, and end-to-end pixel coordinate preservation.
+parameter conversions, end-to-end pixel coordinate preservation, and the main
+pipeline equivalence result: the x-pixel outputs agree for all normalised inputs
+if and only if `ws/w = fx` (given all coefficient conversions hold).
+
+An additional 40 mutation-test theorems in `MutationTests.lean` prove that
+every known wrong-formula variant — wrong scaling power, wrong coefficient swap,
+wrong offset form — is either degenerate or inconsistent with the full-polynomial
+identity.
 
 [Full details](opencv_opentrackio_proofs/README.md)
 
@@ -154,4 +162,4 @@ lake update   # downloads Mathlib (~1 GB cache, one-time)
 lake build
 ```
 
-Expected: `Build completed successfully (3310 jobs).`
+Expected: `Build completed successfully (N jobs).` where N is in the low thousands.
