@@ -71,6 +71,17 @@ ws/w = fx.
 | `PixelIffHelpers.lean` | Five helper lemmas in `namespace PipelineEquivalence` |
 | `PixelIff.lean` | `opencv_openlensio_full_pipeline_pixel_iff` — the main iff theorem |
 
+## Future work
+
+Natural extensions and open gaps:
+
+- **y-coordinate symmetry** — the y-component proof is symmetric to the x-component (p1 ↔ p2 swapped); not yet written.
+- **Full 2D point equivalence** — a single theorem combining x and y, showing both pixel coordinates agree iff `wₛ/w = fx`.
+- **Pure-radial special case** — when `p1 = p2 = 0`, `wₛ/w = fx` is not entailed by pixel agreement. The iff theorem does not cover this case; a separate characterization of when purely-radial pipelines agree is not yet proved.
+- **Semantic validity packaging** — `wₛ/w = fx` together with the coefficient conversions could be packaged as a `ValidPipelineAlignment` predicate that mirrors the existing `ValidLensSemantics` structure, making the equivalence condition a first-class type-level invariant.
+- **Connection to parsed OpenTrackIO/OpenLensIO fields** — the hypotheses here (`hF_eq`, `hΔPx`, `hl1`…`hq2`) are stated as abstract real-number conditions; linking them to the decoded `LensModel` and `CameraModel` fields from the parser library would close the gap between the formal proof and a live OpenTrackIO sample.
+- **Domain validation layer** — the proofs assume `hden` (denominator nonzero everywhere), `hF : F ≠ 0`, `hw : w ≠ 0`, `hws : ws ≠ 0` as free hypotheses. A validation layer that derives these from physically-meaningful bounds (positive sensor dimensions, positive focal length, denominator bounded away from zero over a working range) would make the theorems applicable to concrete calibration data.
+
 ## Dependencies
 
 - Lean 4 v4.29.0, Mathlib v4.29.0

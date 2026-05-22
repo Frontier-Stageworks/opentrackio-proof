@@ -54,7 +54,29 @@ End-to-end pixel coordinate preservation, connecting the two preceding files.
 | `linear_projection_pixel_equivalence_2d_iff` | The linear (pinhole) projection agrees in both models for all `(x, y)` ↔ the principal-point conversion formulas hold. Direct restatement of `principal_point_conversion_2d_iff` in pipeline form. |
 | `radial_distortion_value_equivalence` | The rational radial scale factor has the same value in both models at corresponding radii (`r` in OpenCV, `r_u = F·r` in OpenTrackIO), given the coefficient conversions. Also derives that the OpenTrackIO denominator is nonzero whenever the OpenCV denominator is. |
 
-**Scope note:** Full end-to-end pipeline equivalence (composing linear projection, radial distortion, *and* tangential distortion) is not proved here. OpenCV tangential terms operate in normalised space; OpenTrackIO tangential terms operate in screen space. When expanded with the converted parameters `qᵢ = pᵢ/F²`, the pixel-formula scaling `wₛ/w` yields `(wₛ/w)·pᵢ` rather than `fx·pᵢ`, and these are equal only when `wₛ/w = fx`, which is not generally true. Full pipeline equivalence requires a precise joint specification of both forward pipelines and is left as future work.
+Full end-to-end pipeline equivalence is proved in `Pipeline/` — see below.
+
+### `Pipeline/` — 3 theorems
+
+Full pipeline equivalence: both radial and tangential distortion composed with linear projection.
+
+| Theorem | Statement |
+|---|---|
+| `opencv_openlensio_radial_pipeline_eq` | The radial-only pipelines agree at corresponding points after parameter conversion. Follows from `radial_distortion_value_equivalence`. |
+| `opencv_openlensio_full_pipeline_pixel_sufficiency` | Given all parameter conversions *and* `wₛ/w = fx`, the full pixel x-outputs agree for every normalised input. |
+| `opencv_openlensio_full_pipeline_pixel_iff` | Given all parameter conversions and at least one nonzero tangential coefficient, the full pixel x-outputs agree for every normalised input **if and only if** `wₛ/w = fx`. |
+
+The key result is the iff. The radial components agree automatically after conversion. The tangential components differ by the scalar factor `(wₛ/w − fx)` applied to the OpenCV tangential term: after substituting all conversions, universal pixel agreement reduces to `(fx − wₛ/w) · T(x',y') = 0` for all `(x', y')`, where `T` is the CV tangential polynomial. Since `T` is not identically zero when `p1 ≠ 0 ∨ p2 ≠ 0`, the factor must vanish, giving `wₛ/w = fx`.
+
+The theorem is an x-component proof (the y-component is symmetric). The forward direction requires `p1 ≠ 0 ∨ p2 ≠ 0`; a pure-radial lens does not constrain `wₛ/w`.
+
+## Future work
+
+Natural extensions not yet proved:
+
+- **y-coordinate symmetry** — the y-component proof is symmetric to the x-component (p1 ↔ p2 swapped); not yet written.
+- **Full 2D point equivalence** — a single theorem combining x and y, showing both components agree iff `wₛ/w = fx`.
+- **Pure-radial special case** — when `p1 = p2 = 0`, `wₛ/w = fx` is not entailed by pixel agreement; a separate theorem characterizing the pure-radial case is not yet proved.
 
 ## Building
 
@@ -72,11 +94,20 @@ The build takes several minutes on first run due to Mathlib compilation. Subsequ
 ## Repository layout
 
 ```
-lakefile.toml               Lake build configuration
-lean-toolchain              Lean 4 version pin (v4.29.0)
-PrincipalPointConversion.lean
-DistortionConversion.lean
-PixelEquivalence.lean
+lakefile.toml                       Lake build configuration
+lean-toolchain                      Lean 4 version pin (v4.29.0)
+opencv_opentrackio_proofs/
+  PrincipalPointConversion.lean
+  DistortionConversion.lean
+  PixelEquivalence.lean
+  PipelineEquivalence.lean          Re-export shim for Pipeline/
+  Pipeline/
+    OpenCVModel.lean                undistortXCV, undistortYCV definitions
+    RadialPipeline.lean             opencv_openlensio_radial_pipeline_eq
+    PixelSufficiency.lean           opencv_openlensio_full_pipeline_pixel_sufficiency
+    PixelIffHelpers.lean            Helper lemmas (namespace PipelineEquivalence)
+    PixelIff.lean                   opencv_openlensio_full_pipeline_pixel_iff
+    README.md                       Pipeline/ proof summary
 ```
 
 ## Source
