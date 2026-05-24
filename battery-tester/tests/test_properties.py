@@ -61,12 +61,50 @@ def test_different_integers_compare_unequal(a, b):
         assert not compare_values(a, b)
 
 
+@given(
+    v=st.one_of(
+        st.integers(min_value=-10_000, max_value=10_000),
+        st.floats(allow_nan=False, allow_infinity=False, min_value=-1e6, max_value=1e6),
+        st.text(min_size=1, max_size=32),
+    )
+)
+def test_null_with_any_value_compares_unequal(v):
+    """None is never equal to any non-None value in either argument position."""
+    assert not compare_values(None, v)
+    assert not compare_values(v, None)
+
+
 def test_null_always_fails():
     assert not compare_values(None, 1.0)
     assert not compare_values(1.0, None)
     assert not compare_values(None, None)
     assert not compare_values(None, "x")
     assert not compare_values("x", None)
+
+
+@given(
+    v=st.floats(allow_nan=False, allow_infinity=False, min_value=-1e4, max_value=1e4),
+    delta=st.floats(min_value=0.0, max_value=FLOAT_TOLERANCE / 2, allow_nan=False, allow_infinity=False),
+)
+def test_floats_within_tolerance_compare_equal(v, delta):
+    """Floats differing by at most FLOAT_TOLERANCE/2 always compare equal.
+
+    Uses FLOAT_TOLERANCE/2 rather than FLOAT_TOLERANCE because floating-point
+    addition is not exact: v + 1e-9 can round to a value whose distance from v
+    exceeds 1e-9 (verified: compare_values(1.0, 1.0 + 1e-9) == False, because
+    the computed difference is 1.0000000000065512e-9 > FLOAT_TOLERANCE). Using
+    half the tolerance stays in the strict interior where this does not occur.
+    """
+    assert compare_values(v, v + delta)
+
+
+@given(
+    v=st.floats(allow_nan=False, allow_infinity=False, min_value=-1e4, max_value=1e4),
+    delta=st.floats(min_value=FLOAT_TOLERANCE * 10, max_value=1e3, allow_nan=False, allow_infinity=False),
+)
+def test_floats_outside_tolerance_compare_unequal(v, delta):
+    """Any two floats separated by more than FLOAT_TOLERANCE compare unequal."""
+    assert not compare_values(v, v + delta)
 
 
 def test_float_tolerance_boundary():
@@ -81,8 +119,16 @@ def test_float_tolerance_boundary():
 
 # ── compare_samples verdict invariants ────────────────────────────────────────
 
-@given(v=st.integers(min_value=-10_000, max_value=10_000))
+_any_scalar = st.one_of(
+    st.integers(min_value=-10_000, max_value=10_000),
+    st.floats(allow_nan=False, allow_infinity=False, min_value=-1e4, max_value=1e4),
+    st.text(min_size=1, max_size=16),
+)
+
+
+@given(v=_any_scalar)
 def test_identical_values_all_pass(v):
+    """Any scalar type — int, float, or string — produces all PASS when both adapters agree."""
     comparisons = compare_samples(_make_samples(v, v))
     p, d, m = _count(comparisons)
     assert p == len(COMPARISON_FIELDS)
@@ -94,13 +140,28 @@ def test_identical_values_all_pass(v):
     a=st.integers(min_value=-10_000, max_value=10_000),
     b=st.integers(min_value=-10_000, max_value=10_000),
 )
-def test_different_values_all_diverge(a, b):
+def test_different_integers_all_diverge(a, b):
     if a != b:
         comparisons = compare_samples(_make_samples(a, b))
         p, d, m = _count(comparisons)
         assert p == 0
         assert d == len(COMPARISON_FIELDS)
         assert m == 0
+
+
+@given(
+    a=st.floats(allow_nan=False, allow_infinity=False, min_value=-1e4, max_value=1e4),
+    b=st.floats(allow_nan=False, allow_infinity=False, min_value=-1e4, max_value=1e4),
+)
+def test_different_floats_outside_tolerance_all_diverge(a, b):
+    """Floats differing by more than FLOAT_TOLERANCE produce all DIVERGE through compare_samples."""
+    from hypothesis import assume
+    assume(abs(a - b) > FLOAT_TOLERANCE)
+    comparisons = compare_samples(_make_samples(a, b))
+    p, d, m = _count(comparisons)
+    assert p == 0
+    assert d == len(COMPARISON_FIELDS)
+    assert m == 0
 
 
 def test_one_null_adapter_all_diverge():
@@ -170,3 +231,36 @@ def test_aggregate_sum_across_multiple_fixtures(fixture_count, py_val):
         total_m += m
     assert total_p + total_d + total_m == fixture_count * len(COMPARISON_FIELDS)
     assert total_p == fixture_count * len(COMPARISON_FIELDS)
+
+
+@given(
+    pass_count=st.integers(min_value=0, max_value=20),
+    diverge_count=st.integers(min_value=0, max_value=20),
+    agree_val=st.integers(min_value=-1000, max_value=1000),
+    py_val=st.integers(min_value=-1000, max_value=1000),
+    cpp_val=st.integers(min_value=-1000, max_value=1000),
+)
+@settings(max_examples=200)
+def test_aggregate_sum_mixed_pass_and_diverge(pass_count, diverge_count, agree_val, py_val, cpp_val):
+    """Sum invariant holds across a mix of passing and diverging fixtures.
+
+    The all-PASS aggregate test is the common case; this covers the general case
+    where some fixtures diverge and the per-verdict counts must still add up.
+    """
+    from hypothesis import assume
+    assume(py_val != cpp_val)
+    assume(pass_count + diverge_count > 0)
+
+    total_p = total_d = total_m = 0
+    for i in range(pass_count):
+        p, d, m = _count(compare_samples(_make_samples(agree_val, agree_val)))
+        total_p += p; total_d += d; total_m += m
+    for i in range(diverge_count):
+        p, d, m = _count(compare_samples(_make_samples(py_val, cpp_val)))
+        total_p += p; total_d += d; total_m += m
+
+    total_fixtures = pass_count + diverge_count
+    assert total_p + total_d + total_m == total_fixtures * len(COMPARISON_FIELDS)
+    assert total_p == pass_count * len(COMPARISON_FIELDS)
+    assert total_d == diverge_count * len(COMPARISON_FIELDS)
+    assert total_m == 0
