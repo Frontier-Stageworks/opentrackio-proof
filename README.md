@@ -1,6 +1,6 @@
 # opentrackio-proof
 
-[OpenTrackIO](https://www.opentrackio.org) is a SMPTE RIS open standard for camera 
+[OpenTrackIO](https://www.opentrackio.org) is an SMPTE RIS open standard for camera 
 tracking metadata in virtual production. It defines the data model for real-time 
 transmission of camera position, orientation, and lens parameters from tracking 
 systems to LED volumes, compositing engines, and render farms. Errors in these 
