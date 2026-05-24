@@ -239,6 +239,10 @@ srcDir = "openlensio_semantics"
 name = "ExecutableSemanticOracle"
 srcDir = "openlensio_semantics"
 
+[[lean_lib]]
+name = "InjectivityModel"
+srcDir = "openlensio_semantics"
+
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
