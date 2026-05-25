@@ -36,9 +36,11 @@
   the squared component equalities.
 
   This is a necessary condition for invertibility. It does not imply that a
-  closed-form inverse exists (SLICE-UI-04, deferred). The OpenLensIO spec
-  (following Eq 11) characterises U⁻¹ as computed via numerical iterative
-  methods; no closed-form D is assumed here.
+  closed-form inverse exists. The OpenLensIO spec defines D = U⁻¹ in Eqs (5)
+  and (11) and asserts it exists; the numerical iteration note (Eq 11) is about
+  computing D, not defining it. No closed-form formula for D exists for the full
+  Brown-Conrady model; `radialDescale` (UI-04) provides a concrete left inverse
+  for the p=0 subcase with explicit input-radius parameter.
 -/
 
 import DistortionModel

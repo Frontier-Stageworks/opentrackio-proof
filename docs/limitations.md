@@ -44,14 +44,20 @@ discharged; this is a packaging limitation only. The harness runs via
 
 ## OpenLensIO Semantics (`openlensio_semantics/`)
 
-**Forward distortion model not proved.** `undistortPoint` (U) is formally defined and
-proved. The forward distortion map D is not. Roundtrip properties such as
-`U(D(ε)) = ε` cannot be stated or proved without D.
+**Forward distortion model: no closed-form D, nonconstructive inverse not yet stated.**
+The spec defines D = U⁻¹ explicitly in Eqs (5) and (11) and asserts it exists. A
+closed-form formula for D does not exist for the full Brown-Conrady model; the spec
+prescribes numerical iteration for computing D. For p=0, `radialDescale_left_inverse_zero_tangential`
+proves D(r, U(ε)) = ε with an explicit input-radius parameter (a conditional left
+inverse, not a full inverse). A nonconstructive left-inverse theorem via `Function.invFun`
+is not yet stated but is reachable from the injectivity results in `InjectivityModel.lean`.
 
-**Invertibility, injectivity, continuity not proved.** U is not proved injective,
-surjective, or invertible. Continuity and monotonicity are not addressed. These
-properties require analytical machinery (intermediate value theorem, derivative
-bounds) beyond the algebraic tactics used here.
+**Injectivity: partially proved; surjectivity and continuity not proved.**
+`undistortPoint` is proved injective on fixed-radius circles (with or without tangential
+terms, under hypotheses) and globally for p=0 given a caller-supplied scale-injectivity
+hypothesis. See `InjectivityModel.lean`. Global injectivity without the `hScaleInj`
+hypothesis, surjectivity onto the intended range, and continuity/monotonicity are not
+proved and require analytical machinery beyond the algebraic tactics used here.
 
 **Overscan semantics deferred.** Equations 8 and 15 in the OpenLensIO specification
 drop the ΔC and ΔP offsets asymmetrically between the two forms without explanation.

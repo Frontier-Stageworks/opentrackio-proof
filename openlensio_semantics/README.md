@@ -218,5 +218,12 @@ of seven hand-computed cases.
 > SMPTE RIS, corrected 2025-09-02  
 > https://ris-pub.smpte.org/ris-osvp-metadata-camdkit/res/OpenCV_to_OpenTrackIO.pdf
 
+**Version note:** The copy of the OpenLensIO spec in `docs/OpenLensIO_v1-0-1.pdf` carries
+cover-page version "1.0.0" (dated 17th February 2025). The project README and LAPS
+artifacts reference v1.0.1. A corrected v1.0.1 may exist at the SMPTE RIS publication
+URL. The theorems were developed against the PDF on disk; any normative differences
+between v1.0.0 and v1.0.1 should be checked before citing the proofs as evidence
+of conformance to v1.0.1 specifically.
+
 See also `docs/openlensio-semantics-paper.md` for a detailed treatment of the
 semantic interoperability motivation, open specification questions, and scope.

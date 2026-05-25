@@ -18,26 +18,34 @@ This register adds new ambiguities specific to the invertibility campaign.
 ## AMB-UI-001 — No closed-form forward distortion D for general Brown-Conrady (INHERITED, CRITICAL)
 
 **Source:** AMB-OL-010 (openlensio-semantics ambiguity register)
-**Status:** Unresolved — architectural gate on all full-invertibility claims
+**Status:** Partially resolved — framing corrected after re-reading spec (2026-05-24)
 
-**What is the issue:** The OpenLensIO v1.0.1 spec (following Eq 11) states that U⁻¹
-"can be solved using numerical iterative methods depending on the application." This
-means the spec itself does not provide a closed-form formula for D = U⁻¹. The
-Brown-Conrady model in its full generality (with radial + tangential terms) does not
-have a known closed-form inverse.
+**Framing correction (post-campaign):** The original framing said "the spec does not
+provide D." This is imprecise. Reading the spec directly:
 
-**Proof impact:** CRITICAL. No theorem of the form `distort(undistort(ε)) = ε` can
-be stated without first defining `distort`. For the full model, `distort` cannot be
-defined as a closed-form function. The campaign therefore focuses on injectivity (a
-necessary condition) rather than full invertibility.
+- Eq (5): `ε_d = U⁻¹(ε_u − ΔC − ΔP) + ΔC + ΔP`
+- Eq (11): `ε'_d = U⁻¹(ε'_u − ΔC) + ΔC`, "which can be solved using numerical iterative methods depending on the application."
 
-**Can proofs proceed?** Yes, for injectivity-only theorems. Full D∘U = id is blocked
-until a concrete D is defined, which requires restricting to a tractable subclass
-(constant-R case, zero-tangential monotone case, or IFT-local case).
+The spec DOES define D = U⁻¹ as a mathematical object in both equations. It asserts D
+exists. The numerical iteration note is about *computing* D at a specific input — not
+about whether D is defined. The spec treats U as invertible without proving it.
 
-**Resolution for this campaign:** The campaign targets injectivity only in Slices UI-00
-through UI-02. A definition of D (if any) is deferred to UI-03 or UI-04 and requires
-explicit authorization. No theorem claims full invertibility without a concrete D.
+**What is actually open:** The Lean formalization challenge is that there is no
+closed-form formula for D for the full Brown-Conrady model. In Lean, to use D you must
+either: (a) construct D nonconstructively via `Function.invFun` given injectivity (which
+we have proved in several regimes), yielding `D ∘ U = id` by injectivity alone; (b) find
+a closed-form D for a restricted subclass and prove it (which UI-04 did for p=0 with
+`radialDescale`); or (c) use IFT to prove a local inverse exists without constructing it.
+
+**Proof impact:** REVISED. A theorem of the form `D ∘ U = id` CAN be stated using
+`Function.invFun` once U is proved injective on a domain — no concrete closed-form D is
+required. The campaign's injectivity results (UI-00 through UI-03) are sufficient inputs
+for a nonconstructive left-inverse theorem. The more informative concrete result
+(UI-04/`radialDescale`) is also proved for p=0.
+
+**Remaining open:** Proving U is surjective onto its intended range (needed for U ∘ D = id
+in the `Function.invFun` sense). Global injectivity without the `hScaleInj` hypothesis
+(item 5 in the next-steps file). These are the actual open gates, not D's definition.
 
 ---
 
