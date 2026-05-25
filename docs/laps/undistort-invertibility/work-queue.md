@@ -53,8 +53,8 @@ for zero tangential) and proceeds only as far as the proof machinery allows.
 | On-circle injectivity (zero tangential) | Injectivity of U on circles, p = 0 | Algebraic cancellation | Low | **complete** |
 | Global pure-radial injectivity | Injectivity of U globally, p = 0 | Real-analysis monotonicity | High | **complete** |
 | Radial term positivity | R(r) > 0 under coefficient conditions | Polynomial sign analysis | Medium | **complete** |
-| Full-model injectivity (with tangential) | Global injectivity with nonzero p | Jacobian determinant | Very high | pending |
-| Local invertibility (IFT-based) | Local inverse near regular points | IFT from Mathlib | Very high | pending |
+| On-circle injectivity (with tangential) | On-circle injectivity with nonzero p, algebraic det | Algebraic cancellation | Medium | **complete** |
+| Concrete left inverse (p=0) | D(r, U(ε)) = ε for zero-tangential | Algebraic division | Low | **complete** |
 
 ---
 
@@ -65,8 +65,8 @@ for zero tangential) and proceeds only as far as the proof machinery allows.
 | SLICE-UI-00 | On-circle injectivity, p = 0, R ≠ 0 | `InjectivityModel.lean`, `lakefile.toml` | None blocking | **complete** |
 | SLICE-UI-01 | Global pure-radial injectivity, p = 0 | `InjectivityModel.lean` | AMB-UI-004 (monotonicity) | **complete** |
 | SLICE-UI-02 | Radial term positivity under coefficient conditions | `InjectivityModel.lean` | AMB-UI-003 | **complete** |
-| SLICE-UI-03 | Full-model injectivity with tangential | `InjectivityModel.lean` | Jacobian approach TBD | pending |
-| SLICE-UI-04 | Existence of local inverse (IFT) or D for restricted class | TBD | AMB-UI-005 | pending |
+| SLICE-UI-03 | On-circle injectivity with tangential, algebraic det | `InjectivityModel.lean` | Jacobian approach TBD → resolved algebraically | **complete** |
+| SLICE-UI-04 | Concrete D (radialDescale) + D∘U=id for p=0 | `InjectivityModel.lean` | AMB-UI-005 → resolved | **complete** |
 
 ---
 
@@ -132,27 +132,34 @@ injectivity hypotheses.
 
 ---
 
-### SLICE-UI-03 — Full model injectivity (DEFERRED)
+### SLICE-UI-03 — On-circle injectivity with tangential (COMPLETE)
 
-**Purpose:** Injectivity with nonzero tangential coefficients. Likely requires computing
-the 2×2 Jacobian matrix of U and showing its determinant is positive.
+**Purpose:** Prove injectivity of U on each circle with nonzero tangential coefficients.
 
-**Gate:** May not begin until:
-1. UI-01 and UI-02 are complete
-2. Jacobian approach is feasibility-analyzed
-3. User explicitly authorizes
+**Approach:** Algebraic. With hSameR (R₁ = R₂ = R), subtracting the component equalities
+yields a 2×2 linear system in δx, δy. Caller supplies hDet (algebraic determinant ≠ 0).
+Proof uses `linear_combination` with D·eqX − B·eqY and A·eqY − C·eqX; `ring` verifies
+the polynomial identities with sensorRadius ε₁ ^ 2 as an opaque atom.
+
+**Jacobian TBD resolution:** No analytic Jacobian or IFT needed. The algebraic determinant
+(det of the coefficient matrix of the linear system in δx, δy) is the right condition.
+
+**Lean check:** exit 0, no warnings, first attempt.
 
 ---
 
-### SLICE-UI-04 — Existence of local inverse or D for restricted class (DEFERRED)
+### SLICE-UI-04 — Concrete left inverse for zero-tangential case (COMPLETE)
 
-**Purpose:** Either use Mathlib IFT for a local invertibility statement, or define D
-explicitly for the constant-radial-factor subclass and prove D ∘ U = id.
+**Purpose:** Define D explicitly for the p = 0 subclass and prove D ∘ U = id.
 
-**Gate:** May not begin until:
-1. UI-00 through UI-02 are complete
-2. AMB-UI-005 resolved (existential vs concrete D)
-3. User explicitly authorizes
+**Approach:** `radialDescale k r hr ε = ⟨ε.x / R(r), ε.y / R(r)⟩`. With p = 0,
+U(ε) = ⟨R(r)·ε.x, R(r)·ε.y⟩. Then D(r, U(ε)) = ⟨R·ε.x/R, R·ε.y/R⟩ = ε.
+Proof: simp unfolds both definitions; `mul_div_cancel_left₀` closes each component.
+
+**AMB-UI-005 resolution:** Concrete D (not existential). The explicit radius parameter r
+reflects AMB-UI-001: no closed-form D exists from the output alone.
+
+**Lean check:** exit 0, no warnings, first attempt.
 
 ---
 

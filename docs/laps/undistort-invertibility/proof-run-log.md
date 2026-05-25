@@ -126,3 +126,80 @@ None. Both theorems compiled on the first attempt.
 - No `unsafe` or `partial` ✓
 - No `set_option warn.sorry false` ✓
 - No Lean warnings present ✓
+
+---
+
+## SLICE-UI-03 — undistortPoint_injective_on_circle_tangential
+
+**Date:** 2026-05-24
+
+### Lean check
+
+```
+lake env lean openlensio_semantics/InjectivityModel.lean
+```
+
+**Result:** exit 0, no output, no warnings.
+
+### Tactic trace
+
+| Step | Tactic | Outcome |
+|---|---|---|
+| 1 | `simp only [radialTerm, hSameR]` for hRR | Closed. Same mechanism as UI-00: h ignored in body, hSameR equates radii. |
+| 2 | `congr_arg SensorPoint.x hU` for hX | Closed. |
+| 3 | `congr_arg SensorPoint.y hU` for hY | Closed. |
+| 4 | `simp only [undistortX] at hX` | Closed. Unfolds with tangential terms kept. |
+| 5 | `simp only [undistortY] at hY` | Closed. Unfolds with tangential terms kept. |
+| 6 | `rw [← hRR, ← hSameR] at hX hY` | Closed. Both hX and hY now have the same R and sensorRadius on both sides; sensorRadius ε₁ ^ 2 cancels in subsequent ring check. |
+| 7 | `linear_combination D * hX - B * hY` for hδx | Closed. ring verified (AD−BC)·δx = D·(LHS_X−RHS_X) − B·(LHS_Y−RHS_Y) as a polynomial identity. sensorRadius ε₁ ^ 2 treated as opaque atom; cancels. |
+| 8 | `linear_combination A * hY - C * hX` for hδy | Closed. ring verified (AD−BC)·δy = A·(LHS_Y−RHS_Y) − C·(LHS_X−RHS_X). |
+| 9 | `rcases mul_eq_zero.mp hδx with h \| h` for hx | First case: `absurd h hDet` closed contradiction. Second case: `linarith` from ε₁.x − ε₂.x = 0. |
+| 10 | Same pattern for hy | Closed. |
+| 11 | `exact SensorPoint.ext hx hy` | Closed. |
+
+### Failed attempts
+
+None. Proof compiled on the first attempt, exactly following the proof plan.
+
+### Placeholder hygiene check
+
+- No `sorry` ✓
+- No `admit` ✓
+- No unauthorized `axiom` ✓
+- No `unsafe` or `partial` ✓
+- No `set_option warn.sorry false` ✓
+- No Lean warnings present ✓
+
+---
+
+## SLICE-UI-04 — radialDescale / radialDescale_left_inverse_zero_tangential
+
+**Date:** 2026-05-24
+
+### Lean check
+
+```
+lake env lean openlensio_semantics/InjectivityModel.lean
+```
+
+**Result:** exit 0, no output, no warnings.
+
+### Tactic trace
+
+| Step | Tactic | Outcome |
+|---|---|---|
+| 1 | `simp only [radialDescale, undistortPoint, undistortX, undistortY, hp1, hp2, mul_zero, zero_mul, add_zero]` | Closed. All definitions unfolded; tangential terms zeroed; goal reduced to `⟨R * ε.x / R, R * ε.y / R⟩ = ε`. |
+| 2 | `exact SensorPoint.ext (mul_div_cancel_left₀ ε.x hR) (mul_div_cancel_left₀ ε.y hR)` | Closed. `mul_div_cancel_left₀` applied to each component; `SensorPoint.ext` assembles. |
+
+### Failed attempts
+
+None. Compiled on first attempt. `mul_div_cancel_left₀` matched the exact post-simp form.
+
+### Placeholder hygiene check
+
+- No `sorry` ✓
+- No `admit` ✓
+- No unauthorized `axiom` ✓
+- No `unsafe` or `partial` ✓
+- No `set_option warn.sorry false` ✓
+- No Lean warnings present ✓

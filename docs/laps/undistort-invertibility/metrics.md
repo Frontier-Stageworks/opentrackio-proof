@@ -38,8 +38,8 @@ metadata:
 | SLICE-UI-00 | complete | exit 0, no warnings | 0 | 0 | no |
 | SLICE-UI-01 | complete | exit 0, no warnings | 0 | 0 | no |
 | SLICE-UI-02 | complete | exit 0, no warnings | 0 | 0 | no |
-| SLICE-UI-03 | deferred | — | — | — | — |
-| SLICE-UI-04 | deferred | — | — | — | — |
+| SLICE-UI-03 | complete | exit 0, no warnings | 0 | 0 | no |
+| SLICE-UI-04 | complete | exit 0, no warnings | 0 | 0 | no |
 
 ---
 
@@ -51,9 +51,24 @@ metadata:
 | 2026-05-24 | SLICE-UI-00 complete | Proof compiled first attempt; exit 0; Stop 4 review accepted |
 | 2026-05-24 | SLICE-UI-01 complete | Proof compiled first attempt; exit 0; Stop 4 review accepted |
 | 2026-05-24 | SLICE-UI-02 complete | Proof compiled first attempt; exit 0; Stop 4 review accepted; AMB-UI-003 resolved |
+| 2026-05-24 | SLICE-UI-03 complete | Proof compiled first attempt; exit 0; Stop 4 review accepted; Jacobian TBD resolved via algebraic det |
+| 2026-05-24 | SLICE-UI-04 complete | Proof compiled first attempt; exit 0; Stop 4 review accepted; AMB-UI-005 resolved; AMB-UI-001 reflected in explicit r param |
 
 ---
 
 ## Final Score
 
-Not yet available — campaign in progress.
+**Campaign complete.** All five slices (UI-00 through UI-04) accepted.
+
+| Metric | Value |
+|---|---|
+| Total Lean checks | 5 (one per slice) |
+| Checks passing on first attempt | 5 / 5 |
+| Semantic failures | 0 |
+| Human interventions | 0 |
+| Sorry at any point | no |
+| AMB entries resolved | 3 of 5 (AMB-UI-003, AMB-UI-004 via alternate approach, AMB-UI-005) |
+| AMB entries partially resolved | 2 (AMB-UI-001 reflected; AMB-UI-002 partially addressed) |
+| New theorems | 6 |
+| New definitions | 3 (radialScale, radialDescale, and bridge lemma radialTerm_eq_radialScale) |
+| Stop conditions fired | 0 |

@@ -43,8 +43,7 @@ explicit authorization. No theorem claims full invertibility without a concrete 
 
 ## AMB-UI-002 — Scope of injectivity: global vs local vs on-circle
 
-**Status:** Partially resolved — UI-00 is on-circle, UI-01 is global-pure-radial,
-UI-02+ are deferred
+**Status:** Partially resolved — UI-00 on-circle p=0, UI-01 global p=0, UI-03 on-circle full p
 
 **What is the issue:** "Injectivity of U" can mean:
 1. U is injective on each circle of fixed radius (proof: U reduces to pure scaling when p=0)
@@ -98,18 +97,10 @@ avoids this entirely.
 
 ## AMB-UI-005 — Whether to define D as a new function or use existential
 
-**Status:** Unresolved
+**Status:** Resolved (SLICE-UI-04)
 
-**What is the issue:** Future slices may want to state "D ∘ U = id." For this, two
-approaches are possible:
-1. Define D as a concrete function (only possible for restricted models like constant-R)
-2. Assert the existence of D via `∃ D, ∀ ε h, D (undistortPoint k p ε h) = ε`
-   (non-constructive; needs injectivity + surjectivity)
-
-Approach 2 follows from injectivity + surjectivity. Surjectivity of U onto its image
-is easier than surjectivity onto all of ℝ², but still requires real-analysis machinery.
-
-**Implementation risk:** High. Deferred beyond UI-01.
-
-**Proposed resolution:** Defer to UI-03 or UI-04. First prove injectivity (UI-00, UI-01, UI-02),
-then revisit what "invertibility" proof is achievable.
+**Resolution:** Concrete D for the p = 0 subclass: `radialDescale k r hr ε = ⟨ε.x / R(r), ε.y / R(r)⟩`.
+The explicit radius parameter r reflects AMB-UI-001: no closed-form D from the output alone.
+Theorem `radialDescale_left_inverse_zero_tangential` proves D(r, U(ε)) = ε when p = 0, R(r) ≠ 0.
+An existential variant (using `Function.invFun`) is derivable from UI-00's injectivity but was
+not needed — the concrete D for p = 0 is more informative.

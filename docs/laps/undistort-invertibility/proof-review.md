@@ -274,3 +274,177 @@ constraints are imposed. This avoids overfitting the model to specific physical 
 SLICE-UI-02 is complete. Both `radialTerm_pos` and `radialTerm_ne_zero` are kernel-checked
 and semantically aligned. AMB-UI-003 is resolved. Callers can now discharge `hR₁ ≠ 0`
 by supplying pointwise polynomial positivity conditions.
+
+---
+
+# Proof Review — SLICE-UI-03
+
+**Theorem:** `undistortPoint_injective_on_circle_tangential`
+**File:** `openlensio_semantics/InjectivityModel.lean`
+**Date:** 2026-05-24
+
+---
+
+## A. Scope-Appropriate Verification Command
+
+```
+lake env lean openlensio_semantics/InjectivityModel.lean
+```
+
+**Result:** exit 0, no output, no warnings.
+**Run after final code change:** yes — first and only compilation attempt.
+
+---
+
+## B. Kernel Status
+
+Kernel-checked. No `sorry`, `admit`, unauthorized `axiom`, `unsafe`, or `partial`.
+
+---
+
+## C. Semantic Review
+
+### Does the theorem match intent?
+
+Yes, for the stated scope. UI-03 extends UI-00 to nonzero tangential coefficients while
+retaining the on-circle restriction (hSameR). The user's intent for this slice was
+injectivity with full tangential terms; the on-circle restriction is honest and documented.
+
+The scope is narrower than "global full-model injectivity" — that would require a different
+approach. The theorem name `undistortPoint_injective_on_circle_tangential` accurately
+identifies both the on-circle restriction and the tangential generalization.
+
+### Is the theorem vacuous?
+
+No. Non-vacuity witness: take k all-zero, p all-zero, ε₁ ≠ ε₂ with the same radius.
+With p = 0: A = D = R = 1, B = C = 0, det = R² = 1 ≠ 0. `hDet` is satisfied. U is the
+identity map, so U(ε₁) ≠ U(ε₂), making `hU` unsatisfiable. The theorem correctly
+forces ε₁ = ε₂ from `hU`.
+
+### Are the hypotheses necessary?
+
+- `hSameR`: still required — the algebraic determinant expression uses ε₁, ε₂ coordinates
+  from both sides, and equating R₁ = R₂ is necessary for the linear system to factor cleanly.
+- `hDet`: necessary — if det = 0 the linear system has nontrivial solutions (ε₁ ≠ ε₂ with
+  U(ε₁) = U(ε₂) is possible when the algebraic Jacobian is singular).
+- `h₁, h₂`: necessary — required by radialTerm and undistortX/Y.
+
+### Algebraic Jacobian — is hDet the right condition?
+
+`hDet` encodes the determinant of the 2×2 coefficient matrix arising when the two component
+equalities are factored into a linear system in δx, δy. This is a purely algebraic condition
+(polynomial in R, p₁, p₂, ε₁, ε₂) with no analytic content. It specializes to R² ≠ 0 when
+p = 0, recovering the condition from UI-00. This is semantically correct.
+
+### Hard step: identified and handled?
+
+Yes. The hard steps were the two `linear_combination` calls (steps 7, 8). Each verified that
+`(AD−BC)·δx = D·eqX − B·eqY` and `(AD−BC)·δy = A·eqY − C·eqX` as polynomial identities,
+with `sensorRadius ε₁ ^ 2` as an opaque atom that cancels from both sides of both equations.
+The `ring` checker inside `linear_combination` handled both without fallback.
+
+### Anti-pattern scan
+
+- No broad `simp` ✓
+- No `sorry` ✓
+- `hDet` is a genuine mathematical condition, not an artifact that trivializes the proof ✓
+- `linear_combination` is used correctly — it proves polynomial equalities, not hides steps ✓
+- No proxy property ✓
+
+---
+
+## D. Required Action Split
+
+- **Semantic proof action:** none
+- **Verification/build action:** none — `lake env lean` confirmed exit 0
+- **Process evidence action:** none — all artifacts current
+
+---
+
+## E. Final Classification
+
+**Accepted.**
+
+SLICE-UI-03 is complete. `undistortPoint_injective_on_circle_tangential` is kernel-checked,
+semantically aligned, and non-vacuous. The Jacobian approach (originally TBD in the work-queue)
+was replaced by an algebraic determinant argument that requires no analytic derivatives — a
+cleaner and more feasible path in Lean.
+
+---
+
+# Proof Review — SLICE-UI-04
+
+**Theorem:** `radialDescale_left_inverse_zero_tangential`
+**Definition:** `radialDescale`
+**File:** `openlensio_semantics/InjectivityModel.lean`
+**Date:** 2026-05-24
+
+---
+
+## A. Scope-Appropriate Verification Command
+
+```
+lake env lean openlensio_semantics/InjectivityModel.lean
+```
+
+**Result:** exit 0, no output, no warnings.
+**Run after final code change:** yes — first and only compilation attempt.
+
+---
+
+## B. Kernel Status
+
+Kernel-checked. No `sorry`, `admit`, unauthorized `axiom`, `unsafe`, or `partial`.
+
+---
+
+## C. Semantic Review
+
+### Does the theorem match intent?
+
+Yes. The theorem proves `D(r, U(ε)) = ε` for the first time in the campaign — the first
+D ∘ U = id result. The scope (p = 0, explicit r required) is honest and documented.
+
+### Is the theorem vacuous?
+
+No. Non-vacuity witness: take k all-zero, p all-zero, ε = ⟨1, 0⟩. Then R = 1 (by
+`radial_zero_coefficients_identity`), hR is satisfied, undistortPoint ε = ε (by
+`brown_conrady_zero_identity`), and radialDescale k (sensorRadius ε) h ε = ⟨ε.x / 1, ε.y / 1⟩ = ε.
+The theorem conclusion is genuinely non-trivial for R ≠ 1 (e.g., k1 > 0, k2 = k3 = ... = 0).
+
+### Is `radialDescale` a correct model of D?
+
+For p = 0: U(ε) = R·ε, and D(r, u) = u/R recovers ε = D(r, U(ε)) = D(r, R·ε) = R·ε/R = ε.
+The definition is semantically correct. The explicit r parameter is the correct design:
+it reflects that D cannot be computed from u alone for general Brown-Conrady (AMB-UI-001).
+
+### AMB-UI-005 resolution
+
+Concrete D is more informative than existential D obtained via `Function.invFun` or
+`Classical.choice`. The existential is derivable from injectivity but does not provide
+a computable formula. `radialDescale` provides the explicit formula.
+
+### Anti-pattern scan
+
+- `radialDescale` is a minimal new definition; its role is explicit ✓
+- `mul_div_cancel_left₀` is a standard Mathlib lemma; not hiding any step ✓
+- No `sorry` ✓
+- No vacuity ✓
+
+---
+
+## D. Required Action Split
+
+- **Semantic proof action:** none
+- **Verification/build action:** none — `lake env lean` confirmed exit 0
+- **Process evidence action:** none — all artifacts current
+
+---
+
+## E. Final Classification
+
+**Accepted.**
+
+SLICE-UI-04 is complete. `radialDescale_left_inverse_zero_tangential` is kernel-checked and
+semantically aligned. AMB-UI-005 is resolved. The campaign has now proved its first D ∘ U = id
+result, closing the primary objective for the p = 0 subclass.

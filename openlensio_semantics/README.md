@@ -1,8 +1,8 @@
 # openlensio_semantics — Lens Model Semantics
 
 Lean 4 formal verification of the [OpenLensIO](https://openlensio.org) v1.0.1
-Brown-Conrady distortion pipeline (D→U undistortion direction). 14 public theorems
-across 11 source files, all proved over exact reals (ℝ) using Mathlib's noncomputable
+Brown-Conrady distortion pipeline (D→U undistortion direction). 21 public theorems
+across 12 source files, all proved over exact reals (ℝ) using Mathlib's noncomputable
 infrastructure.
 
 ---
@@ -93,6 +93,45 @@ theorem semanticExtraction_sound
 Lens parameter extraction from the raw `LensSemantics` record satisfies
 `ValidLensSemantics` — in particular, `0 < focalLength`.
 
+### Invertibility and injectivity
+
+```lean
+theorem undistortPoint_injective_zero_tangential
+theorem undistortPoint_injective_pure_radial
+theorem undistortPoint_injective_on_circle_tangential
+theorem radialTerm_pos
+theorem radialTerm_ne_zero
+lemma radialTerm_eq_radialScale
+theorem radialDescale_left_inverse_zero_tangential
+```
+
+Injectivity of `undistortPoint` is proved in three stages for progressively richer
+coefficient regimes. All results require a per-point `denominatorNonzero` domain predicate.
+
+`undistortPoint_injective_zero_tangential` (on-circle, p=0): if two points share the same
+sensor radius and U maps them to the same output with R ≠ 0, they are equal. Proved by
+`mul_left_cancel₀` after tangential terms simplify to zero.
+
+`undistortPoint_injective_pure_radial` (global, p=0): extends the on-circle result to all of
+ℝ² given a caller-supplied hypothesis that r ↦ R(r)·r is injective on nonneg reals. Squares
+both component equalities, adds them, uses `Real.sq_sqrt` to relate `sensorRadius²` to
+`ε.x² + ε.y²`, then reduces to the on-circle result via `nlinarith`.
+
+`undistortPoint_injective_on_circle_tangential` (on-circle, full p): holds on a fixed-radius
+circle given `hDet ≠ 0`, where `hDet` is the determinant of the 2×2 linear system in δx, δy
+obtained by subtracting the U-equal component equations. Proved by `linear_combination` with
+determinant cofactors, then `mul_eq_zero` to conclude.
+
+`radialTerm_pos` / `radialTerm_ne_zero`: R(r) > 0 and R(r) ≠ 0 follow from per-point
+polynomial positivity hypotheses on the numerator and denominator. No global coefficient
+constraints are needed; `div_pos` closes the goal.
+
+`radialDescale_left_inverse_zero_tangential`: the concrete left inverse
+D(r, ε) = ⟨ε.x/R(r), ε.y/R(r)⟩ satisfies D(r, U(ε)) = ε when p = 0 and R(r) ≠ 0.
+The explicit radius parameter r reflects the fundamental constraint (AMB-UI-001): no
+closed-form D exists from output alone for general Brown-Conrady because recovering r
+from R(r)·r requires inverting the map r ↦ R(r)·r.
+
 ---
 
 ## Key definitions
@@ -105,6 +144,8 @@ Lens parameter extraction from the raw `LensSemantics` record satisfies
 | `LensSemantics`, `ValidLensSemantics` | `LensSemantics.lean` | Lens record with `0 < focalLength` predicate |
 | `denominatorNonzero` | `RadialPolynomial.lean` | Per-point domain predicate — callers must supply |
 | `radialTerm` | `RadialPolynomial.lean` | Rational radial scale factor |
+| `radialScale` | `InjectivityModel.lean` | Factored form of `radialTerm` without domain proof — used as the injectivity argument's scale function |
+| `radialDescale` | `InjectivityModel.lean` | Concrete left inverse of `undistortPoint` for p=0: ⟨ε.x/R(r), ε.y/R(r)⟩ with explicit radius parameter |
 | `undistortPoint` | `DistortionModel.lean` | Full Brown-Conrady undistortion |
 | `undistortFromDistorted` | `ProjectionModel.lean` | Projection-matrix form (Eq 4) |
 | `fovUndistortFromDistorted` | `FovModel.lean` | FOV form (Eq 10) |
@@ -136,8 +177,10 @@ of seven hand-computed cases.
 
 | Limitation | Notes |
 |---|---|
-| Forward distortion model | `undistortPoint` (U) is proved; forward distortion D is not. Roundtrip `U(D(ε)) = ε` cannot be stated. |
-| Invertibility, injectivity, continuity | Plausible for well-calibrated lenses but requires analytical machinery beyond the algebraic tooling used. |
+| Closed-form forward distortion D (general case) | No closed-form D = U⁻¹ exists for general Brown-Conrady. The spec (Eq 11) prescribes numerical iteration. For p=0, `radialDescale_left_inverse_zero_tangential` proves D(r, U(ε)) = ε with an explicit radius parameter. |
+| Global injectivity with full tangential | Proved on fixed-radius circles given a nonzero-determinant hypothesis (`hDet`). Whether `hDet ≠ 0` holds globally for all coefficient tuples is outside the algebraic scope of this library. |
+| Injectivity of r ↦ R(r)·r (pure-radial case) | `undistortPoint_injective_pure_radial` accepts this as a caller-supplied hypothesis (`hScaleInj`). Proving it from coefficient bounds requires monotone-function machinery not yet in scope. |
+| General invertibility and continuity | Plausible for well-calibrated lenses but outside the algebraic scope of this library. |
 | Overscan semantics | Equations 8 and 15 have an unresolved ΔC/ΔP asymmetry. No overscan theorems are attempted. |
 | Float correctness | `undistortPoint_float` is not proved to approximate the exact-real definitions within any error bound. |
 | OpenCV pipeline equivalence | This library formalizes the OpenLensIO model. Cross-model equivalence proofs live in `opencv_opentrackio_proofs/Pipeline/`. |
@@ -159,6 +202,7 @@ of seven hand-computed cases.
 | `AngleOfView.lean` | `angle_of_view_eq` — `tan(α/2) = r_u / F` |
 | `ShaderCoords.lean` | Metric ↔ shader coordinate conversions and roundtrip theorems |
 | `SemanticBridge.lean` | `semanticExtraction_sound` — `ValidLensSemantics` soundness |
+| `InjectivityModel.lean` | Injectivity theorems for `undistortPoint`; `radialScale`, `radialDescale`; `radialTerm_pos`/`radialTerm_ne_zero`; `radialDescale_left_inverse_zero_tangential` |
 | `ExecutableSemanticOracle.lean` | Float approximation layer — for differential testing only |
 
 ---

@@ -1,5 +1,5 @@
 /-
-  InjectivityModel.lean — SLICE-UI-00, SLICE-UI-01, SLICE-UI-02
+  InjectivityModel.lean — SLICE-UI-00, SLICE-UI-01, SLICE-UI-02, SLICE-UI-03, SLICE-UI-04
 
   Injectivity properties of the Brown-Conrady undistortion map.
 
@@ -17,6 +17,19 @@
   Theorems: radialTerm_pos (R > 0 from per-point numerator/denominator positivity)
   and radialTerm_ne_zero (corollary: R ≠ 0). Allows callers to discharge the hR₁
   hypothesis in undistortPoint_injective_pure_radial concretely.
+
+  SLICE-UI-03: On-circle injectivity with full tangential coefficients (general p).
+
+  SLICE-UI-04: Concrete left inverse for the zero-tangential case.
+  Definition: radialDescale k r hr ε = ⟨ε.x / R(r), ε.y / R(r)⟩.
+  Theorem: radialDescale_left_inverse_zero_tangential proves D(r, U(ε)) = ε when
+  p = 0 and R(r) ≠ 0. The explicit r parameter reflects AMB-UI-001: no closed-form
+  D exists from the output alone; knowing the input radius is required.
+  Theorem: undistortPoint_injective_on_circle_tangential. Extends UI-00 to nonzero p.
+  Proof approach: subtracting the two component equalities gives a linear system
+  A·δx + B·δy = 0, C·δx + D·δy = 0 in the coordinate deltas. If the algebraic
+  determinant AD − BC ≠ 0 (caller-supplied hDet), then δx = δy = 0. No analytic
+  Jacobian or IFT required — purely algebraic via linear_combination + mul_eq_zero.
   Theorem: if p₁ = p₂ = 0, R(r₁) ≠ 0, and the radial scaling r ↦ R(r)·r is injective
   on [0,∞) (caller-supplied hScaleInj), then U(ε₁) = U(ε₂) → ε₁ = ε₂.
   Proof reduces to UI-00 after deriving sensorRadius ε₁ = sensorRadius ε₂ from
@@ -182,3 +195,123 @@ theorem radialTerm_ne_zero
     (hDen : 0 < 1 + k.k2 * r ^ 2 + k.k4 * r ^ 4 + k.k6 * r ^ 6) :
     radialTerm k r h ≠ 0 :=
   (radialTerm_pos k r h hNum hDen).ne'
+
+/-─────────────────────────────────────────────────────────────────────────────
+  SLICE-UI-03: On-circle injectivity with full tangential coefficients
+
+  Extends SLICE-UI-00 to nonzero tangential coefficients (general p₁, p₂).
+  The on-circle restriction (hSameR) is retained, which equates the radial
+  terms R₁ = R₂ = R and collapses the two sensorRadius values.
+
+  With p nonzero, U(ε₁) = U(ε₂) no longer factors cleanly as R·scaling.
+  Instead, subtracting the two component equalities gives a linear system in
+  the coordinate deltas δx = ε₁.x − ε₂.x and δy = ε₁.y − ε₂.y:
+
+    A·δx + B·δy = 0   (from x-component)
+    C·δx + D·δy = 0   (from y-component)
+
+  where:
+    A = R + 2·p₁·ε₁.y + 2·p₂·(ε₁.x + ε₂.x)
+    B = 2·p₁·ε₂.x
+    C = 2·p₂·ε₁.y
+    D = R + 2·p₁·(ε₁.y + ε₂.y) + 2·p₂·ε₂.x
+
+  If the algebraic determinant AD − BC ≠ 0 (caller-supplied hDet), the only
+  solution is δx = δy = 0, i.e., ε₁ = ε₂.
+
+  Proof:
+  - (AD−BC)·δx = D·eqX − B·eqY  via linear_combination (ring verifies)
+  - (AD−BC)·δy = A·eqY − C·eqX  via linear_combination (ring verifies)
+  - Cancel det from each via mul_eq_zero + hDet; close with SensorPoint.ext
+
+  When p = 0: A = D = R, B = C = 0, det = R² ≠ 0 from hR ≠ 0 — recovering
+  the structure of undistortPoint_injective_zero_tangential.
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem undistortPoint_injective_on_circle_tangential
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (ε₁ ε₂ : SensorPoint)
+    (h₁ : denominatorNonzero k (sensorRadius ε₁))
+    (h₂ : denominatorNonzero k (sensorRadius ε₂))
+    (hSameR : sensorRadius ε₁ = sensorRadius ε₂)
+    (hDet : (radialTerm k (sensorRadius ε₁) h₁ + 2 * p.p1 * ε₁.y +
+             2 * p.p2 * (ε₁.x + ε₂.x)) *
+            (radialTerm k (sensorRadius ε₁) h₁ + 2 * p.p1 * (ε₁.y + ε₂.y) +
+             2 * p.p2 * ε₂.x) -
+            4 * p.p1 * p.p2 * ε₁.y * ε₂.x ≠ 0)
+    (hU : undistortPoint k p ε₁ h₁ = undistortPoint k p ε₂ h₂) :
+    ε₁ = ε₂ := by
+  -- Equate radial terms using hSameR (radialTerm ignores its proof argument)
+  have hRR : radialTerm k (sensorRadius ε₁) h₁ = radialTerm k (sensorRadius ε₂) h₂ := by
+    simp only [radialTerm, hSameR]
+  -- Extract component equalities
+  have hX : undistortX k p ε₁ h₁ = undistortX k p ε₂ h₂ := congr_arg SensorPoint.x hU
+  have hY : undistortY k p ε₁ h₁ = undistortY k p ε₂ h₂ := congr_arg SensorPoint.y hU
+  -- Unfold component definitions (tangential terms kept)
+  simp only [undistortX] at hX
+  simp only [undistortY] at hY
+  -- Unify R and sensorRadius on both sides
+  rw [← hRR, ← hSameR] at hX hY
+  -- Derive (AD − BC) · δx = 0 via D · eqX − B · eqY
+  have hδx : ((radialTerm k (sensorRadius ε₁) h₁ + 2 * p.p1 * ε₁.y +
+               2 * p.p2 * (ε₁.x + ε₂.x)) *
+              (radialTerm k (sensorRadius ε₁) h₁ + 2 * p.p1 * (ε₁.y + ε₂.y) +
+               2 * p.p2 * ε₂.x) -
+              4 * p.p1 * p.p2 * ε₁.y * ε₂.x) * (ε₁.x - ε₂.x) = 0 := by
+    linear_combination
+      (radialTerm k (sensorRadius ε₁) h₁ + 2 * p.p1 * (ε₁.y + ε₂.y) +
+       2 * p.p2 * ε₂.x) * hX -
+      (2 * p.p1 * ε₂.x) * hY
+  -- Derive (AD − BC) · δy = 0 via A · eqY − C · eqX
+  have hδy : ((radialTerm k (sensorRadius ε₁) h₁ + 2 * p.p1 * ε₁.y +
+               2 * p.p2 * (ε₁.x + ε₂.x)) *
+              (radialTerm k (sensorRadius ε₁) h₁ + 2 * p.p1 * (ε₁.y + ε₂.y) +
+               2 * p.p2 * ε₂.x) -
+              4 * p.p1 * p.p2 * ε₁.y * ε₂.x) * (ε₁.y - ε₂.y) = 0 := by
+    linear_combination
+      (radialTerm k (sensorRadius ε₁) h₁ + 2 * p.p1 * ε₁.y +
+       2 * p.p2 * (ε₁.x + ε₂.x)) * hY -
+      (2 * p.p2 * ε₁.y) * hX
+  -- Cancel det from δx and δy using hDet
+  have hx : ε₁.x = ε₂.x := by
+    rcases mul_eq_zero.mp hδx with h | h
+    · exact absurd h hDet
+    · linarith
+  have hy : ε₁.y = ε₂.y := by
+    rcases mul_eq_zero.mp hδy with h | h
+    · exact absurd h hDet
+    · linarith
+  exact SensorPoint.ext hx hy
+
+/-─────────────────────────────────────────────────────────────────────────────
+  SLICE-UI-04: Concrete left inverse for the zero-tangential case
+
+  radialDescale k r hr ε divides each component of ε by R(r) = radialTerm k r hr.
+  This is the explicit D for the zero-tangential subclass, parameterized by the
+  input radius r.
+
+  AMB-UI-005 resolution: concrete D (not existential), for the p = 0 case.
+  AMB-UI-001 reflection: r must be supplied explicitly — there is no closed-form
+  way to recover r from the output u = U(ε) for general Brown-Conrady. Knowing r
+  is the minimal additional datum required to construct D(r, u) = u / R(r).
+
+  radialDescale_left_inverse_zero_tangential closes the first D ∘ U = id result
+  in the campaign: D(r, U(ε)) = ε when p = 0 and R(r) ≠ 0.
+─────────────────────────────────────────────────────────────────────────────-/
+
+noncomputable def radialDescale
+    (k : RadialCoefficients) (r : ℝ)
+    (hr : denominatorNonzero k r) (ε : SensorPoint) : SensorPoint :=
+  let R := radialTerm k r hr
+  ⟨ε.x / R, ε.y / R⟩
+
+theorem radialDescale_left_inverse_zero_tangential
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (hp1 : p.p1 = 0) (hp2 : p.p2 = 0)
+    (ε : SensorPoint)
+    (h : denominatorNonzero k (sensorRadius ε))
+    (hR : radialTerm k (sensorRadius ε) h ≠ 0) :
+    radialDescale k (sensorRadius ε) h (undistortPoint k p ε h) = ε := by
+  simp only [radialDescale, undistortPoint, undistortX, undistortY, hp1, hp2,
+             mul_zero, zero_mul, add_zero]
+  exact SensorPoint.ext (mul_div_cancel_left₀ ε.x hR) (mul_div_cancel_left₀ ε.y hR)

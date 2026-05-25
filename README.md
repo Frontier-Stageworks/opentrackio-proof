@@ -95,8 +95,8 @@ explicitly outside the proved parser core.
 ## openlensio_semantics — Lens model semantics
 
 Lean 4 formal verification of the [OpenLensIO](https://openlensio.org) v1.0.1
-Brown-Conrady distortion pipeline (D→U direction). 14 public theorems across
-11 source files, all proved over exact reals (ℝ) using Mathlib's noncomputable
+Brown-Conrady distortion pipeline (D→U direction). 21 public theorems across
+12 source files, all proved over exact reals (ℝ) using Mathlib's noncomputable
 infrastructure.
 
 Key definitions:
@@ -122,6 +122,14 @@ Key theorems:
   coordinate space conversions are exact inverses
 - `semanticExtraction_sound` — lens parameter extraction from raw data satisfies
   `ValidLensSemantics`
+- `undistortPoint_injective_zero_tangential` / `undistortPoint_injective_pure_radial` /
+  `undistortPoint_injective_on_circle_tangential` — injectivity of the Brown-Conrady
+  undistortion map proved in three regimes: on-circle with zero tangential, global with
+  zero tangential (caller-supplied scale injectivity), and on-circle with full tangential
+  (given a nonzero linear-system determinant hypothesis)
+- `radialDescale_left_inverse_zero_tangential` — concrete left inverse D(r, U(ε)) = ε
+  for p=0; the explicit radius parameter reflects that no closed-form D exists for general
+  Brown-Conrady (the spec prescribes numerical iteration for the full model)
 
 Central finding: OpenLensIO and OpenCV tangential distortion operate in different
 coordinate frames. Coefficient equality does not imply semantic equivalence; the
