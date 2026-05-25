@@ -20,6 +20,13 @@ total is now **145** declarations across **12** `openlensio_semantics/` files. T
 `docs/laps/undistort-invertibility/proof-review.md`. This review's 138-declaration
 count covers the pre-campaign state; the campaign-specific review covers the remainder.
 
+**Post-campaign addendum (2026-05-25, uncommitted at time of edit):** The
+nonconstructive-left-inverse campaign appended 2 new theorems to `InjectivityModel.lean`:
+`undistortSub_injective_pure_radial` and `undistortSub_nonconstructive_left_inverse_pure_radial`.
+The whole-repo total is now **147** declarations. Both declarations are reviewed and
+accepted in `docs/laps/nonconstructive-left-inverse/proof-review.md`. Coverage: 138
+(this review) + 7 (undistort-invertibility) + 2 (nonconstructive-left-inverse) = 147.
+
 ---
 
 ## REVIEW EVIDENCE

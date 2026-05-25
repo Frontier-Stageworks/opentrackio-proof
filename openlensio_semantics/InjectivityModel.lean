@@ -317,3 +317,77 @@ theorem radialDescale_left_inverse_zero_tangential
   simp only [radialDescale, undistortPoint, undistortX, undistortY, hp1, hp2,
              mul_zero, zero_mul, add_zero]
   exact SensorPoint.ext (mul_div_cancel_left₀ ε.x hR) (mul_div_cancel_left₀ ε.y hR)
+
+/-─────────────────────────────────────────────────────────────────────────────
+  SLICE-NCL-00: Domain subtype and injectivity wrapper for Function.invFun
+
+  undistortPoint has a proof-dependent argument h : denominatorNonzero k (sensorRadius ε),
+  making it not a plain SensorPoint → SensorPoint function. To apply Function.Injective
+  and Function.invFun (which expect a plain function), we introduce:
+  - DomainPoint k: the subtype {ε : SensorPoint // denominatorNonzero k (sensorRadius ε)}
+  - undistortSub k p: undistortPoint wrapped as a plain DomainPoint k → SensorPoint
+
+  domainPoint_nonempty: (0, 0) is always a domain point for any k, because the
+  denominator at r = 0 is 1 ≠ 0. This provides the Nonempty instance required
+  by Function.Injective.invFun_apply in SLICE-NCL-01.
+
+  undistortSub_injective_pure_radial: lifts undistortPoint_injective_pure_radial
+  (UI-01) to Function.Injective (undistortSub k p). The hR_all hypothesis is the
+  global lift of UI-01's per-point hR₁; hScaleInj is carried from UI-01.
+─────────────────────────────────────────────────────────────────────────────-/
+
+def DomainPoint (k : RadialCoefficients) : Type :=
+  {ε : SensorPoint // denominatorNonzero k (sensorRadius ε)}
+
+noncomputable def undistortSub (k : RadialCoefficients) (p : TangentialCoefficients) :
+    DomainPoint k → SensorPoint :=
+  fun ⟨ε, h⟩ => undistortPoint k p ε h
+
+instance domainPoint_nonempty (k : RadialCoefficients) : Nonempty (DomainPoint k) :=
+  ⟨⟨⟨0, 0⟩, by simp [denominatorNonzero, sensorRadius, Real.sqrt_zero]⟩⟩
+
+theorem undistortSub_injective_pure_radial
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (hp1 : p.p1 = 0) (hp2 : p.p2 = 0)
+    (hR_all : ∀ (ε : SensorPoint) (h : denominatorNonzero k (sensorRadius ε)),
+        radialTerm k (sensorRadius ε) h ≠ 0)
+    (hScaleInj : ∀ r₁ r₂ : ℝ, 0 ≤ r₁ → 0 ≤ r₂ →
+        (radialScale k r₁) ^ 2 * r₁ ^ 2 = (radialScale k r₂) ^ 2 * r₂ ^ 2 → r₁ = r₂) :
+    Function.Injective (undistortSub k p) := by
+  intro ⟨ε₁, h₁⟩ ⟨ε₂, h₂⟩ hU
+  have hU' : undistortPoint k p ε₁ h₁ = undistortPoint k p ε₂ h₂ := hU
+  exact Subtype.ext
+    (undistortPoint_injective_pure_radial k p hp1 hp2 ε₁ ε₂ h₁ h₂
+      (hR_all ε₁ h₁) hScaleInj hU')
+
+/-─────────────────────────────────────────────────────────────────────────────
+  SLICE-NCL-01: Nonconstructive left inverse via Function.invFun
+
+  With Function.Injective (undistortSub k p) established in NCL-00,
+  Function.leftInverse_invFun gives LeftInverse (invFun (undistortSub k p)) (undistortSub k p),
+  i.e., for every εd : DomainPoint k:
+
+    Function.invFun (undistortSub k p) (undistortSub k p εd) = εd
+
+  This is D ∘ U = id on DomainPoint k (pure-radial, p = 0), with D defined
+  nonconstructively via Classical.choice (Function.invFun). It formally instantiates
+  the OpenLensIO spec's D = U⁻¹ claim (Eqs 5, 11) for this subcase.
+
+  Nonempty (DomainPoint k) is provided by domainPoint_nonempty (NCL-00), as required
+  by Function.leftInverse_invFun's use of Function.invFun.
+
+  Key Mathlib lemma: Function.leftInverse_invFun (hf : Injective f) : LeftInverse (invFun f) f
+  (Mathlib.Logic.Function.Basic, line 436).
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem undistortSub_nonconstructive_left_inverse_pure_radial
+    (k : RadialCoefficients) (p : TangentialCoefficients)
+    (hp1 : p.p1 = 0) (hp2 : p.p2 = 0)
+    (hR_all : ∀ (ε : SensorPoint) (h : denominatorNonzero k (sensorRadius ε)),
+        radialTerm k (sensorRadius ε) h ≠ 0)
+    (hScaleInj : ∀ r₁ r₂ : ℝ, 0 ≤ r₁ → 0 ≤ r₂ →
+        (radialScale k r₁) ^ 2 * r₁ ^ 2 = (radialScale k r₂) ^ 2 * r₂ ^ 2 → r₁ = r₂)
+    (εd : DomainPoint k) :
+    Function.invFun (undistortSub k p) (undistortSub k p εd) = εd :=
+  Function.leftInverse_invFun
+    (undistortSub_injective_pure_radial k p hp1 hp2 hR_all hScaleInj) εd
