@@ -150,7 +150,15 @@ then extended to 2D) suggests 1D first.
 **Resolution**: SLICE-PE-03 and SLICE-PE-04 prove the x-component. A 2D extension is
 noted as future work (deferred). This is explicitly noted in the theorem file header.
 
-**Status**: Resolved.
+**Update (2026-05-24):** The corrected OpenCV→OpenTrackIO paper (2025-09-02) explicitly
+derives both the x-direction formula (F=w/w_shader·fx) AND the y-direction formula
+(F=h/h_shader·fy) with ΔPy=(h/h_shader)·(cy−h_shader/2). The y-direction tangential terms
+swap p₁↔p₂ relative to the x-direction, exactly as expected. The paper has already worked
+out the y-direction algebra; a y-pixel Lean theorem follows the same proof structure as the
+x-component with those substitutions. This is the highest near-term ROI extension — see
+next-steps.md item 2A.
+
+**Status**: Resolved — 2D extension well-grounded in the corrected paper.
 
 ---
 

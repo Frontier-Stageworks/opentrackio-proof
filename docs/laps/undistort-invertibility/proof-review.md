@@ -1,6 +1,6 @@
 ---
 name: undistort-invertibility-proof-review
-description: Stop 4 proof reviews for SLICE-UI-00 and SLICE-UI-01 — undistortPoint_injective_zero_tangential and undistortPoint_injective_pure_radial
+description: Stop 4 proof reviews for all five slices (UI-00 through UI-04) of the undistort-invertibility campaign — InjectivityModel.lean; whole-campaign review added 2026-05-24
 metadata:
   type: reference
 ---
@@ -448,3 +448,150 @@ a computable formula. `radialDescale` provides the explicit formula.
 SLICE-UI-04 is complete. `radialDescale_left_inverse_zero_tangential` is kernel-checked and
 semantically aligned. AMB-UI-005 is resolved. The campaign has now proved its first D ∘ U = id
 result, closing the primary objective for the p = 0 subclass.
+
+---
+
+# Whole-Campaign Review — Undistort Invertibility Campaign
+
+**Date:** 2026-05-24
+**Reviewer:** laps-review (post-campaign, all five slices)
+**File:** `openlensio_semantics/InjectivityModel.lean`
+**Repo commit at review:** b859352 — "clarified some open items and ambiguities"
+
+---
+
+## REVIEW EVIDENCE
+
+- Repo path / identifier:      /Users/markstalzer/github/opentrackio-proof
+- Repo commit:                 b859352
+- LAPS version:                laps (userSettings)
+- Review date:                 2026-05-24
+- Review scope:                single file — `openlensio_semantics/InjectivityModel.lean`
+- Acceptance claim level:      file
+- Review type:                 key theorem-family audit — all 7 proof-bearing declarations reviewed
+- Strongest required Lean command:   `lake env lean openlensio_semantics/InjectivityModel.lean`
+- Strongest required Lean command run:    yes
+- If not run, reason:          n/a
+- Final Lean command:          `lake env lean openlensio_semantics/InjectivityModel.lean`
+- Final Lean result:           exit 0, no output, no warnings
+- Warnings:                    none
+- Search / grep command(s):
+
+```sh
+grep -REn --include="*.lean" --exclude-dir=".lake" \
+  "sorry|admit|set_option warn\.sorry|^unsafe|^partial" \
+  openlensio_semantics/InjectivityModel.lean
+```
+
+```sh
+grep -En "^(theorem|lemma|noncomputable def|def|abbrev) " \
+  openlensio_semantics/InjectivityModel.lean
+```
+
+- Search / grep result(s):     forbidden construct scan: no output (clean); declaration inventory: 9 lines (see below)
+- Search command executability:    all executable
+- Lean files reviewed:         1 — `openlensio_semantics/InjectivityModel.lean`
+- Theorem declarations reviewed:   7 proof-bearing declarations (6 theorems, 1 lemma)
+- Inventory count type:        exact
+- Theorem inventory:
+
+| Line | Kind | Name |
+|---|---|---|
+| 66 | theorem | `undistortPoint_injective_zero_tangential` |
+| 97 | noncomputable def | `radialScale` |
+| 101 | lemma | `radialTerm_eq_radialScale` |
+| 126 | theorem | `undistortPoint_injective_pure_radial` |
+| 184 | theorem | `radialTerm_pos` |
+| 193 | theorem | `radialTerm_ne_zero` |
+| 233 | theorem | `undistortPoint_injective_on_circle_tangential` |
+| 304 | noncomputable def | `radialDescale` |
+| 310 | theorem | `radialDescale_left_inverse_zero_tangential` |
+
+Proof-bearing: 6 theorems + 1 lemma = 7. Definitions: 2 (`radialScale`, `radialDescale`).
+All 7 proof-bearing declarations reviewed in the per-slice sections above.
+
+- Exhaustive claim allowed:    yes — all 7 proof-bearing declarations in the file are covered by the per-slice reviews
+- Artifact freshness:          proof-review.md updated at review; metrics.md finalized at review; work-queue.md current; proof-capsule.md current; ambiguity-register.md updated 2026-05-24 (AMB-UI-001, AMB-UI-005 post-campaign corrections)
+- metrics.md required:         yes (large campaign, multiple slices)
+- metrics.md finalized:        yes (see metrics.md update below)
+- Evidence gaps:               one minor process note — metrics.md "3 new definitions" should read "2 new definitions (radialScale, radialDescale) + 1 new lemma (radialTerm_eq_radialScale)"; does not affect proof soundness
+
+---
+
+## Whole-Campaign Anti-Pattern Scan
+
+| Anti-pattern | Found? | Evidence |
+|---|---|---|
+| Statement laundering | no | Each theorem's formal statement reviewed in per-slice section; all match intended claims |
+| Vacuity | no | Non-vacuity witnesses supplied for all 5 theorem families in per-slice reviews |
+| Weakened conclusion | no | All conclusions unchanged from proof-plan scope |
+| Over-strong hypotheses | no | Each hypothesis shown necessary in per-slice reviews |
+| Unused hypotheses | no | All hypotheses used in tactic bodies |
+| Tactic soup | no | Proofs are 5–20 lines; all steps named and explained |
+| Broad automation hiding hard step | no | Hard step identified explicitly for all slices (hRR, hSumXY, linear_combination det, mul_div_cancel_left₀) |
+| Algebra rewrite ping-pong | no | No repeated rewrite sequences observed |
+| Misused `<;>` | no | `<;>` not used in any proof |
+| Runtime failure replacing proof | no | All proof obligations checked by kernel |
+| Proof-irrelevance magic | no | `radialTerm` ignores proof argument by construction; documented |
+
+## Forbidden Construct Check (whole file)
+
+- `sorry`: absent
+- `admit`: absent
+- unauthorized `axiom`: absent
+- `unsafe`: absent
+- `partial`: absent
+- `set_option warn.sorry false`: absent
+
+## Module Topology Review
+
+```
+MODULE TOPOLOGY REVIEW:
+- Does InjectivityModel.lean have one clear semantic responsibility: yes
+  (injectivity properties of undistortPoint; all 5 slices contribute to this family)
+- Did the task create one file per slice: no — all 5 slices in one semantically coherent file
+- Did the task create a monolithic file: no — 320 lines; single import (DistortionModel);
+  cohesive theorem family; no unrelated semantic layers
+- Are helper lemmas located near their API use: yes — radialTerm_eq_radialScale immediately
+  precedes undistortPoint_injective_pure_radial which uses it
+- Are private/local lemmas kept private or in helpers: yes — all declarations are public
+  and part of the intended API
+- Are public compatibility imports preserved: n/a — new file
+- Did import dependencies become broader than necessary: no — one import (DistortionModel)
+- Does file layout make future proof repair easier: yes — slice-boundary comments divide
+  the file into clearly labelled regions
+```
+
+## CLASSIFICATION CONSISTENCY CHECK
+
+- Review scope:                                         single file
+- Acceptance claim level:                               file
+- Strongest required Lean command for that claim:       `lake env lean openlensio_semantics/InjectivityModel.lean`
+- Was the strongest required Lean command run:          yes
+- Final Lean result known:                              yes — exit 0
+- Warnings known:                                       yes — none
+- If whole-repo acceptance claimed, was lake build run: n/a (file-level claim only)
+- Search commands executable:                           yes
+- Inventory count exact if claiming exhaustive:         yes — 7 proof-bearing declarations
+- Metrics status recorded if required:                  yes
+- Verdict/evidence consistent:                          yes
+- Required Action split present:                        yes
+- Verification/build action non-none if build evidence incomplete:   n/a — build evidence complete
+- Process evidence action non-none if process evidence incomplete:   n/a — one minor note only
+
+## Required Action
+
+### Semantic proof action
+none
+
+### Verification/build action
+none — `lake env lean openlensio_semantics/InjectivityModel.lean` confirmed exit 0 at commit b859352
+
+### Process evidence action
+none — metrics.md precision note (2 defs + 1 lemma vs "3 defs") is cosmetic and does not affect any proof or theorem count
+
+## Verdict
+
+**Accepted.**
+
+All 7 proof-bearing declarations in `openlensio_semantics/InjectivityModel.lean` are kernel-checked, semantically aligned with their intended claims, non-vacuous, free of forbidden constructs, and covered by the per-slice Stop 4 reviews above. The module topology is clean. No anti-patterns found. The campaign's first `D ∘ U = id` result (`radialDescale_left_inverse_zero_tangential`) is correctly scoped as a conditional left inverse with explicit radius parameter — not a local inverse, as documented in the updated ambiguity register and limitations.md.

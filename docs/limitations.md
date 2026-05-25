@@ -80,11 +80,16 @@ This is technically correct but physically meaningless. All intended call sites 
 ## OpenCV ↔ OpenLensIO Conversion (`opencv_opentrackio_proofs/`)
 
 **Pipeline iff is x-component only.** `opencv_openlensio_full_pipeline_pixel_iff`
-proves the x-pixel coordinate. The y-component is symmetric (p1 ↔ p2 swapped) but
-not yet written.
+proves the x-pixel coordinate. The y-component follows by p₁↔p₂ symmetry from the
+x-theorem — the proof structure is identical with tangential terms swapped
+(p₁(r²+2y²)+2p₂xy instead of 2p₁xy+p₂(r²+2x²)) and F=h/h_shader·fy in place of
+F=w/w_shader·fx. No formal proof is planned; any reader can verify the y-result by
+inspection of the x-proof.
 
 **No full 2D pixel equivalence theorem.** A single theorem combining x and y into
-a joint point-level iff is not yet proved.
+a joint point-level iff (`ws/w = fx ∧ hs/h = fy`) is not proved. This would have
+value as a clean downstream interface but is not planned; the x-theorem plus the
+p₁↔p₂ symmetry argument covers the content.
 
 **Pure-radial case not characterized.** The iff requires `p1 ≠ 0 ∨ p2 ≠ 0`. When
 both tangential coefficients are zero, `ws/w = fx` is not entailed by pixel

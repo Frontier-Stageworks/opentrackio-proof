@@ -164,13 +164,24 @@ The asymmetry between the overscan forms and their non-overscan counterparts, an
 
 ## AMB-OL-010 — U^{−1} as exact inverse vs numerical approximation
 
-**Status:** Unresolved  
-**Paper location:** Section 3, following Eq (11)  
-**What is unclear:** The paper states for Eq (11): "which can be solved using numerical iterative methods depending on the application." This characterises `U^{−1}` as an approximation computed numerically, not an exact closed-form inverse. For formal proofs of roundtrip properties (`ϵ_u → ϵ_d → ϵ_u`), we need U to be injective. The paper does not state conditions under which U is globally invertible.  
-**Implementation risk:** HIGH — any roundtrip theorem that uses `U^{−1}` as an exact function would be proving something stronger than the paper supports. A formal model of U^{−1} as a numerical approximation requires different machinery.  
-**Proof impact:** `undistorted_roundtrip_preserves_pixel` and all inverse-dependent theorems are assumption-gated on an injectivity or local invertibility assumption.  
-**Can proofs proceed?** Yes for forward direction only (U applied to specific inputs). Inverse direction requires explicit injectivity hypothesis.  
-**Proposed resolution:** State injectivity of U as a project-level assumption, note it is not proved in the paper, and consider it an implementation-supported conjecture pending formal analysis.
+**Status:** Partially resolved — framing corrected after re-reading spec (2026-05-24)  
+**Paper location:** Section 3, Eqs (5) and (11)
+
+**Framing correction:** The original framing said the paper "characterises U^{−1} as an approximation computed numerically." This is imprecise. Reading the spec directly:
+
+- Eq (5): `ε_d = U⁻¹(ε_u − ΔC − ΔP) + ΔC + ΔP`
+- Eq (11): `ε′_d = U⁻¹(ε′_u − ΔC) + ΔC`, "which can be solved using numerical iterative methods depending on the application."
+
+The spec DOES define D = U⁻¹ as a mathematical object in both equations. It asserts D exists. The numerical iteration note is about *computing* D at a specific input — not about whether D is defined. The spec treats U as invertible without proving it.
+
+**What is actually open:** The Lean formalization challenge is that there is no closed-form formula for D for the full Brown-Conrady model. In Lean, to use D you must either: (a) construct D nonconstructively via `Function.invFun` given injectivity — which is now proved in several regimes in `InjectivityModel.lean` (UI-00 through UI-03), yielding `D ∘ U = id` by injectivity alone; or (b) find a closed-form D for a restricted subclass and prove it (which UI-04 did for p=0 with `radialDescale`).
+
+**Remaining open:** Proving U is surjective onto its intended range (needed for `U ∘ D = id` in the `Function.invFun` sense). Global injectivity without the caller-supplied `hScaleInj` hypothesis. These are the actual open gates, not D's definition.
+
+**Implementation risk:** Medium — a nonconstructive `D ∘ U = id` theorem is reachable from existing injectivity results. The right-inverse direction requires surjectivity, which is not yet addressed.  
+**Proof impact:** Revised. `undistortPoint_injective_pure_radial` and related results in `InjectivityModel.lean` provide the injectivity needed for a nonconstructive left-inverse theorem. The concrete conditional left inverse for p=0 is proved as `radialDescale_left_inverse_zero_tangential`.  
+**Can proofs proceed?** Yes — left-inverse direction is substantially proved. Right-inverse requires surjectivity machinery not yet in scope.  
+**Proposed resolution:** State the nonconstructive `D ∘ U = id` theorem via `Function.invFun` as the next reachable step. Surjectivity for the right-inverse direction is the remaining open gate.
 
 ---
 
@@ -277,7 +288,7 @@ The Python oracle (SLICE-OL-15) passed 7/7 fixtures. This confirms the Python im
 | AMB-OL-007 | Denominator nonzero | Unresolved | HIGH | Yes, as explicit precondition |
 | AMB-OL-008 | FOV/proj equivalence conditions | Unresolved | Medium | Partial |
 | AMB-OL-009 | Asymmetric ΔC/ΔP in overscan | Unresolved | Medium | Scoped only |
-| AMB-OL-010 | U^{−1} exact vs numerical | Unresolved | HIGH | Forward only |
+| AMB-OL-010 | U^{−1} exact vs numerical | Partially resolved (2026-05-24) | Medium — left-inverse substantially proved; surjectivity open | Left-inverse yes; right-inverse blocked |
 | AMB-OL-011 | Aperture normative? | Resolved: NOT normative | — | Defer |
 | AMB-OL-012 | Overscan appendix normative? | Resolved: informative | Low | Advisory only |
 | AMB-OL-013 | Default p₁, p₂ = 0 | Unresolved | Low | Yes, with assumption |

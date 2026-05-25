@@ -53,6 +53,8 @@ metadata:
 | 2026-05-24 | SLICE-UI-02 complete | Proof compiled first attempt; exit 0; Stop 4 review accepted; AMB-UI-003 resolved |
 | 2026-05-24 | SLICE-UI-03 complete | Proof compiled first attempt; exit 0; Stop 4 review accepted; Jacobian TBD resolved via algebraic det |
 | 2026-05-24 | SLICE-UI-04 complete | Proof compiled first attempt; exit 0; Stop 4 review accepted; AMB-UI-005 resolved; AMB-UI-001 reflected in explicit r param |
+| 2026-05-24 | Post-campaign clarifications | AMB-UI-001 rewritten: D IS spec-defined as U⁻¹ in Eqs (5) and (11); AMB-UI-005 caveat added: radialDescale is conditional left inverse, not local inverse; READMEs updated; limitations.md updated |
+| 2026-05-24 | laps-review complete | Whole-campaign review added to proof-review.md; exit 0 confirmed at commit b859352; all 7 proof-bearing declarations accepted; no forbidden constructs; metrics finalized |
 
 ---
 
@@ -70,5 +72,6 @@ metadata:
 | AMB entries resolved | 3 of 5 (AMB-UI-003, AMB-UI-004 via alternate approach, AMB-UI-005) |
 | AMB entries partially resolved | 2 (AMB-UI-001 reflected; AMB-UI-002 partially addressed) |
 | New theorems | 6 |
-| New definitions | 3 (radialScale, radialDescale, and bridge lemma radialTerm_eq_radialScale) |
+| New lemmas | 1 (radialTerm_eq_radialScale) |
+| New definitions | 2 (radialScale, radialDescale) |
 | Stop conditions fired | 0 |
