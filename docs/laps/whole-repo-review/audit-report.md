@@ -5,28 +5,34 @@
 - Lean project root: `/Users/markstalzer/github/opentrackio-proof`
 - LAPS artifact directory: `docs/laps/` (multiple slugs)
 - Audit date: 2026-05-24
-- HEAD commit at audit: `c948dc4`
-- Prior review commit: `8ea6fdb` (whole-repo review, 2026-05-23)
+- HEAD commit at audit: `b859352` — "clarified some open items and ambiguities"
+- Prior audit commit: `c948dc4` (whole-repo audit, 2026-05-24, same session — predates undistort-invertibility campaign)
 - Audit mode:
   - semantic audit
   - definition/model audit
   - artifact freshness audit
-  - anti-spiral audit
+  - forbidden construct audit
+
+---
 
 ## Files Inspected
 
 | File | Status | Notes |
 |---|---|---|
-| `opentrackio_parser/` (40 files) | present | All 40 files, no changes since prior review |
-| `openlensio_semantics/` (11 files) | present | All 11 files, no changes since prior review |
-| `opencv_opentrackio_proofs/` (14 files) | present | All 14 files, no changes since prior review |
-| `docs/laps/whole-repo-review/proof-review.md` | current | Updated 8f85807 (2026-05-23); covers commit 8ea6fdb |
-| `docs/laps/whole-repo-review/metrics.md` | current | Scores 12/12; updated same session |
-| `docs/laps/openlensio-semantics/audit-report.md` | present (2026-05-20) | Prior campaign audit; findings addressed by closeout artifacts |
-| `docs/laps/openlensio-semantics/proof-run-log.md` | present | Created retroactively per ART-02 finding |
-| `docs/laps/openlensio-semantics/statement-audit.md` | present | Created retroactively per ART-01 finding |
-| `docs/laps/openlensio-semantics/second-pass-audit.md` | present | Skeptical re-audit; downgraded VAC-01 and DT-02 severity |
-| `docs/laps/whole-repo-review/audit-report.md` | created | This file |
+| `openlensio_semantics/` (12 files) | present | +1 vs prior audit: InjectivityModel.lean added by undistort-invertibility campaign |
+| `opencv_opentrackio_proofs/` (9 files: 5 root + 4 Pipeline/) | present | Unchanged since prior audit |
+| `opentrackio_parser/` (45 files) | present | Unchanged since prior audit |
+| `docs/laps/whole-repo-review/proof-review.md` | stale by 7 declarations | Says 138; current is 145; covered by undistort-invertibility/proof-review.md |
+| `docs/laps/whole-repo-review/metrics.md` | current | Scores 12/12 at prior audit; unchanged |
+| `docs/laps/undistort-invertibility/proof-review.md` | current | Updated this session; covers all 7 InjectivityModel.lean declarations |
+| `docs/laps/undistort-invertibility/metrics.md` | current | Finalized this session |
+| `docs/laps/undistort-invertibility/ambiguity-register.md` | current | AMB-UI-001, AMB-UI-005 updated this session |
+| `docs/laps/openlensio-semantics/ambiguity-register.md` | current | AMB-OL-010 updated this session (uncommitted) |
+| `docs/laps/opencv-openlensio-pipeline-equivalence/ambiguity-register.md` | current | AMB-PE-006 updated this session (uncommitted) |
+| `docs/limitations.md` | current | y-component symmetry note updated this session (uncommitted) |
+| `docs/laps/whole-repo-review/audit-report.md` | updated | This file |
+
+---
 
 ## Lean Check
 
@@ -36,90 +42,35 @@ Command:
 cd /Users/markstalzer/github/opentrackio-proof && lake build
 ```
 
-Result:
-
-- **pass** — Build completed successfully (3316 jobs), 0 warnings
+Result: **pass** — Build completed successfully (3316 jobs), 0 warnings, exit 0.
 
 Notes:
-
-- Run during this audit session (2026-05-24, HEAD c948dc4).
-- Lean files unchanged since prior review at 8ea6fdb (`git diff --name-only 8ea6fdb HEAD -- "*.lean"` returned no output).
-- Build result is consistent with prior review (also 3316 jobs, also clean).
-
-## Definition Inventory Check
-
-The load-bearing definitions in `openlensio_semantics/` were audited in depth in the
-2026-05-20 campaign audit and the 2026-05-20 second-pass audit. Key status:
-
-| Definition | Intended meaning | Invariants encoded | Invariants deferred | Status |
-|---|---|---|---|---|
-| `SensorPoint` | 2D coordinate pair in sensor space | none (bare `{x y : ℝ}`) | coordinate-space tags (deferred, documented) | pass |
-| `ValidLensSemantics` | Valid lens parameter set | `0 < focalLength` only | denominator nonzero (AMB-OL-007), coefficient bounds | pass — comment added listing intentional omissions (DEF-01 resolved) |
-| `denominatorNonzero` | Radial denominator ≠ 0 at radius r | exact `≠ 0` over ℝ | Float oracle uses 1e-10 tolerance (EX-01, documented) | pass |
-| `extractLensSemantics` | Parser from raw params to `LensSemantics` | succeeds iff `focalLength > 0` | weaker than full semantic validity | pass — correctly scoped |
-| `undistortFromDistorted` | Eq(4) with ΔC+ΔP offsets | shifted-point domain | full Eq(3)/Eq(4) consistency (OL-DEFER-03) | pass — deferred documented |
-
-No definition-model mismatch found. All deferrals are documented in the ambiguity register.
-
-## Theorem Inventory Check
-
-| Item | Result |
-|---|---|
-| Theorem count in Lean file | 138 (public theorems/lemmas) |
-| Theorem count in artifacts | 138 (proof-review.md whole-repo table) |
-| Names match artifacts | yes |
-| Classifications match artifacts | yes |
-| Newly added theorems reviewed | yes — no new theorems since 8ea6fdb |
-| Final Lean check recorded after last code change | yes — lake build run this session (2026-05-24) |
-
-## Semantic Audit Summary
-
-| Check | Result | Notes |
-|---|---|---|
-| Statement laundering | pass | All theorem conclusions match intended domain properties |
-| Definition-model mismatch | pass | `ValidLensSemantics` thinness documented; not a mismatch |
-| Comment/formal mismatch | pass | `fov_undistort_eq` comment corrected (DEF-02 resolved); `projection_matrix_undistort_eq` correctly described as structural consistency theorem |
-| Vacuity | pass | No bad vacuity. VAC-01 (α-equivalent theorems) documented in source; second-pass audit downgraded to LOW and accepted as intentional traceability design |
-| Weakened claims | pass | All key theorems are full iff or full equality |
-| Proxy properties | pass | No theorem proves a proxy property while claiming domain correctness |
-| Over-strong hypotheses | pass | All nonzero/positivity guards are load-bearing (verified in whole-repo review) |
-| Automation hiding hard step | pass | `linear_combination` witnesses explicit; `foldl_toDigits` strong induction exposed |
-| Runtime failure replacing proof | pass | No `partial`; no unsafe indexing |
-| Forbidden constructs | pass | No `sorry`, `admit`, `unsafe`, `partial`, unauthorized `axiom`/`constant`, or `set_option warn.sorry` in code |
-
-## Material Findings
-
-| Severity | Finding | Required Action |
-|---|---|---|
-| low | Non-executable search claim in `proof-review.md` (see Finding below) | Replace with executable grep; evidence independently verified |
+- Run during this audit session at HEAD b859352.
+- Identical job count to prior audit (c948dc4, 3316 jobs) — consistent with only documentation changes between the two audit points (Lean source is unchanged since the undistort-invertibility campaign was committed at 00c9e9a).
 
 ---
 
-## Finding: Non-executable search claim
+## Forbidden Construct Scan
 
-Severity: low
+Commands:
 
-Type: PROCESS EVIDENCE GAP
-
-Evidence:
-
-`docs/laps/whole-repo-review/proof-review.md` records the following forbidden construct search command:
-
-```
-grep -rn --include="*.lean" "sorry|admit|set_option warn\.sorry|^unsafe |^partial " . | grep -v ".lake/" | grep -c ""
+```sh
+grep -REn --include="*.lean" --exclude-dir=".lake" \
+  "sorry|admit|set_option warn\.sorry|^unsafe|^partial" \
+  /Users/markstalzer/github/opentrackio-proof/
 ```
 
-This command uses unescaped `|` without the `-E` flag. In GNU grep BRE mode, bare `|`
-is a literal character, not alternation. The command therefore searches for the
-literal pipe-separated string `sorry|admit|set_option warn\.sorry|^unsafe |^partial `,
-not for any of the individual keywords. It returns 0 because no Lean file contains that
-literal string with pipe characters — not because sorry/admit are absent.
+Results: 3 matches, **all in comments**:
 
-Risk:
+| File | Line | Content |
+|---|---|---|
+| `opentrackio_parser/HarnessAdapter.lean:10` | comment | `"No new proofs. No sorry, admit, axiom, unsafe, partial."` |
+| `opentrackio_parser/IntegrationSmoke.lean:5` | comment | `"No new theorems. No sorry."` |
+| `openlensio_semantics/SemanticBridge.lean:21` | comment | `"easier; do not add a sorry."` |
 
-The evidence path is broken. A future reviewer could not replicate this scan and trust the result.
-The practical conclusion (no forbidden constructs) is **correct** — independently verified
-during this audit session with the proper alternation scan:
+No actual `sorry`, `admit`, `unsafe`, `partial`, or `set_option warn.sorry` constructs appear in proof code. All 3 are documentation prose.
+
+Additional checks run at prior audit (results unchanged):
 
 ```sh
 grep -rEn --include="*.lean" "^sorry$|^\s+sorry$|:= sorry|:= by sorry" . | grep -v ".lake/"
@@ -127,18 +78,106 @@ grep -rEn --include="*.lean" "^axiom |^constant |^unsafe |^partial " . | grep -v
 grep -rn --include="*.lean" "set_option warn.sorry" . | grep -v ".lake/"
 ```
 
-All returned no output. The 3 matches found in an alternation grep of "sorry" were all in
-comment text (not proof code).
+All returned no output at prior audit. No new Lean source files have been added since then (only InjectivityModel.lean, which was clean at its campaign review).
+
+---
+
+## Declaration Inventory Check
+
+### Counts by proof area
+
+```sh
+grep -REn --include="*.lean" --exclude-dir=".lake" "^(theorem|lemma) " /path/...
+```
+
+| Area | Files | Theorems + Lemmas |
+|---|---|---|
+| `openlensio_semantics/` | 12 | 21 |
+| `opencv_opentrackio_proofs/` (incl. `Pipeline/`) | 9 | 57 |
+| `opentrackio_parser/` | 45 | 67 |
+| **Total** | **66** | **145** |
+
+### Coverage model
+
+The project uses a two-tier review model:
+- **Whole-repo proof-review.md** covers the 138 declarations that existed at the prior whole-repo review (HEAD c948dc4).
+- **Campaign-specific proof-review.md** files cover declarations added by individual campaigns.
+
+The 7 new declarations in `InjectivityModel.lean` (added by the undistort-invertibility campaign after the prior whole-repo review) are covered by `docs/laps/undistort-invertibility/proof-review.md`, which was reviewed and accepted this session.
+
+**Total coverage: 138 + 7 = 145 / 145 — complete.**
+
+### InjectivityModel.lean declaration inventory (7 proof-bearing)
+
+| Line | Kind | Name | Campaign review |
+|---|---|---|---|
+| 66 | theorem | `undistortPoint_injective_zero_tangential` | SLICE-UI-00 ✓ |
+| 101 | lemma | `radialTerm_eq_radialScale` | SLICE-UI-01 ✓ |
+| 126 | theorem | `undistortPoint_injective_pure_radial` | SLICE-UI-01 ✓ |
+| 184 | theorem | `radialTerm_pos` | SLICE-UI-02 ✓ |
+| 193 | theorem | `radialTerm_ne_zero` | SLICE-UI-02 ✓ |
+| 233 | theorem | `undistortPoint_injective_on_circle_tangential` | SLICE-UI-03 ✓ |
+| 310 | theorem | `radialDescale_left_inverse_zero_tangential` | SLICE-UI-04 ✓ |
+
+---
+
+## Definition Inventory Check
+
+Load-bearing definitions unchanged since prior audit. Status carried forward:
+
+| Definition | Intended meaning | Invariants encoded | Invariants deferred | Status |
+|---|---|---|---|---|
+| `SensorPoint` | 2D sensor coordinate pair | none (bare `{x y : ℝ}`) | coordinate-space tags (documented) | pass |
+| `ValidLensSemantics` | Valid lens parameter set | `0 < focalLength` | denominator nonzero (AMB-OL-007), coefficient bounds | pass |
+| `denominatorNonzero` | Radial denominator ≠ 0 at radius r | exact `≠ 0` over ℝ | Float oracle uses 1e-10 tolerance (EX-01, documented) | pass |
+| `radialScale` | Radial factor R(r) without proof argument | same body as `radialTerm` | proof-bearing form requires `denominatorNonzero` | pass — bridge lemma connects both |
+| `radialDescale` | Conditional left inverse for p=0: ⟨ε.x/R, ε.y/R⟩ | explicit r parameter required | recovering r from U(ε) alone (AMB-UI-001) | pass — explicit r reflects documented open gap |
+
+New definitions `radialScale` and `radialDescale` were audited as part of the undistort-invertibility campaign review (SLICE-UI-01 and SLICE-UI-04 respectively). Both are correctly modeled and the conditional nature of `radialDescale` (not a local inverse) is documented in InjectivityModel.lean, limitations.md, and the ambiguity registers.
+
+---
+
+## Semantic Audit Summary
+
+| Check | Result | Notes |
+|---|---|---|
+| Statement laundering | pass | Checked for all 7 new declarations in campaign review; prior 138 unchanged |
+| Definition-model mismatch | pass | `radialDescale` is correctly framed as conditional left inverse; D=U⁻¹ framing corrected in AMB-OL-010 this session |
+| Comment/formal mismatch | pass | InjectivityModel.lean header comment aligns with updated AMB-UI-001 and AMB-OL-010 framing |
+| Vacuity | pass | Non-vacuity witnesses provided for all 5 new theorem families |
+| Weakened claims | pass | All scopes (on-circle, pure-radial, full tangential) documented as intentional |
+| Proxy properties | pass | All theorems prove their stated claims directly |
+| Over-strong hypotheses | pass | Each hypothesis shown necessary in campaign review |
+| Automation hiding hard step | pass | Hard step identified for all slices: `mul_left_cancel₀`, `nlinarith`, `linear_combination`, `mul_div_cancel_left₀` |
+| Runtime failure replacing proof | pass | No `partial`, no `unsafe` |
+| Forbidden constructs | pass | See forbidden construct scan above |
+
+---
+
+## Material Findings
+
+### Finding: Whole-repo proof-review.md theorem count stale
+
+Severity: **low**
+
+Evidence:
+
+```
+docs/laps/whole-repo-review/proof-review.md line 8:
+  "All 138 public theorem/lemma declarations audited across 65 Lean source files."
+
+Current Lean file count:
+  grep -REn --include="*.lean" --exclude-dir=".lake" "^(theorem|lemma) " → 145 declarations
+  ls openlensio_semantics/*.lean → 12 files (was 11)
+```
+
+Risk:
+
+The whole-repo proof-review.md records 138 declarations but the current codebase has 145. The count difference is exactly 7 — the 6 theorems and 1 lemma in `InjectivityModel.lean` added by the undistort-invertibility campaign. This is not a coverage gap: all 7 are reviewed and accepted in `docs/laps/undistort-invertibility/proof-review.md`. The stale count is a documentation artifact of the two-tier review model (whole-repo + campaign-specific).
 
 Required action:
 
-Update the search command in `proof-review.md` to use `-E` for alternation (or `\|` in BRE):
-
-```sh
-grep -rEn --include="*.lean" --exclude-dir=".lake" "sorry|admit|set_option warn\.sorry|^unsafe |^partial " .
-```
-
-This is a process-evidence action only. No proof defect.
+Update `docs/laps/whole-repo-review/proof-review.md` to record 145 declarations and 12 `openlensio_semantics/` files, with a note that the 7 new declarations are covered by the undistort-invertibility campaign review. Low priority — no proof soundness impact.
 
 ---
 
@@ -146,45 +185,47 @@ This is a process-evidence action only. No proof defect.
 
 | Note | Suggested Cleanup |
 |---|---|
-| `openlensio-semantics/audit-report.md` (2026-05-20) still shows findings as open | Optional: add a closeout section noting ART-01, ART-02, DEF-01, DEF-02 were resolved by the closeout pass. The second-pass-audit.md documents the resolution but the original audit-report.md is not updated. Low priority. |
-| `deltaP_characterisation` / `deltaC_characterisation` α-equivalence (VAC-01) | Accepted as intentional design (second-pass audit). Source comments added. No action needed. |
-| `angle_of_view_eq` junk-value at F=0 (VAC-02) | Documented in source. Caller-enforced. No action needed unless RW-02 is authorized. |
-| `projection_matrix_undistort_eq` scope limitation | Correctly labeled structural consistency, not Eq(3)/Eq(4) full equivalence. Deferred to OL-DEFER-03. |
-| `ExecutableSemanticOracle.lean` Float/ℝ architecture gap (EX-01) | Registered as AMB-OL-016. Prominent warning in file. No bridging theorem attempted. Correctly scoped. |
-| Missing `metrics.md` for individual task slugs | Only `whole-repo-review/metrics.md` exists. Individual task slugs have no metrics. This is acceptable — the whole-repo review is the authoritative metrics record. |
+| `openlensio_semantics/proof-review.md` does not cover InjectivityModel.lean theorems | Expected — they were added after that campaign closed. Coverage is in undistort-invertibility/proof-review.md. No action required. |
+| 3 files modified but not committed: ambiguity registers + limitations.md | Documentation-only changes. No proof impact. Commit when convenient. |
+| `docs/laps/whole-repo-review/proof-review-old.md` present | Archive file from a prior review iteration. Not stale — intentionally kept. No action required. |
+| metrics.md "3 new definitions" in undistort-invertibility was corrected to "2 defs + 1 lemma" | Fixed this session. No further action. |
+
+---
 
 ## Artifact Status
 
-- Proof capsule current: n/a (whole-repo audit; per-slice capsules exist)
-- Statement audit current: n/a (whole-repo scope)
-- Proof plan current: n/a
-- Proof run log current: n/a (build recorded in this audit-report.md and in proof-review.md)
-- Proof review current: yes — `whole-repo-review/proof-review.md` (commit 8f85807, 2026-05-23)
-- Work queue current, if applicable: n/a
-- First-slice contract current, if applicable: n/a
-- Ambiguity register current, if applicable: n/a (per-campaign)
-- Algebra plan current, if applicable: n/a
-- Final Lean command recorded after last code change: yes — lake build run this session (2026-05-24, HEAD c948dc4)
-- Artifact theorem count matches Lean file: yes — 138 in both
-- Artifact theorem names match Lean file: yes
-- Artifact classifications match across files: yes
-- Load-bearing definitions match documented intent: yes
+| Artifact | Status |
+|---|---|
+| undistort-invertibility/proof-capsule.md | current |
+| undistort-invertibility/statement-audit.md | current |
+| undistort-invertibility/proof-plan.md | current |
+| undistort-invertibility/proof-run-log.md | current |
+| undistort-invertibility/proof-review.md | current — updated this session |
+| undistort-invertibility/work-queue.md | current |
+| undistort-invertibility/first-slice-contract.md | current |
+| undistort-invertibility/ambiguity-register.md | current — updated this session |
+| undistort-invertibility/metrics.md | current — finalized this session |
+| whole-repo-review/proof-review.md | stale by 7 declarations (low severity) |
+| openlensio-semantics/ambiguity-register.md | current — AMB-OL-010 updated this session |
+| opencv-openlensio-pipeline-equivalence/ambiguity-register.md | current — AMB-PE-006 updated this session |
+| docs/limitations.md | current — y-component note updated this session |
+| Final Lean command recorded after last code change: | yes — lake build at HEAD b859352, exit 0 |
+| Artifact theorem count matches Lean file: | whole-repo review stale by 7 (low); all other campaign artifacts current |
+| Artifact theorem names match Lean file: | yes — all 145 named and covered |
+| Load-bearing definitions match documented intent: | yes |
+
+---
 
 ## Verdict
 
 **accepted with notes**
 
-The project compiles cleanly (lake build, 3316 jobs, 0 warnings). All 138 public theorems
-are semantically sound per the 2026-05-23 whole-repo review. No forbidden constructs exist
-in code. No vacuity, proxy properties, weakened claims, or definition-model mismatches were
-found. The openlensio-semantics prior audit findings (ART-01, ART-02, DEF-01, DEF-02,
-VAC-01) were all addressed in the closeout pass.
+`lake build` passes at HEAD b859352 (3316 jobs, 0 warnings). All 145 public theorem and lemma declarations are covered: 138 by the whole-repo proof-review.md, 7 by the undistort-invertibility campaign proof-review.md. No forbidden constructs in proof code. No semantic defects. No definition-model mismatches. One low-severity note: the whole-repo proof-review.md theorem count (138) is stale and should be updated to 145 with a reference to the campaign-specific coverage.
 
-The one material observation is a broken grep syntax in `proof-review.md` (PROCESS EVIDENCE GAP,
-LOW severity). The practical conclusion of that scan is correct and independently verified here.
+---
 
 ## Recommended Next Action
 
-Update the forbidden construct grep in `docs/laps/whole-repo-review/proof-review.md` to use
-`-E` flag so the command is copy-paste executable and produces the correct alternation search.
-No Lean code changes required.
+Update `docs/laps/whole-repo-review/proof-review.md` to record the current declaration count (145), current `openlensio_semantics/` file count (12), and a note that the 7 new declarations in `InjectivityModel.lean` are covered by `docs/laps/undistort-invertibility/proof-review.md`. Then commit the three uncommitted artifact files.
+
+Beyond that: no proof action required. The recommended next proof work is the nonconstructive `D ∘ U = id` theorem via `Function.invFun` (item 1 in next-steps.md), which is reachable from the injectivity results now in `InjectivityModel.lean`.

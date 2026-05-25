@@ -5,11 +5,20 @@
 **accepted with notes — semantic notes only**
 
 `lake build` passed (3316 jobs, no warnings). Forbidden construct scan clean.
-All 138 public theorem/lemma declarations audited across 65 Lean source files.
-No semantic defects found. Three low-severity semantic notes recorded: documented
-α-equivalence in `deltaP_characterisation`/`deltaC_characterisation`, junk-value
-semantics at F=0 in `angle_of_view_eq`, and `IntegrationSmoke.lean` `#eval`
-checks correctly scoped as smoke tests (not proof substitutes). Evidence is complete.
+All 138 public theorem/lemma declarations audited across 65 Lean source files
+(at HEAD c948dc4, 2026-05-24). No semantic defects found. Three low-severity
+semantic notes recorded: documented α-equivalence in `deltaP_characterisation`/
+`deltaC_characterisation`, junk-value semantics at F=0 in `angle_of_view_eq`, and
+`IntegrationSmoke.lean` `#eval` checks correctly scoped as smoke tests (not proof
+substitutes). Evidence is complete.
+
+**Post-campaign addendum (2026-05-24, HEAD b859352):** The undistort-invertibility
+campaign added `openlensio_semantics/InjectivityModel.lean` (the 12th semantics file),
+containing 7 new proof-bearing declarations (6 theorems + 1 lemma). The whole-repo
+total is now **145** declarations across **12** `openlensio_semantics/` files. The
+7 new declarations are reviewed and accepted in
+`docs/laps/undistort-invertibility/proof-review.md`. This review's 138-declaration
+count covers the pre-campaign state; the campaign-specific review covers the remainder.
 
 ---
 
