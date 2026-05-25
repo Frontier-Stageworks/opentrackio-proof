@@ -96,17 +96,17 @@ This hypothesis asserts that the function r ↦ (R(r)·r)² is injective on [0,�
 inherited from UI-01 (`undistortPoint_injective_pure_radial`) and is the open item from
 next-steps.md item 5 ("Radial Term Monotonicity / Injectivity").
 
-**Why not discharged here:**
+**Design decision (2026-05-25, authorized):**
 
-Proving hScaleInj requires resolving a coefficient-constraint design question
-(restrict to a bounded interval, or identify a coefficient constraint guaranteeing global
-positivity of the derivative numerator). This is a separate campaign with its own
-proof-plan design. See next-steps.md item 5 for details.
+The coefficient constraint chosen to discharge hScaleInj is the sign-separation condition:
+  k1 ≥ 0, k3 ≥ 0, k5 ≥ 0  (numerator coefficients non-negative)
+  k2 ≤ 0, k4 ≤ 0, k6 ≤ 0  (denominator coefficients non-positive)
 
-The hypothesis is satisfiable: for k = {0,0,0,0,0,0} (all-zero), R(r) = 1 and
-r ↦ r² is injective on [0,∞). Non-vacuous.
+Under this constraint the derivative numerator g(s) = D(s)·(1+3k1s+5k3s²+7k5s³) − N(s)·(2k2s+4k4s²+6k6s³) satisfies g(s) ≥ D(s) ≥ 0 with D(s) > 0 on the domain, giving f'(r) > 0 globally. This gives StrictMono on [0,∞) without an r_max bound.
 
-**Status:** Open. Carried forward from AMB-UI-004. Blocking full unconditional injectivity.
+An r_max approach (e.g., largest-sensor half-diagonal ≈ 30mm) was considered but rejected: a concrete sensor bound alone does not imply monotonicity without a coefficient condition, and the sign constraint gives the same global closure more cleanly.
+
+**Status:** Partially resolved (2026-05-25). Design decision made. Proof work is the next campaign (next-steps item 5).
 
 ---
 

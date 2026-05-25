@@ -319,6 +319,140 @@ theorem radialDescale_left_inverse_zero_tangential
   exact SensorPoint.ext (mul_div_cancel_left₀ ε.x hR) (mul_div_cancel_left₀ ε.y hR)
 
 /-─────────────────────────────────────────────────────────────────────────────
+  SLICE-RM-00: Derivative of radialScale k r * r is positive
+
+  Under the sign-separation constraint (k1,k3,k5 ≥ 0, k2,k4,k6 ≤ 0) and
+  hdenPos (D(r) > 0 for r ≥ 0), the function f(r) = R(r)·r has a positive
+  derivative at every r > 0. This is the engine for RM-01 (StrictMonoOn).
+
+  Proof: rewrite f = numFun / denFun, apply HasDerivAt.div, show the
+  quotient-rule numerator N'·D − N·D' > 0 via nlinarith with sign facts.
+─────────────────────────────────────────────────────────────────────────────-/
+
+private lemma radialScale_mul_derivPos
+    (k : RadialCoefficients)
+    (hk1 : 0 ≤ k.k1) (hk3 : 0 ≤ k.k3) (hk5 : 0 ≤ k.k5)
+    (hk2 : k.k2 ≤ 0) (hk4 : k.k4 ≤ 0) (hk6 : k.k6 ≤ 0)
+    (hdenPos : ∀ r : ℝ, 0 ≤ r → 0 < 1 + k.k2 * r ^ 2 + k.k4 * r ^ 4 + k.k6 * r ^ 6)
+    (r : ℝ) (hr : 0 < r) :
+    0 < deriv (fun r => radialScale k r * r) r := by
+  let numFun := fun r : ℝ => r + k.k1 * r ^ 3 + k.k3 * r ^ 5 + k.k5 * r ^ 7
+  let denFun := fun r : ℝ => 1 + k.k2 * r ^ 2 + k.k4 * r ^ 4 + k.k6 * r ^ 6
+  have hfEq : ∀ r : ℝ, radialScale k r * r = numFun r / denFun r := by
+    intro r; simp only [radialScale, numFun, denFun]; ring
+  have hD : denFun r ≠ 0 := ne_of_gt (hdenPos r (le_of_lt hr))
+  have h_r1 : HasDerivAt (fun r => r) 1 r := hasDerivAt_id r
+  have h_r3 : HasDerivAt (fun r : ℝ => r ^ 3) (3 * r ^ 2) r := by
+    have h := hasDerivAt_pow 3 r; norm_num at h; exact h
+  have h_r5 : HasDerivAt (fun r : ℝ => r ^ 5) (5 * r ^ 4) r := by
+    have h := hasDerivAt_pow 5 r; norm_num at h; exact h
+  have h_r7 : HasDerivAt (fun r : ℝ => r ^ 7) (7 * r ^ 6) r := by
+    have h := hasDerivAt_pow 7 r; norm_num at h; exact h
+  have h_num : HasDerivAt numFun
+      (1 + k.k1 * (3 * r ^ 2) + k.k3 * (5 * r ^ 4) + k.k5 * (7 * r ^ 6)) r :=
+    ((h_r1.add (h_r3.const_mul k.k1)).add (h_r5.const_mul k.k3)).add (h_r7.const_mul k.k5)
+  have h_r2 : HasDerivAt (fun r : ℝ => r ^ 2) (2 * r) r := by
+    have h := hasDerivAt_pow 2 r; norm_num at h; exact h
+  have h_r4 : HasDerivAt (fun r : ℝ => r ^ 4) (4 * r ^ 3) r := by
+    have h := hasDerivAt_pow 4 r; norm_num at h; exact h
+  have h_r6 : HasDerivAt (fun r : ℝ => r ^ 6) (6 * r ^ 5) r := by
+    have h := hasDerivAt_pow 6 r; norm_num at h; exact h
+  have h_den : HasDerivAt denFun
+      (k.k2 * (2 * r) + k.k4 * (4 * r ^ 3) + k.k6 * (6 * r ^ 5)) r := by
+    have h3 := ((hasDerivAt_const r 1).add (h_r2.const_mul k.k2)).add
+                (h_r4.const_mul k.k4) |>.add (h_r6.const_mul k.k6)
+    convert h3 using 1; ring
+  let Nd := 1 + k.k1 * (3 * r ^ 2) + k.k3 * (5 * r ^ 4) + k.k5 * (7 * r ^ 6)
+  let Dd := k.k2 * (2 * r) + k.k4 * (4 * r ^ 3) + k.k6 * (6 * r ^ 5)
+  have h_quot : HasDerivAt (fun r => numFun r / denFun r)
+      ((Nd * denFun r - numFun r * Dd) / denFun r ^ 2) r := h_num.div h_den hD
+  have hEqFun : (fun r => radialScale k r * r) = (fun r => numFun r / denFun r) :=
+    funext (fun r => hfEq r)
+  rw [hEqFun, h_quot.deriv]
+  apply div_pos
+  · have hDr : 0 < denFun r := hdenPos r (le_of_lt hr)
+    have hNd_lb : 1 ≤ Nd := by
+      simp only [Nd]
+      nlinarith [sq_nonneg r, pow_nonneg (le_of_lt hr) 4, pow_nonneg (le_of_lt hr) 6]
+    have hNum_nn : 0 ≤ numFun r := by
+      simp only [numFun]
+      nlinarith [pow_nonneg (le_of_lt hr) 1, pow_nonneg (le_of_lt hr) 3,
+                 pow_nonneg (le_of_lt hr) 5, pow_nonneg (le_of_lt hr) 7]
+    have hDd_np : Dd ≤ 0 := by
+      simp only [Dd]
+      nlinarith [pow_nonneg (le_of_lt hr) 1, pow_nonneg (le_of_lt hr) 3,
+                 pow_nonneg (le_of_lt hr) 5]
+    nlinarith [mul_le_mul_of_nonneg_right hNd_lb (le_of_lt hDr),
+               mul_nonpos_of_nonneg_of_nonpos hNum_nn hDd_np]
+  · exact pow_pos (hdenPos r (le_of_lt hr)) 2
+
+/-─────────────────────────────────────────────────────────────────────────────
+  SLICE-RM-01: Strict monotonicity of radialScale k r * r on [0, ∞)
+
+  Applies strictMonoOn_of_deriv_pos with:
+  - Convexity of Set.Ici 0
+  - ContinuousOn via ContinuousOn.mul (polynomial) and ContinuousOn.div with hdenPos
+  - Derivative positivity on interior Set.Ioi 0 from radialScale_mul_derivPos (RM-00)
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem radialScale_mul_strictMono
+    (k : RadialCoefficients)
+    (hk1 : 0 ≤ k.k1) (hk3 : 0 ≤ k.k3) (hk5 : 0 ≤ k.k5)
+    (hk2 : k.k2 ≤ 0) (hk4 : k.k4 ≤ 0) (hk6 : k.k6 ≤ 0)
+    (hdenPos : ∀ r : ℝ, 0 ≤ r → 0 < 1 + k.k2 * r ^ 2 + k.k4 * r ^ 4 + k.k6 * r ^ 6) :
+    StrictMonoOn (fun r => radialScale k r * r) (Set.Ici 0) := by
+  apply strictMonoOn_of_deriv_pos (convex_Ici 0)
+  · -- ContinuousOn on [0, ∞)
+    apply ContinuousOn.mul
+    · apply ContinuousOn.div
+      · fun_prop
+      · fun_prop
+      · intro r hr
+        exact ne_of_gt (hdenPos r (Set.mem_Ici.mp hr))
+    · fun_prop
+  · -- Derivative positive on interior = (0, ∞)
+    intro r hr
+    rw [interior_Ici] at hr
+    exact radialScale_mul_derivPos k hk1 hk3 hk5 hk2 hk4 hk6 hdenPos r hr
+
+/-─────────────────────────────────────────────────────────────────────────────
+  SLICE-RM-02: Discharge hScaleInj from sign-separation constraint
+
+  Corollary: under the sign-separation constraint + hdenPos,
+  (radialScale k r₁)^2 * r₁^2 = (radialScale k r₂)^2 * r₂^2 → r₁ = r₂.
+  This is a direct plug-in for hScaleInj in UI-01 and NCL-01.
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem radialScale_hScaleInj
+    (k : RadialCoefficients)
+    (hk1 : 0 ≤ k.k1) (hk3 : 0 ≤ k.k3) (hk5 : 0 ≤ k.k5)
+    (hk2 : k.k2 ≤ 0) (hk4 : k.k4 ≤ 0) (hk6 : k.k6 ≤ 0)
+    (hdenPos : ∀ r : ℝ, 0 ≤ r → 0 < 1 + k.k2 * r ^ 2 + k.k4 * r ^ 4 + k.k6 * r ^ 6) :
+    ∀ r₁ r₂ : ℝ, 0 ≤ r₁ → 0 ≤ r₂ →
+        (radialScale k r₁) ^ 2 * r₁ ^ 2 = (radialScale k r₂) ^ 2 * r₂ ^ 2 → r₁ = r₂ := by
+  intro r₁ r₂ hr₁ hr₂ h
+  -- Rewrite (R·r)^2 = R^2·r^2 on both sides
+  have hSq : (radialScale k r₁ * r₁) ^ 2 = (radialScale k r₂ * r₂) ^ 2 := by ring_nf; linarith
+  -- radialScale k rᵢ > 0: numerator ≥ 1 > 0 (sign constraint), denominator > 0 (hdenPos)
+  have hR₁ : 0 < radialScale k r₁ := by
+    apply div_pos
+    · nlinarith [sq_nonneg r₁, pow_nonneg hr₁ 4, pow_nonneg hr₁ 6]
+    · exact hdenPos r₁ hr₁
+  have hR₂ : 0 < radialScale k r₂ := by
+    apply div_pos
+    · nlinarith [sq_nonneg r₂, pow_nonneg hr₂ 4, pow_nonneg hr₂ 6]
+    · exact hdenPos r₂ hr₂
+  -- f(rᵢ) = radialScale k rᵢ * rᵢ ≥ 0
+  have hf₁ : 0 ≤ radialScale k r₁ * r₁ := mul_nonneg (le_of_lt hR₁) hr₁
+  have hf₂ : 0 ≤ radialScale k r₂ * r₂ := mul_nonneg (le_of_lt hR₂) hr₂
+  -- From (f r₁)^2 = (f r₂)^2 and both ≥ 0, conclude f r₁ = f r₂
+  have hfEq : radialScale k r₁ * r₁ = radialScale k r₂ * r₂ :=
+    (pow_left_inj₀ hf₁ hf₂ (two_ne_zero)).mp hSq
+  -- From StrictMonoOn.injOn and f r₁ = f r₂, conclude r₁ = r₂
+  exact (radialScale_mul_strictMono k hk1 hk3 hk5 hk2 hk4 hk6 hdenPos).injOn
+    (Set.mem_Ici.mpr hr₁) (Set.mem_Ici.mpr hr₂) hfEq
+
+/-─────────────────────────────────────────────────────────────────────────────
   SLICE-NCL-00: Domain subtype and injectivity wrapper for Function.invFun
 
   undistortPoint has a proof-dependent argument h : denominatorNonzero k (sensorRadius ε),

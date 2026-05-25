@@ -23,9 +23,19 @@ count covers the pre-campaign state; the campaign-specific review covers the rem
 **Post-campaign addendum (2026-05-25, uncommitted at time of edit):** The
 nonconstructive-left-inverse campaign appended 2 new theorems to `InjectivityModel.lean`:
 `undistortSub_injective_pure_radial` and `undistortSub_nonconstructive_left_inverse_pure_radial`.
-The whole-repo total is now **147** declarations. Both declarations are reviewed and
-accepted in `docs/laps/nonconstructive-left-inverse/proof-review.md`. Coverage: 138
-(this review) + 7 (undistort-invertibility) + 2 (nonconstructive-left-inverse) = 147.
+Both are reviewed and accepted in `docs/laps/nonconstructive-left-inverse/proof-review.md`.
+
+**Post-campaign addendum (2026-05-25, uncommitted at time of edit):** The
+radial-monotonicity campaign appended 3 new declarations to `InjectivityModel.lean`:
+`radialScale_mul_derivPos` (private lemma), `radialScale_mul_strictMono` (theorem),
+and `radialScale_hScaleInj` (theorem). `radialScale_hScaleInj` directly discharges the
+`hScaleInj` open hypothesis in `undistortPoint_injective_pure_radial` (UI-01) and
+`undistortSub_nonconstructive_left_inverse_pure_radial` (NCL-01). All three are reviewed
+and accepted in `docs/laps/radial-monotonicity/proof-review.md`.
+`lake build InjectivityModel` exits 0 after all additions (3290 jobs).
+The whole-repo total is now **150** declarations.
+Coverage: 138 (this review) + 7 (undistort-invertibility) + 2 (nonconstructive-left-inverse)
++ 3 (radial-monotonicity) = 150.
 
 ---
 
