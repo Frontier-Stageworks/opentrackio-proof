@@ -104,3 +104,12 @@ The explicit radius parameter r reflects AMB-UI-001: no closed-form D from the o
 Theorem `radialDescale_left_inverse_zero_tangential` proves D(r, U(ε)) = ε when p = 0, R(r) ≠ 0.
 An existential variant (using `Function.invFun`) is derivable from UI-00's injectivity but was
 not needed — the concrete D for p = 0 is more informative.
+
+**Important caveat (added post-campaign):** `radialDescale` is a *conditional* left inverse, not
+a local inverse in the standard sense. A local inverse of U at ε₀ would be a function of the
+output alone — g : SensorPoint → SensorPoint with g(U(ε)) = ε near ε₀ and no extra parameters.
+`radialDescale` requires r = sensorRadius(ε) as an explicit input, meaning the caller already
+knows the input radius. Recovering r from U(ε) alone requires inverting r ↦ R(r)·r, which is
+precisely what AMB-UI-001 says requires numerical iteration. The campaign does not prove existence
+of a local inverse; it proves a conditional left inverse whose conditionality is the formal record
+of the open gap.

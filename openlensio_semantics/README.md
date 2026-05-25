@@ -126,11 +126,15 @@ determinant cofactors, then `mul_eq_zero` to conclude.
 polynomial positivity hypotheses on the numerator and denominator. No global coefficient
 constraints are needed; `div_pos` closes the goal.
 
-`radialDescale_left_inverse_zero_tangential`: the concrete left inverse
-D(r, ε) = ⟨ε.x/R(r), ε.y/R(r)⟩ satisfies D(r, U(ε)) = ε when p = 0 and R(r) ≠ 0.
-The explicit radius parameter r reflects the fundamental constraint (AMB-UI-001): no
-closed-form D exists from output alone for general Brown-Conrady because recovering r
-from R(r)·r requires inverting the map r ↦ R(r)·r.
+`radialDescale_left_inverse_zero_tangential`: D(r, ε) = ⟨ε.x/R(r), ε.y/R(r)⟩
+satisfies D(r, U(ε)) = ε when p = 0 and R(r) ≠ 0. This is a *conditional* left
+inverse, not a local inverse in the standard sense. A local inverse of U at ε₀ would
+be a function of the output alone — g(U(ε)) = ε — with no extra input information. But
+`radialDescale` takes r = sensorRadius(ε) as an explicit parameter, meaning the caller
+must already know the input radius to recover the input. Determining r from U(ε) alone
+requires inverting the map r ↦ R(r)·r, which the OpenLensIO spec (Eq 11) says requires
+numerical iteration for the general model. The explicit r parameter is the formal record
+of this gap.
 
 ---
 
@@ -177,7 +181,8 @@ of seven hand-computed cases.
 
 | Limitation | Notes |
 |---|---|
-| Closed-form forward distortion D (general case) | No closed-form D = U⁻¹ exists for general Brown-Conrady. The spec (Eq 11) prescribes numerical iteration. For p=0, `radialDescale_left_inverse_zero_tangential` proves D(r, U(ε)) = ε with an explicit radius parameter. |
+| Local inverse of U | Not proved. A local inverse g would satisfy g(U(ε)) = ε using only the output — no extra input information. `radialDescale` is a conditional left inverse that requires the input radius r as an explicit parameter; it does not constitute a local inverse. Proving a local inverse would require either a formula that recovers r from U(ε) alone, or an IFT-style argument that the Jacobian of U is nonzero (not in scope). |
+| Closed-form forward distortion D (general case) | No closed-form D = U⁻¹ exists for general Brown-Conrady. The spec (Eq 11) prescribes numerical iteration. For p=0, `radialDescale_left_inverse_zero_tangential` proves D(r, U(ε)) = ε given the input radius r as an extra parameter — a conditional result, not a full inverse. |
 | Global injectivity with full tangential | Proved on fixed-radius circles given a nonzero-determinant hypothesis (`hDet`). Whether `hDet ≠ 0` holds globally for all coefficient tuples is outside the algebraic scope of this library. |
 | Injectivity of r ↦ R(r)·r (pure-radial case) | `undistortPoint_injective_pure_radial` accepts this as a caller-supplied hypothesis (`hScaleInj`). Proving it from coefficient bounds requires monotone-function machinery not yet in scope. |
 | General invertibility and continuity | Plausible for well-calibrated lenses but outside the algebraic scope of this library. |

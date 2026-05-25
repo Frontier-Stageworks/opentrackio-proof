@@ -127,9 +127,10 @@ Key theorems:
   undistortion map proved in three regimes: on-circle with zero tangential, global with
   zero tangential (caller-supplied scale injectivity), and on-circle with full tangential
   (given a nonzero linear-system determinant hypothesis)
-- `radialDescale_left_inverse_zero_tangential` — concrete left inverse D(r, U(ε)) = ε
-  for p=0; the explicit radius parameter reflects that no closed-form D exists for general
-  Brown-Conrady (the spec prescribes numerical iteration for the full model)
+- `radialDescale_left_inverse_zero_tangential` — conditional left inverse: D(r, U(ε)) = ε
+  for p=0, where r = sensorRadius(ε) must be supplied by the caller. This is not a local
+  inverse in the standard sense — recovering r from the output U(ε) alone requires inverting
+  r ↦ R(r)·r, which the spec (Eq 11) says requires numerical iteration for the general model
 
 Central finding: OpenLensIO and OpenCV tangential distortion operate in different
 coordinate frames. Coefficient equality does not imply semantic equivalence; the
