@@ -45,6 +45,18 @@ The distortion parameter conversions `kᵢ → lᵢ` and `pᵢ → qᵢ` are cha
 
 The `whole_*_iff` theorems are the strongest form: they prove the conversions are *necessary*, not merely sufficient. The `→` directions derive coefficient uniqueness by specializing the polynomial identity at enough points and solving the resulting linear system via `nlinarith`.
 
+**Investigation — suspected paper-level tangential bug**: `DistortionConversionCorrected.lean`
+(companion file, same directory) investigates whether the paper's stated
+tangential consistency condition (which the theorems above faithfully
+formalize) is itself physically correct. The paper's own coordinate map
+`ε'_x,d = F·x''` implies the tangential displacement should convert with one
+factor of F (`δx_oti = F·δx_cv`), not zero (the paper's literal equation),
+yielding `q1 = p1/F, q2 = p2/F` instead of `/F²`. Nothing in
+`DistortionConversion.lean` is modified — see
+`docs/laps/tangential-conversion-physical-fix/` and the `Pipeline/README.md`
+"Investigation" section for the full derivation and its pixel-level
+consequence (`opencv_openlensio_full_pipeline_pixel_corrected`).
+
 ### `PixelEquivalence.lean` — 2 theorems
 
 End-to-end pixel coordinate preservation, connecting the two preceding files.
@@ -99,6 +111,7 @@ lean-toolchain                      Lean 4 version pin (v4.29.0)
 opencv_opentrackio_proofs/
   PrincipalPointConversion.lean
   DistortionConversion.lean
+  DistortionConversionCorrected.lean  Investigation: corrected tangential q_i = p_i/F (see below)
   PixelEquivalence.lean
   PipelineEquivalence.lean          Re-export shim for Pipeline/
   Pipeline/
@@ -107,6 +120,7 @@ opencv_opentrackio_proofs/
     PixelSufficiency.lean           opencv_openlensio_full_pipeline_pixel_sufficiency
     PixelIffHelpers.lean            Helper lemmas (namespace PipelineEquivalence)
     PixelIff.lean                   opencv_openlensio_full_pipeline_pixel_iff
+    PixelIffCorrected.lean          Investigation: unconditional pixel agreement under corrected q_i
     README.md                       Pipeline/ proof summary
 ```
 

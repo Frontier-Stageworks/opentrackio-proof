@@ -88,3 +88,37 @@ Natural extensions and open gaps:
 - `DistortionConversion` (same library) — parameter conversion formulas
 - `DistortionModel` (`openlensio_semantics`) — OTI pipeline definitions and `radialTerm`
 - `PixelEquivalence` (same library) — `radial_distortion_value_equivalence`
+
+## Investigation: suspected paper-level tangential conversion bug
+
+**`PixelIffCorrected.lean`** is a separate investigation, not part of the
+as-published formalization above. It does not modify `PixelIff.lean`,
+`PixelIffHelpers.lean`, `PixelSufficiency.lean`, or `RadialPipeline.lean` —
+all of those remain an exact, unmodified formalization of what the source
+paper states, including its stated `q1 = p1/F², q2 = p2/F²` tangential
+conversion.
+
+The investigation's hypothesis: the paper's own coordinate map for the
+*distorted* point, `ε'_x,d = F·x''`, implies the tangential displacement
+should convert as `δx_oti = F·δx_cv` (one factor of F, since the displacement
+is additive) rather than `δx_oti = δx_cv` (the paper's literal stated
+equation, zero factors of F). Re-deriving `q1, q2` under the corrected
+condition gives `q1 = p1/F, q2 = p2/F` — one power of F, not two. The radial
+conversion is unaffected (it is multiplicative, so its F is already carried
+through the coordinate's own scaling).
+
+`opencv_openlensio_full_pipeline_pixel_corrected` proves that under this
+corrected conversion, full pixel-x agreement holds **unconditionally** — the
+`ws/w = fx` condition required by `opencv_openlensio_full_pipeline_pixel_iff`
+does not survive. `physical_pixel_agreement_scale_independent_example` gives
+a concrete numeric witness with `ws/w ≠ fx` where pixel agreement still
+holds, mechanically confirming that the naive ported iff
+(`pixel_eq ↔ ws/w = fx`) is false under the corrected hypotheses, not merely
+unproved.
+
+This is presented as an open question about the source paper, not as a
+correction to this repository's formalization of it. See
+`docs/laps/tangential-conversion-physical-fix/` for the full derivation and
+review, and `DistortionConversionCorrected.lean` (top-level, sibling of
+`DistortionConversion.lean`) for the corresponding corrected parameter-level
+theorems.

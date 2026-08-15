@@ -28,8 +28,11 @@
   These are equal only when ws/w = fx, which is not generally true.
 
   The paper specifies parameter conversion but does not fully fix the composition
-  semantics.  Full pipeline equivalence is therefore left as future work, contingent
-  on a precise specification of both forward pipelines.
+  semantics.  The full pipeline iff is proved in Pipeline/PixelIff.lean as a
+  conditional: given all parameter conversions, pixel x-output agreement for all
+  inputs holds if and only if ws/w = fx.  This additional scale condition is
+  necessary (requires p1 ≠ 0 ∨ p2 ≠ 0 to derive) and sufficient.
+  The y-axis analogue is structurally identical and not separately stated.
 -/
 
 import Mathlib.Tactic

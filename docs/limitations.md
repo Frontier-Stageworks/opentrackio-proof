@@ -108,6 +108,30 @@ given as context rather than extracted from pixel equality alone. The iff isolat
 `ws/w = fx` as the remaining condition. Extracting all eleven conditions from pixel
 equality alone would require rational function coefficient extraction and is not proved.
 
+**Suspected paper-level tangential conversion error (open question, not resolved
+in this repository's formalization).** `DistortionConversion.lean` and
+`Pipeline/PixelIff.lean` faithfully formalize the source paper's stated
+tangential consistency condition (`δx_oti = δx_cv`, no scale factor), which
+the paper derives to `q1 = p1/F², q2 = p2/F²`, and correctly finds that full
+pixel agreement then additionally requires `ws/w = fx`. A companion
+investigation (`DistortionConversionCorrected.lean`,
+`Pipeline/PixelIffCorrected.lean`; not part of the as-published
+formalization and not modifying it) argues from the paper's own coordinate
+map `ε'_x,d = F·x''` that the tangential displacement — being additive,
+unlike the multiplicative radial term — should convert with one factor of F
+(`δx_oti = F·δx_cv`), giving `q1 = p1/F, q2 = p2/F`. Under that correction,
+`opencv_openlensio_full_pipeline_pixel_corrected` proves full pixel agreement
+holds unconditionally (no `ws/w = fx` requirement survives), and
+`physical_pixel_agreement_scale_independent_example` exhibits a concrete
+case with `ws/w ≠ fx` where pixel agreement still holds — machine-checked
+evidence that the naive analog of the existing iff would be false under the
+corrected hypotheses. This is presented as an open question about the
+source paper's derivation, not as a correction accepted into the
+as-published formalization; resolving it one way or the other would require
+either an erratum from the paper's authors or independent confirmation
+against a reference implementation. See
+`docs/laps/tangential-conversion-physical-fix/` for the full derivation.
+
 ---
 
 ## Cross-cutting
