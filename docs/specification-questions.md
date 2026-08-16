@@ -236,6 +236,16 @@ coefficients specifically (it is generic to any polynomial Brown-Conrady-
 shaped field). See `inverse_approximation/README.md` and
 `docs/laps/bounded-inverse-approximation/` for full scope and derivation.
 
+**Further update**: injectivity of the forward map is now established —
+`D_eq_implies_eq`/`D_injective_on_disk` prove `D θ t` is injective on the
+disk whenever `|t| * L θ R < 1`, and `inverse_step_maps_disk`/
+`inverse_step_lipschitz` establish the two prerequisites (self-mapping,
+contraction) a Banach fixed-point argument would need to additionally prove
+*existence* of the true inverse. Existence itself remains open and is
+deferred to a separate task — these results establish necessary conditions
+for invertibility, not invertibility itself. See
+`docs/laps/inverse-injectivity/`.
+
 ---
 
 ## OpenTrackIO Parser

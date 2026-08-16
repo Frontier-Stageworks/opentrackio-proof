@@ -445,3 +445,110 @@ theorem inverse_approx_error (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R) (x : ℂ)
     _ = |t| * (L θ R * (|t| * ‖Φ θ x‖)) := by rw [hdiff]
     _ ≤ |t| * (L θ R * (|t| * M θ R)) := by gcongr
     _ = L θ R * M θ R * t ^ 2 := by rw [← sq_abs t]; ring
+
+/-─────────────────────────────────────────────────────────────────────────────
+  smul_norm — ‖t • w‖ = |t| * ‖w‖. New top-level helper (previously a local
+  `have` inside inverse_approx_error; that theorem is left unchanged, this
+  is an additive promotion for reuse by the new theorems below). See
+  docs/laps/inverse-injectivity/ambiguity-register.md AMB-II-002.
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem smul_norm (t : ℝ) (w : ℂ) : ‖t • w‖ = |t| * ‖w‖ := by
+  rw [Complex.real_smul, norm_mul]; simp
+
+/-─────────────────────────────────────────────────────────────────────────────
+  D_eq_implies_eq — D θ t is injective on the disk ‖·‖ ≤ R, given the
+  contraction condition |t| * L θ R < 1.
+
+  This does NOT establish existence of the true inverse of D θ t — only
+  injectivity of the forward map. Existence (via a Banach fixed-point
+  argument, using inverse_step_maps_disk/inverse_step_lipschitz below as
+  prerequisites) is a separate, deferred task, not attempted here.
+
+  q := |t| * L θ R is the natural invertibility threshold: the same
+  quantity governs inverse_step_lipschitz's contraction constant below, and
+  will govern any future existence proof.
+
+  Scope: polynomial (non-rational) Brown-Conrady model only; no F/mm/pixel
+  conversion; does not resolve docs/specification-questions.md SQ-CV-07.
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem D_eq_implies_eq
+    (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R)
+    (hcontract : |t| * L θ R < 1)
+    (a b : ℂ)
+    (ha : ‖a‖ ≤ R) (hb : ‖b‖ ≤ R)
+    (hD : D θ t a = D θ t b) :
+    a = b := by
+  have heq : a - b = -(t • (Φ θ a - Φ θ b)) := by
+    unfold D at hD
+    simp only [Complex.real_smul] at hD ⊢
+    linear_combination hD
+  have hnormeq : ‖a - b‖ = |t| * ‖Φ θ a - Φ θ b‖ := by
+    rw [heq, norm_neg, smul_norm]
+  have hlip := phi_lipschitz θ R hR a b ha hb
+  have hle : ‖a - b‖ ≤ |t| * L θ R * ‖a - b‖ := by
+    calc ‖a - b‖ = |t| * ‖Φ θ a - Φ θ b‖ := hnormeq
+      _ ≤ |t| * (L θ R * ‖a - b‖) := by gcongr
+      _ = |t| * L θ R * ‖a - b‖ := by ring
+  have hzero : ‖a - b‖ = 0 := by nlinarith [norm_nonneg (a - b)]
+  exact sub_eq_zero.mp (norm_eq_zero.mp hzero)
+
+/-─────────────────────────────────────────────────────────────────────────────
+  D_injective_on_disk — thin Set.InjOn corollary of D_eq_implies_eq.
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem D_injective_on_disk (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R)
+    (hcontract : |t| * L θ R < 1) :
+    Set.InjOn (D θ t) {z : ℂ | ‖z‖ ≤ R} := by
+  intro a ha b hb hDab
+  exact D_eq_implies_eq θ R t hR hcontract a b ha hb hDab
+
+/-─────────────────────────────────────────────────────────────────────────────
+  inverseStep — the fixed-point iteration map T_y(z) = y - t • Φ_θ(z), used
+  by a Picard-iteration-style Banach argument for the true inverse of
+  D θ t. Named per docs/laps/inverse-injectivity/ambiguity-register.md
+  AMB-II-001 (equivalent to the raw expression y - t • Φ θ z).
+
+  inverse_step_maps_disk / inverse_step_lipschitz below establish exactly
+  the two properties (self-mapping, contraction) a Banach fixed-point
+  argument needs as HYPOTHESES to conclude T_y has a unique fixed point.
+  Neither this file nor these two theorems establish that conclusion —
+  existence of the fixed point (the true inverse) requires Mathlib's
+  ContractingWith/CompleteSpace machinery, applied on a suitable closed-disk
+  subtype, and is a separate, deferred task, not attempted here.
+
+  q := |t| * L θ R (inverse_step_lipschitz's contraction constant) is the
+  same threshold as D_eq_implies_eq's hcontract — the natural invertibility
+  threshold that will govern any future existence proof.
+
+  Scope: polynomial (non-rational) Brown-Conrady model only; no F/mm/pixel
+  conversion; does not resolve docs/specification-questions.md SQ-CV-07.
+─────────────────────────────────────────────────────────────────────────────-/
+
+noncomputable def inverseStep (θ : Coeffs) (t : ℝ) (y z : ℂ) : ℂ := y - t • Φ θ z
+
+theorem inverse_step_maps_disk
+    (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R) (y z : ℂ)
+    (hy : ‖y‖ + |t| * M θ R ≤ R) (hz : ‖z‖ ≤ R) :
+    ‖inverseStep θ t y z‖ ≤ R := by
+  unfold inverseStep
+  have hphi := phi_bounded θ R hR z hz
+  calc ‖y - t • Φ θ z‖ ≤ ‖y‖ + ‖t • Φ θ z‖ := norm_sub_le _ _
+    _ = ‖y‖ + |t| * ‖Φ θ z‖ := by rw [smul_norm]
+    _ ≤ ‖y‖ + |t| * M θ R := by gcongr
+    _ ≤ R := hy
+
+theorem inverse_step_lipschitz
+    (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R) (y a b : ℂ)
+    (ha : ‖a‖ ≤ R) (hb : ‖b‖ ≤ R) :
+    ‖inverseStep θ t y a - inverseStep θ t y b‖ ≤ |t| * L θ R * ‖a - b‖ := by
+  unfold inverseStep
+  have heq : (y - t • Φ θ a) - (y - t • Φ θ b) = -(t • (Φ θ a - Φ θ b)) := by
+    simp only [Complex.real_smul]; ring
+  have hlip := phi_lipschitz θ R hR a b ha hb
+  calc ‖(y - t • Φ θ a) - (y - t • Φ θ b)‖ = ‖t • (Φ θ a - Φ θ b)‖ := by
+        rw [heq, norm_neg]
+    _ = |t| * ‖Φ θ a - Φ θ b‖ := smul_norm _ _
+    _ ≤ |t| * (L θ R * ‖a - b‖) := by gcongr
+    _ = |t| * L θ R * ‖a - b‖ := by ring
