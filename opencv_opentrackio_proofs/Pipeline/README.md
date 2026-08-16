@@ -1,8 +1,11 @@
 # OpenCV / OpenLensIO Pipeline Equivalence
 
-This directory contains a machine-checked proof of the conditions under which the
-OpenCV Brown-Conrady undistortion pipeline and the OpenLensIO (OTI) undistortion
-pipeline produce identical pixel output.
+This directory contains a machine-checked proof of the conditions under which
+OpenCV's forward Brown-Conrady distortion pipeline and the OpenLensIO (OTI)
+pipeline — both applied in the same undistorted→distorted direction — produce
+identical pixel output. See "Claim scope" below: this is a same-direction
+coordinate-conjugacy result, not a claim about OpenTrackIO's native
+undistortion (D→U) consumption of these coefficients.
 
 ## Background
 
@@ -36,6 +39,30 @@ differ by the scalar factor (ws/w − fx) applied to the CV tangential term. Whe
 scalar is nonzero and the tangential polynomial is not identically zero, the pipelines
 diverge at every point where the tangential contribution is nonzero.
 
+## Claim scope: same-direction coordinate-conjugacy, not native undistortion
+
+Both sides of `opencv_openlensio_full_pipeline_pixel_iff` (and
+`opencv_openlensio_full_pipeline_pixel_corrected`, see the Investigation
+section below) apply the *same* undistorted→distorted formula shape — OpenCV's
+own convention for this multiply-add computation — to conjugate coordinate
+spaces related by the scaling `S_F(x,y) = (F·x, F·y)`. The theorem is a
+same-direction conjugacy result: `S_F` composed with the OTI-side formula
+(using the converted `l`/`q` coefficients) agrees with the CV-side formula
+composed with `S_F`.
+
+This is **not** a claim about OpenTrackIO's *native* undistortion consumption
+of the converted `l`/`q` values. The OpenTrackIO JSON schema's
+`distortion.model` field defaults to `"Brown-Conrady D-U"` — distorted input,
+undistorted output — the opposite direction from what is proved here. If a
+real OpenTrackIO consumer treats the converted coefficients as native
+OpenLensIO D→U coefficients (feeding a *distorted* point in and expecting an
+*undistorted* point out), whether that consumption reproduces correct
+undistortion is a separate, harder, currently-unproven claim: it would
+require either an exact inverse-function bridge between the U→D formula
+proved equivalent here and the D→U direction, or a bounded-error
+approximation theorem. See `docs/specification-questions.md` (SQ-CV-07) and
+`docs/limitations.md`.
+
 ## Key Mathematical Insight
 
 After substituting all conversion hypotheses into the pixel equality, the equation
@@ -65,7 +92,7 @@ ws/w = fx.
 
 | File | Contents |
 |------|----------|
-| `OpenCVModel.lean` | Definitions of `undistortXCV`, `undistortYCV`, `undistortPointCV` |
+| `OpenCVModel.lean` | Forward-distortion definitions `distortXCV`, `distortYCV`, `distortPointCV` |
 | `RadialPipeline.lean` | `opencv_openlensio_radial_pipeline_eq` — radial-only agreement |
 | `PixelSufficiency.lean` | `opencv_openlensio_full_pipeline_pixel_sufficiency` — ← direction standalone |
 | `PixelIffHelpers.lean` | Five helper lemmas in `namespace PipelineEquivalence` |

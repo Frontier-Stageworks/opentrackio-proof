@@ -174,6 +174,55 @@ its README.md for what would still be needed. See
 `docs/laps/tangential-conversion-physical-fix/` for the full derivation and
 proof review.
 
+### SQ-CV-07: Pipeline theorems prove same-direction (U→D) conjugacy, not native OpenLensIO (D→U) undistortion consumption
+**Status: open**
+
+`opencv_openlensio_full_pipeline_pixel_iff`, `_sufficiency`, and
+`_corrected` all compare OpenCV's forward-distortion formula (undistorted
+normalised coordinate in, distorted coordinate out) against the *same*
+formula shape applied to the converted `l`/`q` coefficients at the scaled
+screen point `(F·x', F·y')`. This is a same-direction coordinate-conjugacy
+result, related by the coordinate scaling `S_F(x,y)=(F·x,F·y)` — both sides
+of the equation are U→D evaluations.
+
+The OpenTrackIO JSON schema's `lens.distortion[].model` field is documented
+(verified directly against the schema published at ris-pub.smpte.org, and
+independently against the local `ris-osvp-metadata-camdkit` checkout's
+tracked `src/test/resources/classic/subschemas/lens.json`, which matches the
+live schema text verbatim) as a free string, with this description on the
+parent `distortion` array property:
+
+> "The key 'model' names the distortion model. Typical values for 'model'
+> include \"Brown-Conrady D-U\" when mapping distorted to undistorted
+> coordinates, and \"Brown-Conrady U-D\" when mapping undistorted to
+> undistorted coordinates. If not provided, the default model is
+> \"Brown-Conrady D-U\"."
+
+(The description's own text appears to have a typo — "undistorted to
+undistorted" for the U-D case almost certainly should read "undistorted to
+distorted," matching the D-U/U-D naming symmetry; quoted verbatim as
+published, not silently corrected.) This default — D→U, distorted input,
+undistorted output — is the *opposite* direction from what the pipeline
+theorems in this repository prove. This repository's own parser
+(`opentrackio_parser/LensDecoder.lean:150,167-168`,
+`opentrackio_parser/LensModel.lean:7,68`) already implements this default
+correctly for decode purposes; the open question is about the *pixel-level
+proof's* relationship to that default, not the parser.
+
+Whether a real OpenTrackIO producer that has converted an OpenCV calibration
+via these formulas is expected to explicitly set `model = "Brown-Conrady
+U-D"` (so a consumer applies the coefficients in the direction they were
+actually derived for), or whether some other resolution is intended (e.g.
+the schema's D→U default being understood as advisory rather than binding,
+or producers being expected to supply a genuinely-fitted D→U model instead
+of a coordinate-conjugate U-D one), is not addressed by the paper [OTI-CVX]
+or by this repository's proofs. This is the open question to raise with the
+OpenTrackIO maintainers. See `opencv_opentrackio_proofs/Pipeline/README.md`
+("Claim scope" section), the doc-comments on
+`opencv_openlensio_full_pipeline_pixel_corrected` and
+`physical_pixel_agreement_scale_independent_example` in
+`Pipeline/PixelIffCorrected.lean`, and `docs/limitations.md`.
+
 ---
 
 ## OpenTrackIO Parser

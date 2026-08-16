@@ -13,7 +13,7 @@ the paper/corrected formulas matches the already-proven Lean formulas.
 
 For each normalised test point (x', y'):
   - ground truth: OpenCV forward Brown-Conrady pixel output (reference_impl's
-    port of Pipeline/OpenCVModel.lean's undistortXCV/undistortYCV)
+    port of Pipeline/OpenCVModel.lean's distortXCV/distortYCV)
   - OpenTrackIO pixel output under the "paper" tangential conversion
     (q_i = p_i/F^2, DistortionConversion.lean)
   - OpenTrackIO pixel output under the "corrected" tangential conversion

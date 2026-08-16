@@ -13,7 +13,7 @@ settle that exactly, for all inputs, not just the points exercised here.
 Two pieces, each ported directly (not re-derived) from already-proven Lean:
 
 1. The OpenCV forward Brown-Conrady formula, matching
-   Pipeline/OpenCVModel.lean's undistortXCV/undistortYCV exactly:
+   Pipeline/OpenCVModel.lean's distortXCV/distortYCV exactly:
 
        x'' = x' * R(r) + 2*p1*x'*y' + p2*(r² + 2*x'²)
        y'' = y' * R(r) + p1*(r² + 2*y'²) + 2*p2*x'*y'
@@ -49,7 +49,8 @@ from reference_oracle import undistort_point  # noqa: E402  (reused, not rewritt
 
 
 # ─── OpenCV forward Brown-Conrady ────────────────────────────────────────────
-# Ported from Pipeline/OpenCVModel.lean:31-57 (undistortXCV, undistortYCV).
+# Ported from Pipeline/OpenCVModel.lean:31-57 (distortXCV, distortYCV — named
+# for direction: undistorted normalised coordinate in, distorted out).
 #
 # k convention here is OpenCV/DistortionConversion.lean naming:
 #   k = [k1, k2, k3, k4, k5, k6], k1-k3 = radial numerator, k4-k6 = denominator.
@@ -70,16 +71,16 @@ def opencv_radial_ratio(k: list[float], r: float) -> float:
     return num / den
 
 
-def undistort_x_cv(k: list[float], p: list[float], xp: float, yp: float) -> float:
-    """undistortXCV (OpenCVModel.lean:31-39): R_cv·x' + 2p1x'y' + p2(r²+2x'²)."""
+def distort_x_cv(k: list[float], p: list[float], xp: float, yp: float) -> float:
+    """distortXCV (OpenCVModel.lean:31-39): R_cv·x' + 2p1x'y' + p2(r²+2x'²)."""
     p1, p2 = p
     r = math.sqrt(xp * xp + yp * yp)
     R = opencv_radial_ratio(k, r)
     return R * xp + 2.0 * p1 * xp * yp + p2 * (r * r + 2.0 * xp * xp)
 
 
-def undistort_y_cv(k: list[float], p: list[float], xp: float, yp: float) -> float:
-    """undistortYCV (OpenCVModel.lean:49-57): R_cv·y' + p1(r²+2y'²) + 2p2x'y'."""
+def distort_y_cv(k: list[float], p: list[float], xp: float, yp: float) -> float:
+    """distortYCV (OpenCVModel.lean:49-57): R_cv·y' + p1(r²+2y'²) + 2p2x'y'."""
     p1, p2 = p
     r = math.sqrt(xp * xp + yp * yp)
     R = opencv_radial_ratio(k, r)
@@ -91,8 +92,8 @@ def opencv_pixel(
     k: list[float], p: list[float], xp: float, yp: float,
 ) -> tuple[float, float]:
     """OpenCV pixel output: u = fx*x'' + cx, v = fy*y'' + cy."""
-    xpp = undistort_x_cv(k, p, xp, yp)
-    ypp = undistort_y_cv(k, p, xp, yp)
+    xpp = distort_x_cv(k, p, xp, yp)
+    ypp = distort_y_cv(k, p, xp, yp)
     return fx * xpp + cx, fy * ypp + cy
 
 

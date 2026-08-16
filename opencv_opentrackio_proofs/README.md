@@ -115,7 +115,7 @@ opencv_opentrackio_proofs/
   PixelEquivalence.lean
   PipelineEquivalence.lean          Re-export shim for Pipeline/
   Pipeline/
-    OpenCVModel.lean                undistortXCV, undistortYCV definitions
+    OpenCVModel.lean                distortXCV, distortYCV definitions (forward distortion)
     RadialPipeline.lean             opencv_openlensio_radial_pipeline_eq
     PixelSufficiency.lean           opencv_openlensio_full_pipeline_pixel_sufficiency
     PixelIffHelpers.lean            Helper lemmas (namespace PipelineEquivalence)

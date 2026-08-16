@@ -9,11 +9,14 @@ of parameter conversions and data model round-trips is a production-critical pro
 
 This repository provides Lean 4 machine-checked proofs of the key mathematical
 claims in the OpenTrackIO ecosystem: that the OpenCV ↔ OpenTrackIO lens calibration
-conversions are correct and unique; that the OpenTrackIO JSON data model round-trips
-losslessly through its decoder; and that the OpenLensIO v1.0.1 Brown-Conrady
-distortion pipeline satisfies its structural consistency equations. The proofs cover
-all inputs in their stated domains — not sampled cases, not fuzzing bounds, and not
-approximations.
+conversion formulas are correct and unique — necessary and sufficient for the
+two systems' forward-distortion pipelines to agree, applied in the same
+undistorted→distorted direction on both sides (see "Claim scope" in the
+`opencv_opentrackio_proofs` section below); that the OpenTrackIO JSON data
+model round-trips losslessly through its decoder;
+and that the OpenLensIO v1.0.1 Brown-Conrady distortion pipeline satisfies its
+structural consistency equations. The proofs cover all inputs in their stated
+domains — not sampled cases, not fuzzing bounds, and not approximations.
 
 The repository also contains executable versions of the Lean definitions. These
 serve as a single, proof-aligned specification that can be run directly and
@@ -30,13 +33,26 @@ The repo contains four projects. They share a single Lean toolchain and Lake bui
 
 18 theorems proving that the OpenCV ↔ OpenTrackIO lens calibration parameter
 conversions from the SMPTE RIS paper are mathematically correct, unique
-(necessary, not merely sufficient), and that the two full pipelines produce
-identical pixel output under exactly the conditions the conversions require.
+(necessary, not merely sufficient), and that the two full pipelines — each
+applied in the same undistorted→distorted direction — produce identical pixel
+output under exactly the conditions the conversions require.
 
 Covers the principal-point conversion, all radial and tangential distortion
 parameter conversions, end-to-end pixel coordinate preservation, and the main
 pipeline equivalence result: the x-pixel outputs agree for all normalised inputs
 if and only if `ws/w = fx` (given all coefficient conversions hold).
+
+**Claim scope.** "The two full pipelines" means: OpenCV's forward-distortion
+formula, and the *same* formula shape applied to the converted `l`/`q`
+coefficients at the scaled screen point. This is a same-direction
+coordinate-conjugacy result — not a claim that these converted coefficients,
+if consumed by a real OpenTrackIO implementation as *native* OpenLensIO
+undistortion (the opposite, D→U direction — distorted input, undistorted
+output — which is the OpenTrackIO JSON schema's default for
+`distortion.model` when that field is omitted), would reproduce correct
+undistortion. See `opencv_opentrackio_proofs/Pipeline/README.md`'s "Claim
+scope" section, `docs/specification-questions.md` (SQ-CV-07), and
+`docs/limitations.md`.
 
 An additional 40 mutation-test theorems in `MutationTests.lean` prove that
 every known wrong-formula variant — wrong scaling power, wrong coefficient swap,

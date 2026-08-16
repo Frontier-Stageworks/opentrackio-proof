@@ -26,6 +26,14 @@
 
   See `docs/laps/tangential-conversion-physical-fix/` for the full derivation,
   statement audit, and ambiguity register.
+
+  CLAIM SCOPE (see the per-theorem comments below for detail): both theorems
+  in this file are same-direction (U→D) coordinate-conjugacy results between
+  OpenCV's forward-distortion formula and the same formula shape applied to
+  converted OpenTrackIO coefficients — not claims about native OpenLensIO
+  D→U undistortion consumption of those coefficients, which the OpenTrackIO
+  schema's `distortion.model` default ("Brown-Conrady D-U") would actually
+  invoke. See `docs/specification-questions.md` SQ-CV-07.
 -/
 
 import DistortionConversion
@@ -36,6 +44,28 @@ import DistortionConversion
   Given the radial parameter conversions (unchanged from the paper) and the
   CORRECTED tangential conversion q1 = p1/F, q2 = p2/F, the full pixel
   x-outputs agree for EVERY normalised input point — unconditionally.
+
+  CLAIM SCOPE — read before citing this theorem: this is a same-direction
+  coordinate-conjugacy result, not a claim about native OpenLensIO
+  undistortion. Both sides of the equation apply the SAME undistorted→distorted
+  formula shape (OpenCV's own convention — matching `distortXCV`/`distortYCV`
+  in `OpenCVModel.lean`, and what the OpenTrackIO schema's
+  `distortion.model = "Brown-Conrady U-D"` designation would mean): the LHS is
+  the CV formula at (x', y'); the RHS is the SAME formula shape (via the
+  converted l/q coefficients) at the scaled screen point (F·x', F·y'). The
+  theorem says these two U→D evaluations agree, related by the coordinate
+  scaling S_F(x, y) = (F·x, F·y).
+
+  This is NOT a claim that the converted l/q coefficients, if consumed by a
+  real OpenTrackIO implementation as NATIVE OpenLensIO U (the D→U direction —
+  distorted input, undistorted output — which is the OpenTrackIO JSON
+  schema's default for `distortion.model` when that field is omitted; see
+  `docs/specification-questions.md` SQ-CV-07), would reproduce correct
+  undistortion. That D→U claim is separate, harder, and NOT addressed here:
+  it would require either an exact inverse-function bridge between this
+  proved U→D conjugacy and the D→U direction, or a bounded-error
+  approximation theorem — neither of which exists in this repository. See
+  `docs/limitations.md` and `Pipeline/README.md`'s "Claim scope" section.
 ─────────────────────────────────────────────────────────────────────────────-/
 
 theorem opencv_openlensio_full_pipeline_pixel_corrected
@@ -114,6 +144,11 @@ theorem opencv_openlensio_full_pipeline_pixel_corrected
   Witness: fx = 1, ws = 2, w = 1  ⟹  F = (w/ws)·fx = 1/2, ws/w = 2 ≠ fx = 1.
   Pure tangential lens (p1 = 1, p2 = 0, all radial coefficients zero) so the
   denominator is identically 1 ≠ 0.
+
+  CLAIM SCOPE: inherits the same-direction coordinate-conjugacy scope of
+  `opencv_openlensio_full_pipeline_pixel_corrected` above — the pixel equation
+  witnessed here is the U→D conjugacy, not a claim about native OpenLensIO
+  (D→U) undistortion consumption of the converted coefficients.
 ─────────────────────────────────────────────────────────────────────────────-/
 
 theorem physical_pixel_agreement_scale_independent_example :

@@ -2,7 +2,7 @@
   Pipeline/RadialPipeline.lean
 
   Proves that after radial parameter conversion, the zero-tangential OpenCV
-  undistortion pipeline agrees with the OpenLensIO undistortion pipeline.
+  distortion pipeline agrees with the OpenLensIO undistortion pipeline.
 -/
 
 import Pipeline.OpenCVModel
@@ -13,7 +13,7 @@ import DistortionModel
 /-─────────────────────────────────────────────────────────────────────────────
   opencv_openlensio_radial_pipeline_eq
 
-  After radial parameter conversion, the zero-tangential OpenCV undistortion
+  After radial parameter conversion, the zero-tangential OpenCV distortion
   at normalised point ε' equals (1/F) times the zero-tangential OpenLensIO
   undistortion at the corresponding screen point ⟨F·ε'.x, F·ε'.y⟩.
 
@@ -38,7 +38,7 @@ theorem opencv_openlensio_radial_pipeline_eq
                  + k6 * (sensorRadius ε') ^ 6 ≠ 0)
     (hden_oti : denominatorNonzero ⟨l1, l2, l3, l4, l5, l6⟩
                   (sensorRadius ⟨F * ε'.x, F * ε'.y⟩)) :
-    F * undistortXCV k1 k2 k3 k4 k5 k6 0 0 ε' hden_cv =
+    F * distortXCV k1 k2 k3 k4 k5 k6 0 0 ε' hden_cv =
     undistortX ⟨l1, l2, l3, l4, l5, l6⟩ TangentialCoefficients.zero
       ⟨F * ε'.x, F * ε'.y⟩ hden_oti := by
   -- Radius scaling: sensorRadius ⟨F·x, F·y⟩ = F · sensorRadius ε'
@@ -66,7 +66,7 @@ theorem opencv_openlensio_radial_pipeline_eq
     simp only [radialTerm, h_rscale]
   rw [h_rterm]
   -- CV side: zero tangential reduces to R_cv · ε'.x
-  simp only [undistortXCV, mul_zero, zero_mul, add_zero]
+  simp only [distortXCV, mul_zero, zero_mul, add_zero]
   -- h_rad : R_cv = R_oti (the RHS matches exactly); then ring closes F * R * ε' = R * F * ε'
   rw [← h_rad]
   ring
