@@ -1,0 +1,33 @@
+{
+  "calibration": {
+    "id": "finepix6900z-bouguet-2012_0524",
+    "description": "Real OpenCV-format calibration from a real camera (not synthetic). Computed by the Camera Calibration Toolbox for MATLAB (Bouguet/Caltech) from 3 real photographs of a planar checkerboard, taken 2012-05-24 with a Fujifilm FinePix 6900 Zoom (verified via EXIF metadata on the source images: model=FinePix6900ZOOM, native resolution 2048x1536). Source: https://johnloomis.org/ece564/notes/CameraCalibration/2012_0524/example_calib.html (archived reproduction of a standard Bouguet toolbox worked example; raw images downloaded and inspected directly to confirm camera model and native pixel resolution).",
+    "fx": 2523.94224,
+    "fy": 2507.20536,
+    "cx": 960.69629,
+    "cy": 780.89356,
+    "k1": -0.18509,
+    "k2": 0.48400,
+    "k3": 0.0,
+    "k3_note": "6th-order radial term not estimated in the source calibration run (disabled/left at 0), per the source page. Not a fabricated value.",
+    "p1": -0.00706,
+    "p2": -0.00572,
+    "pixel_resolution": { "width": 2048, "height": 1536 },
+    "sensor_physical_mm": {
+      "width": 7.60,
+      "height": 5.70,
+      "note": "1/1.7-inch optical format, the documented CCD type of the Fujifilm FinePix 6900 Zoom (Super CCD, 1/1.7\"). This is the standard published physical size for this sensor format, not a value read off the calibration itself (OpenCV calibration alone yields focal length only in pixel units and does not determine physical sensor size)."
+    },
+    "aspect_ratio_note": "width/pixel_width == height/pixel_height exactly (7.60/2048 == 5.70/1536), but fx != fy in the real calibration, so a single scalar F cannot exactly satisfy both axes simultaneously (see single_focal_length_compatibility in PrincipalPointConversion.lean). F is derived from the x-axis (F=(w/ws)*fx), matching hF_eq in Pipeline/PixelIff.lean; the y-axis check in run.py is informational only for this reason, not a pass/fail signal for the F-vs-F^2 question."
+  },
+  "test_points": [
+    { "id": "near-center-1", "x": 0.02, "y": 0.01 },
+    { "id": "near-center-2", "x": -0.03, "y": 0.02 },
+    { "id": "mid-radius-1", "x": 0.15, "y": 0.10 },
+    { "id": "mid-radius-2", "x": -0.12, "y": -0.08 },
+    { "id": "edge-1", "x": 0.35, "y": 0.20 },
+    { "id": "edge-2", "x": -0.30, "y": 0.25 },
+    { "id": "edge-3", "x": 0.38, "y": -0.05 },
+    { "id": "edge-4", "x": 0.05, "y": -0.28 }
+  ]
+}

@@ -43,6 +43,18 @@ every known wrong-formula variant — wrong scaling power, wrong coefficient swa
 wrong offset form — is either degenerate or inconsistent with the full-polynomial
 identity.
 
+A separate investigation (`DistortionConversionCorrected.lean`,
+`Pipeline/PixelIffCorrected.lean`) asks whether the paper's own stated
+tangential conversion formula is physically consistent with its coordinate
+map, and finds that a one-factor-of-F correction removes the `ws/w = fx`
+condition entirely. This does not modify the as-published formalization
+above — see `docs/specification-questions.md` (SQ-CV-06) and
+`docs/laps/tangential-conversion-physical-fix/`.
+`battery-tester/opencv_cross_check/` is a scaffolding sanity check on the
+formula transcription (not additional evidence for the question itself,
+which the Lean proofs already settle exactly), illustrated with one real
+camera calibration.
+
 [Full details](opencv_opentrackio_proofs/README.md)
 
 ---

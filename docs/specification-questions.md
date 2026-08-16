@@ -125,6 +125,55 @@ pipeline equivalent.
 The pipeline iff is proved for the x-pixel coordinate only. The y-component is
 expected to be symmetric (p1 ↔ p2 swapped) but is not yet formalized.
 
+### SQ-CV-06: Tangential conversion physical-semantics (F vs F²)
+**Status: open**
+
+The paper's stated tangential consistency condition — formalized faithfully
+as `tangential_q1_conversion`/`tangential_q2_conversion` in
+`DistortionConversion.lean` — equates the OpenCV and OpenTrackIO tangential
+displacements directly, with no scale factor: `δx_cv = δx_oti`. This yields
+`q1 = p1/F², q2 = p2/F²`.
+
+The paper's own coordinate map for the *distorted* point is
+`ε'_x,d = F·x''`. Expanding both sides as undistorted coordinate plus
+displacement (`x'' = x' + δx_cv`, `ε'_x,d = ε_x + δx_oti`, `ε_x = F·x'`) gives
+`δx_oti = F·δx_cv` — one factor of F, not zero. The radial term needs no
+analogous correction: it is multiplicative (`x'·R(r)`), so the F carried by
+the coordinate itself already accounts for the conversion, and `l = k/F^(2n)`
+is unaffected.
+
+A companion investigation
+(`opencv_opentrackio_proofs/DistortionConversionCorrected.lean`,
+`Pipeline/PixelIffCorrected.lean`; does not modify the as-published
+formalization) proves the consequence of the corrected condition
+`F·δx_cv = δx_oti`: `q1 = p1/F, q2 = p2/F`, and — the more striking result —
+that under this correction, full pixel-x agreement between the two pipelines
+holds **unconditionally**, with no `ws/w = fx` requirement surviving at all.
+A concrete counterexample (`physical_pixel_agreement_scale_independent_example`)
+exhibits `ws/w ≠ fx` with pixel agreement still holding, mechanically
+confirming the naive analog of the existing iff would be false under the
+corrected hypotheses, not merely unproved.
+
+This does not contradict the 40 mutation tests in `MutationTests.lean`: those
+tests vary the *power of F on the OpenTrackIO side* of the paper's own stated
+consistency condition (e.g. testing `q1 = p1/F⁴` instead of `p1/F²`) and show
+such variants are degenerate. They do not test varying the power of F on the
+*OpenCV side* of the consistency condition itself (`δx_cv` vs `F·δx_cv`),
+which is exactly what this question is about — a different axis of
+variation, not one the mutation-test suite already ruled out.
+
+Resolving this one way or the other requires either an erratum/clarification
+from the paper's authors, or independent confirmation against a reference
+implementation (e.g. rendering a lens with tangential distortion at
+`ws/w ≠ fx` and checking which pixel model — the paper's or the corrected
+one — matches ground truth). `battery-tester/opencv_cross_check/` is a
+scaffolding sanity check on this repository's own formula transcription,
+illustrated with one real camera calibration — it is explicitly not that
+independent confirmation (both sides are written by this repository); see
+its README.md for what would still be needed. See
+`docs/laps/tangential-conversion-physical-fix/` for the full derivation and
+proof review.
+
 ---
 
 ## OpenTrackIO Parser

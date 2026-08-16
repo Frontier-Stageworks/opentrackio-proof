@@ -46,6 +46,24 @@ grouped rather than listed individually.
 | `opencv_openlensio_full_pipeline_pixel_sufficiency` | `PixelSufficiency.lean` | Given all conversions and `ws/w = fx`, full x-pixel outputs agree for all normalised inputs |
 | `opencv_openlensio_full_pipeline_pixel_iff` | `PixelIff.lean` | Given all conversions and `p1≠0 ∨ p2≠0`, full x-pixel outputs agree for all normalised inputs **iff** `ws/w = fx` |
 
+### Investigation: suspected tangential conversion error (`DistortionConversionCorrected.lean`, `Pipeline/PixelIffCorrected.lean`)
+
+Not part of the as-published formalization above — investigates whether the
+paper's stated tangential consistency condition is itself physically
+correct. Does not modify any theorem listed elsewhere in this map. See
+SQ-CV-06 in `docs/specification-questions.md` and
+`docs/laps/tangential-conversion-physical-fix/` for the full derivation.
+
+| Theorem | File | What it proves |
+|---------|------|---------------|
+| `tangential_q1_conversion_physical` | `DistortionConversionCorrected.lean` | `∀ x' y', F·(p1·x'·y') = q1·(Fx')·(Fy')` implies `q1 = p1/F` (corrected consistency — one factor of F, not two) |
+| `tangential_q2_conversion_physical` | `DistortionConversionCorrected.lean` | Corrected analog of `tangential_q2_conversion`; implies `q2 = p2/F` |
+| `whole_tangential_field_iff_physical` | `DistortionConversionCorrected.lean` | Corrected analog of `whole_tangential_field_iff`; `F·δx_cv = δx_oti` for all `(x',y')` ↔ `q1=p1/F`, `q2=p2/F` |
+| `whole_tangential_field_2d_iff_physical` | `DistortionConversionCorrected.lean` | Corrected analog of `whole_tangential_field_2d_iff` (both `δx` and `δy`) |
+| `all_distortion_conversions_iff_physical` | `DistortionConversionCorrected.lean` | Corrected analog of `all_distortion_conversions_iff`; radial conjuncts unchanged (no bug there), tangential conjunct corrected |
+| `opencv_openlensio_full_pipeline_pixel_corrected` | `Pipeline/PixelIffCorrected.lean` | Under the corrected tangential conversion, full x-pixel outputs agree for all normalised inputs **unconditionally** — no `ws/w = fx` requirement, no `p1≠0 ∨ p2≠0` hypothesis |
+| `physical_pixel_agreement_scale_independent_example` | `Pipeline/PixelIffCorrected.lean` | Concrete witness with `ws/w ≠ fx` where pixel agreement still holds — mechanically refutes the naive analog of `opencv_openlensio_full_pipeline_pixel_iff` under the corrected hypotheses |
+
 ### Mutation tests (`MutationTests.lean`)
 
 40 theorems in pairs: each wrong-formula variant either (a) forces a degenerate
