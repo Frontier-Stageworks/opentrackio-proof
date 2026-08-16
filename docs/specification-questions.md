@@ -223,40 +223,39 @@ OpenTrackIO maintainers. See `opencv_opentrackio_proofs/Pipeline/README.md`
 `physical_pixel_agreement_scale_independent_example` in
 `Pipeline/PixelIffCorrected.lean`, and `docs/limitations.md`.
 
-**Update**: `inverse_approximation/InverseApproximation.lean` now proves a
-bounded-error estimate (`inverse_approx_error`: on a bounded disk, the
-naive first-order approximate inverse of a polynomial Brown-Conrady-shaped
-field has composition error `≤ L·M·t²`, both constants explicit) —
-scaffolding toward the kind of result this question said would be needed to
-make D→U progress rigorous. This does **not** resolve this question: it is
-deliberately scoped to the polynomial (non-rational) model only, makes no
-existence/uniqueness claim about the *true* inverse of the distortion map,
-and does not connect back to `F`/mm/pixel units or to OpenCV/OpenTrackIO
-coefficients specifically (it is generic to any polynomial Brown-Conrady-
-shaped field). See `inverse_approximation/README.md` and
-`docs/laps/bounded-inverse-approximation/` for full scope and derivation.
+**Current status** (`inverse_approximation/InverseApproximation.lean`):
+local existence and uniqueness of the *true* inverse of the polynomial
+Brown-Conrady map has now been proved. `D_exists_unique_preimage` shows
+that for every `y` in a buffer disk, there is exactly one `z` in the disk
+with `D θ t z = y`, under the sufficient contraction condition
+`|t| * L θ R < 1` together with the buffer condition on `y` — a
+demonstrated-sufficient, not shown-necessary, hypothesis pair (larger
+distortions may still be invertible; this is not characterized either
+way). This is a **standalone mathematical fact about the polynomial
+model**, proved without reference to OpenCV, OpenTrackIO, units, or either
+JSON `distortion.model` direction. It still does **not** resolve the
+D-U/U-D question above: whether it has any bearing on which direction real
+producers/consumers should treat converted coefficients is a separate,
+open matter, not established or implied by the theorem itself. See
+`docs/laps/inverse-existence/`.
 
-**Further update**: injectivity of the forward map is now established —
-`D_eq_implies_eq`/`D_injective_on_disk` prove `D θ t` is injective on the
-disk whenever `|t| * L θ R < 1`, and `inverse_step_maps_disk`/
-`inverse_step_lipschitz` establish the two prerequisites (self-mapping,
-contraction) a Banach fixed-point argument would need to additionally prove
-*existence* of the true inverse. See `docs/laps/inverse-injectivity/`.
+**Progression** (chronological; each step below was accurate as a
+description of the state *at the time it was written* and has since been
+superseded by the next — read "Current status" above for what holds now):
 
-**Existence/uniqueness update**: `D_exists_unique_preimage` (in the same
-file, via Mathlib's Banach fixed-point theorem) now proves that for every
-`y` in a buffer disk, there is exactly one `z` in the disk with
-`D θ t z = y` — i.e. the polynomial Brown-Conrady map genuinely has a true
-local inverse on a rigorous, explicitly-characterized domain, not merely
-an approximate or bounded-error one. This establishes a rigorous domain
-where the polynomial model is truly invertible, **independent of and not
-contingent on how the OpenTrackIO maintainers answer the D-U/U-D
-question**: it is a standalone mathematical fact about the model, proved
-without reference to OpenCV, OpenTrackIO, units, or either JSON
-`distortion.model` direction. Its relevance to *this* question — whether it
-has any bearing on which direction real producers/consumers should treat
-converted coefficients — is a separate, open matter, not established or
-implied by the theorem itself. See `docs/laps/inverse-existence/`.
+1. `inverse_approx_error` proved a bounded-error estimate for a naive
+   *approximate* inverse (composition error `≤ L·M·t²`) — at that point,
+   no existence/uniqueness claim about the true inverse had been made.
+   See `docs/laps/bounded-inverse-approximation/`.
+2. `D_eq_implies_eq`/`D_injective_on_disk` then established injectivity of
+   the forward map `D θ t` on the disk whenever `|t| * L θ R < 1`, and
+   `inverse_step_maps_disk`/`inverse_step_lipschitz` established the two
+   prerequisites (self-mapping, contraction) a Banach fixed-point argument
+   would need — existence itself was still open at that point.
+   See `docs/laps/inverse-injectivity/`.
+3. `D_exists_unique_preimage` closed the gap, applying Mathlib's Banach
+   fixed-point theorem to those prerequisites to prove existence and
+   uniqueness directly — see "Current status" above.
 
 ---
 

@@ -470,16 +470,21 @@ theorem smul_norm (t : ℝ) (w : ℂ) : ‖t • w‖ = |t| * ‖w‖ := by
   D_eq_implies_eq — D θ t is injective on the disk ‖·‖ ≤ R, given the
   contraction condition |t| * L θ R < 1.
 
-  This does NOT establish existence of the true inverse of D θ t — only
-  injectivity of the forward map. Existence (via a Banach fixed-point
-  argument, using inverse_step_maps_disk/inverse_step_lipschitz below as
-  prerequisites) is a separate, deferred task, not attempted here.
+  This theorem establishes injectivity of D θ t only — it does not by
+  itself construct or guarantee a preimage. Existence and uniqueness of
+  the true inverse are established separately below by
+  D_exists_unique_preimage, via a Banach fixed-point argument applied to
+  inverseStep θ t y (using inverse_step_maps_disk/inverse_step_lipschitz
+  as prerequisites). D_eq_implies_eq remains useful in its own right: it
+  needs no completeness/fixed-point machinery at all, just the Lipschitz
+  estimate.
 
   q := |t| * L θ R is a sufficient contraction threshold, not shown
   necessary: the same quantity governs inverse_step_lipschitz's contraction
-  constant below, and together with the self-map condition will be
-  sufficient for a future local existence/uniqueness theorem. Larger
-  distortions (q ≥ 1) may still be invertible; this is not shown either way.
+  constant below, and — together with the self-map condition hy used by
+  D_exists_unique_preimage — is exactly the hypothesis pair under which
+  local existence and uniqueness are proved there. Larger distortions
+  (q ≥ 1) may still be invertible; this is not shown either way.
 
   Scope: polynomial (non-rational) Brown-Conrady model only; no F/mm/pixel
   conversion; does not resolve docs/specification-questions.md SQ-CV-07.
@@ -525,16 +530,19 @@ theorem D_injective_on_disk (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R)
   inverse_step_maps_disk / inverse_step_lipschitz below establish exactly
   the two properties (self-mapping, contraction) a Banach fixed-point
   argument needs as HYPOTHESES to conclude T_y has a unique fixed point.
-  Neither this file nor these two theorems establish that conclusion —
-  existence of the fixed point (the true inverse) requires Mathlib's
-  ContractingWith/CompleteSpace machinery, applied on a suitable closed-disk
-  subtype, and is a separate, deferred task, not attempted here.
+  Neither of these two theorems establishes that conclusion by itself —
+  existence of the fixed point (the true inverse) is established
+  separately below, by D_exists_unique_preimage, via Mathlib's
+  ContractingWith.exists_fixedPoint' applied to the closed disk
+  {z : ℂ | ‖z‖ ≤ R} (using IsClosed.isComplete directly on the set, not a
+  bundled subtype — see docs/laps/inverse-existence/ambiguity-register.md
+  AMB-IE-001).
 
   q := |t| * L θ R (inverse_step_lipschitz's contraction constant) is the
   same threshold as D_eq_implies_eq's hcontract — a sufficient contraction
   threshold (not shown necessary) that, together with the self-map
-  condition, will be sufficient for a future local existence/uniqueness
-  theorem.
+  condition hy, is exactly the hypothesis pair D_exists_unique_preimage
+  uses to establish local existence and uniqueness below.
 
   Scope: polynomial (non-rational) Brown-Conrady model only; no F/mm/pixel
   conversion; does not resolve docs/specification-questions.md SQ-CV-07.

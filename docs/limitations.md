@@ -141,33 +141,31 @@ OpenTrackIO JSON schema's `distortion.model` defaults to `"Brown-Conrady
 D-U"` (the opposite direction) when omitted. Whether real OpenTrackIO
 producers/consumers are expected to set `model = "Brown-Conrady U-D"`
 explicitly, or some other resolution is intended, is not addressed by the
-paper or by this repository's proofs. `inverse_approximation/
-InverseApproximation.lean` now proves a bounded-error estimate
-(`inverse_approx_error`) for a first-order approximate inverse of a
-polynomial Brown-Conrady-shaped field — scaffolding toward the kind of
-result that would be needed to make progress on the D→U direction rigorous.
-This does **not** resolve the D-U/U-D question: it is scoped to the
-polynomial (non-rational) model only, makes no existence/uniqueness claim
-about the true inverse (that would require fixed-point/contraction
-machinery, not used here), and does not connect back to `F`/mm/pixel units
-or OpenCV/OpenTrackIO coefficients specifically. See
-`docs/specification-questions.md` (SQ-CV-07),
-`inverse_approximation/README.md`, and
-`docs/laps/bounded-inverse-approximation/` for full scope and derivation.
-Injectivity of the forward map `D θ t` is now established on the disk
-under the contraction condition `|t| * L θ R < 1`
-(`D_eq_implies_eq`/`D_injective_on_disk`), along with the two prerequisites
-(self-mapping, contraction) a Banach fixed-point argument needs
-(`inverse_step_maps_disk`/`inverse_step_lipschitz`). See
-`docs/laps/inverse-injectivity/`. **Existence and uniqueness of the true
-inverse are now also established**: `D_exists_unique_preimage` proves that
-for every `y` in a buffer disk there is exactly one `z` in the disk with
-`D θ t z = y`, via Mathlib's Banach fixed-point theorem. This is a
-standalone fact about the polynomial Brown-Conrady model, independent of
-and not contingent on the D-U/U-D interoperability question above — its
-relevance to that question is separate and open, not established by this
-result. `|t| * L θ R < 1` remains a demonstrated *sufficient* condition,
-not shown necessary. See `docs/laps/inverse-existence/`.
+paper or by this repository's proofs.
+
+`inverse_approximation/InverseApproximation.lean` investigates this
+direction generically (independent of OpenCV/OpenTrackIO units and
+coefficients), in stages: a bounded-error estimate for a first-order
+*approximate* inverse (`inverse_approx_error`); injectivity of the forward
+map `D θ t` on the disk under the contraction condition `|t| * L θ R < 1`
+(`D_eq_implies_eq`/`D_injective_on_disk`), plus the self-mapping and
+contraction prerequisites a Banach fixed-point argument needs
+(`inverse_step_maps_disk`/`inverse_step_lipschitz`); and finally, local
+existence and uniqueness of the *true* inverse itself
+(`D_exists_unique_preimage`, via Mathlib's Banach fixed-point theorem): for
+every `y` in a buffer disk there is exactly one `z` in the disk with
+`D θ t z = y`. `|t| * L θ R < 1` is a demonstrated *sufficient* condition
+for this, not shown necessary.
+
+None of this resolves the D-U/U-D question above. `D_exists_unique_preimage`
+is a standalone mathematical fact about the polynomial (non-rational)
+Brown-Conrady model, independent of and not contingent on how the
+OpenTrackIO maintainers answer it — its relevance to that
+interoperability question is separate and open, not established or implied
+by the theorem itself. See `docs/specification-questions.md` (SQ-CV-07),
+`inverse_approximation/README.md`, `docs/laps/bounded-inverse-approximation/`,
+`docs/laps/inverse-injectivity/`, and `docs/laps/inverse-existence/` for
+full scope and derivation.
 
 ---
 
