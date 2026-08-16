@@ -1,8 +1,8 @@
 # Bounded Inverse Approximation
 
-This directory contains a machine-checked, generic (non-OpenCV-specific)
-bounded-error estimate for a first-order approximate inverse of a polynomial
-Brown-Conrady-shaped displacement field, on a bounded disk.
+A machine-checked quantitative first-order inverse approximation theorem
+for the full polynomial radial+tangential Brown–Conrady displacement field
+on a bounded disk. Generic and non-OpenCV-specific.
 
 ## Background and motivation
 
