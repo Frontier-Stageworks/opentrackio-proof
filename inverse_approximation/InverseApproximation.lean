@@ -1,11 +1,17 @@
 /-
   InverseApproximation.lean
 
-  Layers 1-3 of a bounded-error first-order approximate inverse for a
-  polynomial (non-rational) Brown-Conrady-shaped displacement field, on a
-  bounded disk. See README.md and docs/laps/bounded-inverse-approximation/
-  for full context, derivation, and scope. Motivated by, but does not
-  resolve, docs/specification-questions.md SQ-CV-07.
+  A bounded-error first-order approximate inverse for a polynomial
+  (non-rational) Brown-Conrady-shaped displacement field, on a bounded
+  disk. Status: Layers 1-3 complete (boundedness, Lipschitz, first-order
+  composition-error estimate); Layer 4 prerequisites complete (injectivity
+  of the forward map, an invariant disk for the fixed-point iteration step,
+  and its contraction estimate); fixed-point existence/uniqueness itself
+  (the local inversion theorem) is deferred, not attempted here. See
+  README.md, docs/laps/bounded-inverse-approximation/, and
+  docs/laps/inverse-injectivity/ for full context, derivation, and scope.
+  Motivated by, but does not resolve, docs/specification-questions.md
+  SQ-CV-07.
 
   Deliberately independent of opencv_opentrackio_proofs/ and
   openlensio_semantics/: no imports from either, and this file is not
@@ -465,9 +471,11 @@ theorem smul_norm (t : ℝ) (w : ℂ) : ‖t • w‖ = |t| * ‖w‖ := by
   argument, using inverse_step_maps_disk/inverse_step_lipschitz below as
   prerequisites) is a separate, deferred task, not attempted here.
 
-  q := |t| * L θ R is the natural invertibility threshold: the same
-  quantity governs inverse_step_lipschitz's contraction constant below, and
-  will govern any future existence proof.
+  q := |t| * L θ R is a sufficient contraction threshold, not shown
+  necessary: the same quantity governs inverse_step_lipschitz's contraction
+  constant below, and together with the self-map condition will be
+  sufficient for a future local existence/uniqueness theorem. Larger
+  distortions (q ≥ 1) may still be invertible; this is not shown either way.
 
   Scope: polynomial (non-rational) Brown-Conrady model only; no F/mm/pixel
   conversion; does not resolve docs/specification-questions.md SQ-CV-07.
@@ -519,8 +527,10 @@ theorem D_injective_on_disk (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R)
   subtype, and is a separate, deferred task, not attempted here.
 
   q := |t| * L θ R (inverse_step_lipschitz's contraction constant) is the
-  same threshold as D_eq_implies_eq's hcontract — the natural invertibility
-  threshold that will govern any future existence proof.
+  same threshold as D_eq_implies_eq's hcontract — a sufficient contraction
+  threshold (not shown necessary) that, together with the self-map
+  condition, will be sufficient for a future local existence/uniqueness
+  theorem.
 
   Scope: polynomial (non-rational) Brown-Conrady model only; no F/mm/pixel
   conversion; does not resolve docs/specification-questions.md SQ-CV-07.
