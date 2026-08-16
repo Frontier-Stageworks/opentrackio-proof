@@ -3,6 +3,10 @@ version = "0.1.0"
 defaultTargets = ["DistortionConversion", "PrincipalPointConversion", "PixelEquivalence", "HarnessAdapter"]
 
 [[lean_lib]]
+name = "InverseApproximation"
+srcDir = "inverse_approximation"
+
+[[lean_lib]]
 name = "DistortionConversion"
 srcDir = "opencv_opentrackio_proofs"
 

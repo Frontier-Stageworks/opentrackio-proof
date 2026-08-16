@@ -132,6 +132,29 @@ either an erratum from the paper's authors or independent confirmation
 against a reference implementation. See
 `docs/laps/tangential-conversion-physical-fix/` for the full derivation.
 
+**Pipeline theorems prove same-direction (U→D) conjugacy, not native
+OpenLensIO (D→U) undistortion consumption — still open.** All pipeline
+theorems (`opencv_openlensio_full_pipeline_pixel_iff`/`_sufficiency`/
+`_corrected`) compare OpenCV's forward-distortion formula against the same
+formula shape applied to converted coefficients — both U→D evaluations. The
+OpenTrackIO JSON schema's `distortion.model` defaults to `"Brown-Conrady
+D-U"` (the opposite direction) when omitted. Whether real OpenTrackIO
+producers/consumers are expected to set `model = "Brown-Conrady U-D"`
+explicitly, or some other resolution is intended, is not addressed by the
+paper or by this repository's proofs. `inverse_approximation/
+InverseApproximation.lean` now proves a bounded-error estimate
+(`inverse_approx_error`) for a first-order approximate inverse of a
+polynomial Brown-Conrady-shaped field — scaffolding toward the kind of
+result that would be needed to make progress on the D→U direction rigorous.
+This does **not** resolve the D-U/U-D question: it is scoped to the
+polynomial (non-rational) model only, makes no existence/uniqueness claim
+about the true inverse (that would require fixed-point/contraction
+machinery, not used here), and does not connect back to `F`/mm/pixel units
+or OpenCV/OpenTrackIO coefficients specifically. See
+`docs/specification-questions.md` (SQ-CV-07),
+`inverse_approximation/README.md`, and
+`docs/laps/bounded-inverse-approximation/` for full scope and derivation.
+
 ---
 
 ## Cross-cutting

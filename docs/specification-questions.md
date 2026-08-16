@@ -223,6 +223,19 @@ OpenTrackIO maintainers. See `opencv_opentrackio_proofs/Pipeline/README.md`
 `physical_pixel_agreement_scale_independent_example` in
 `Pipeline/PixelIffCorrected.lean`, and `docs/limitations.md`.
 
+**Update**: `inverse_approximation/InverseApproximation.lean` now proves a
+bounded-error estimate (`inverse_approx_error`: on a bounded disk, the
+naive first-order approximate inverse of a polynomial Brown-Conrady-shaped
+field has composition error `≤ L·M·t²`, both constants explicit) —
+scaffolding toward the kind of result this question said would be needed to
+make D→U progress rigorous. This does **not** resolve this question: it is
+deliberately scoped to the polynomial (non-rational) model only, makes no
+existence/uniqueness claim about the *true* inverse of the distortion map,
+and does not connect back to `F`/mm/pixel units or to OpenCV/OpenTrackIO
+coefficients specifically (it is generic to any polynomial Brown-Conrady-
+shaped field). See `inverse_approximation/README.md` and
+`docs/laps/bounded-inverse-approximation/` for full scope and derivation.
+
 ---
 
 ## OpenTrackIO Parser
