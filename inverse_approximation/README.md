@@ -36,7 +36,13 @@ expressions in the polynomial coefficients and the disk radius.
 **Status**: Layers 1–4 complete — boundedness, Lipschitz, first-order
 composition-error estimate, injectivity, invariant disk, contraction
 estimate, and (via Mathlib's Banach fixed-point theorem) local existence
-and uniqueness of the true inverse (`D_exists_unique_preimage`).
+and uniqueness of the true inverse (`D_exists_unique_preimage`). Since
+then, `inverse_approx_error_vs_preimage`/`inverse_approx_exists_unique_with_error`
+connect the two: the one-step approximation's error is now bounded
+relative to the *true* preimage (not just the round-trip residual
+`inverse_approx_error` already bounded), with the error-bound proof itself
+kept independent of the existence machinery — only the packaging corollary
+depends on it.
 
 **In scope (this module):**
 - A boundedness estimate for the displacement field on a disk.
@@ -104,14 +110,24 @@ All in the single file `InverseApproximation.lean`.
 | `inverse_step_maps_disk` | the fixed-point iteration step `inverseStep θ t y z = y - t • Φ θ z` maps the disk into itself, given the same buffer condition as `inverse_approx_error` |
 | `inverse_step_lipschitz` | `inverseStep θ t y` is itself a contraction on the disk, with constant `\|t\| · L θ R` — the same quantity `D_eq_implies_eq`'s `hcontract` uses |
 | `D_exists_unique_preimage` | `∃! z, ‖z‖ ≤ R ∧ D θ t z = y` for `y` in a buffer disk — **local existence and uniqueness of the true inverse** of `D θ t`, via Mathlib's Banach fixed-point theorem applied to `inverseStep θ t y` |
+| `inverse_approx_error_vs_preimage` | `‖U θ t y - z‖ ≤ (\|t\|²·L θ R·M θ R)/(1-\|t\|·L θ R)` given a genuine preimage `z` (`D θ t z = y`) — bounds the one-step approximation's error relative to the *true* preimage, not just the round-trip residual. Self-contained: no Banach/existence machinery, `‖y‖≤R` only (not the buffer condition) |
+| `inverse_approx_exists_unique_with_error` | `∃! z, ‖z‖≤R ∧ D θ t z = y ∧ ‖U θ t y - z‖ ≤ (...)` — thin corollary attaching `inverse_approx_error_vs_preimage`'s bound to the `z` given by `D_exists_unique_preimage` |
 
 `D_eq_implies_eq`/`D_injective_on_disk` establish injectivity of the
 forward map. `inverse_step_maps_disk`/`inverse_step_lipschitz` establish
 the self-mapping and contraction properties a Banach fixed-point argument
 needs. `D_exists_unique_preimage` completes the argument: existence and
-uniqueness of the true inverse, not just its prerequisites. Full derivation
-and review: `docs/laps/inverse-injectivity/` (injectivity, prerequisites)
-and `docs/laps/inverse-existence/` (existence/uniqueness).
+uniqueness of the true inverse, not just its prerequisites.
+`inverse_approx_error_vs_preimage` then answers a question none of the
+above do: *given* a true preimage `z`, how close is the cheap,
+non-iterative `U θ t y` to it? — deliberately independent of the existence
+proof (no `ContractingWith`/`CompleteSpace` anywhere in its proof);
+`inverse_approx_exists_unique_with_error` is the only place that
+dependency is introduced, to package both facts about the same `z`
+together. Full derivation and review: `docs/laps/inverse-injectivity/`
+(injectivity, prerequisites), `docs/laps/inverse-existence/`
+(existence/uniqueness), and `docs/laps/inverse-approx-error/`
+(error-vs-preimage bound).
 
 **Helper lemmas** (internal building blocks, not the main results):
 `radial_bounded`, `radial_lipschitz`, `normSq_lipschitz`,
@@ -133,6 +149,9 @@ across several of the theorems above).
 - `docs/laps/inverse-injectivity/` — `smul_norm`, `D_eq_implies_eq`,
   `D_injective_on_disk`, `inverseStep`, `inverse_step_maps_disk`,
   `inverse_step_lipschitz` (same artifact structure).
+- `docs/laps/inverse-approx-error/` — `inverse_approx_error_vs_preimage`,
+  `inverse_approx_exists_unique_with_error` (same artifact structure;
+  includes the by-hand derivation and a scratch-tested division step).
 - `docs/laps/inverse-existence/` — `D_exists_unique_preimage` (same
   artifact structure; includes a pre-validated scratch architecture for the
   Mathlib fixed-point/completeness API integration).

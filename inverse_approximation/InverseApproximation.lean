@@ -640,3 +640,85 @@ theorem D_exists_unique_preimage
     · show (hMapsTo.restrict (inverseStep θ t y) s s) ⟨w, hws⟩ = ⟨w, hws⟩
       exact Subtype.ext hfw
   exact (congrArg Subtype.val hzw).symm
+
+/-─────────────────────────────────────────────────────────────────────────────
+  inverse_approx_error_vs_preimage — load-bearing, self-contained result:
+  given a genuine preimage z of y under D θ t, bound how far the cheap
+  first-order approximate inverse U θ t y is from the TRUE z, via the
+  standard Banach a priori estimate shape q·|t|·M / (1-q).
+
+  Uses only `hy : ‖y‖ ≤ R` (not the stronger buffer condition used
+  elsewhere in this file) — confirmed sufficient: phi_bounded is applied
+  at y itself, never at a constructed image point, so no self-mapping
+  margin is needed here. See docs/laps/inverse-approx-error/statement-audit.md.
+
+  Deliberately does NOT invoke CompleteSpace/ContractingWith/any existence
+  machinery — z is supplied by hypothesis (hDz), not constructed.
+
+  Note: a strictly tighter, denominator-free bound
+  (‖U θ t y - z‖ ≤ |t|² · L θ R · M θ R) is also directly available from
+  this proof's steps 1-3 alone, without hcontract. The triangle-inequality
+  derivation below is the general-purpose a priori estimate pattern and is
+  used deliberately rather than the shortcut — see
+  docs/laps/inverse-approx-error/ambiguity-register.md AMB-IAE-001.
+
+  Scope: polynomial (non-rational) Brown-Conrady model only; no F/mm/pixel
+  conversion; does not resolve docs/specification-questions.md SQ-CV-07.
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem inverse_approx_error_vs_preimage
+    (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R)
+    (hcontract : |t| * L θ R < 1)
+    (y z : ℂ) (hy : ‖y‖ ≤ R) (hz : ‖z‖ ≤ R) (hDz : D θ t z = y) :
+    ‖U θ t y - z‖ ≤ (|t| ^ 2 * L θ R * M θ R) / (1 - |t| * L θ R) := by
+  have hzeq : z = inverseStep θ t y z := by
+    unfold D at hDz; unfold inverseStep
+    simp only [Complex.real_smul] at hDz ⊢
+    linear_combination hDz
+  have hUeq : U θ t y = inverseStep θ t y y := rfl
+  have hA : ‖U θ t y - z‖ ≤ |t| * L θ R * ‖y - z‖ := by
+    have hthis := inverse_step_lipschitz θ R t hR y y z hy hz
+    rw [← hUeq, ← hzeq] at hthis
+    exact hthis
+  have hC : ‖y - U θ t y‖ ≤ |t| * M θ R := by
+    have heq : y - U θ t y = t • Φ θ y := by
+      unfold U; simp only [Complex.real_smul]; ring
+    rw [heq, smul_norm]
+    exact mul_le_mul_of_nonneg_left (phi_bounded θ R hR y hy) (abs_nonneg t)
+  have hD' : ‖y - z‖ ≤ |t| * M θ R + ‖U θ t y - z‖ := by
+    calc ‖y - z‖ ≤ ‖y - U θ t y‖ + ‖U θ t y - z‖ :=
+          norm_sub_le_norm_sub_add_norm_sub y (U θ t y) z
+      _ ≤ |t| * M θ R + ‖U θ t y - z‖ := by gcongr
+  have hL_nonneg : (0:ℝ) ≤ L θ R := by unfold L; positivity
+  have hq_nonneg : (0:ℝ) ≤ |t| * L θ R := mul_nonneg (abs_nonneg t) hL_nonneg
+  have hDq : |t| * L θ R * ‖y - z‖ ≤ |t| * L θ R * (|t| * M θ R + ‖U θ t y - z‖) :=
+    mul_le_mul_of_nonneg_left hD' hq_nonneg
+  have hkey : (1 - |t| * L θ R) * ‖U θ t y - z‖ ≤ |t| * (|t| * L θ R * M θ R) := by
+    nlinarith [hA, hDq]
+  have h1mq : (0:ℝ) < 1 - |t| * L θ R := by linarith [hcontract]
+  rw [le_div_iff₀ h1mq]
+  nlinarith [hkey]
+
+/-─────────────────────────────────────────────────────────────────────────────
+  inverse_approx_exists_unique_with_error — thin corollary. Existence and
+  uniqueness of the true preimage from D_exists_unique_preimage, with the
+  error bound from inverse_approx_error_vs_preimage attached. Existence
+  machinery (Banach/ContractingWith, via D_exists_unique_preimage) is used
+  ONLY here, not in inverse_approx_error_vs_preimage above.
+
+  Scope: polynomial (non-rational) Brown-Conrady model only; no F/mm/pixel
+  conversion; does not resolve docs/specification-questions.md SQ-CV-07.
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem inverse_approx_exists_unique_with_error
+    (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R)
+    (hcontract : |t| * L θ R < 1)
+    (y : ℂ) (hy : ‖y‖ + |t| * M θ R ≤ R) :
+    ∃! z : ℂ, ‖z‖ ≤ R ∧ D θ t z = y ∧
+      ‖U θ t y - z‖ ≤ (|t| ^ 2 * L θ R * M θ R) / (1 - |t| * L θ R) := by
+  have hM_nonneg : (0:ℝ) ≤ M θ R := by unfold M; positivity
+  have hyR : ‖y‖ ≤ R := by nlinarith [mul_nonneg (abs_nonneg t) hM_nonneg]
+  obtain ⟨z, ⟨hzR, hDz⟩, huniq⟩ := D_exists_unique_preimage θ R t hR hcontract y hy
+  refine ⟨z, ⟨hzR, hDz, inverse_approx_error_vs_preimage θ R t hR hcontract y z hyR hzR hDz⟩, ?_⟩
+  rintro w ⟨hwR, hDw, -⟩
+  exact huniq w ⟨hwR, hDw⟩

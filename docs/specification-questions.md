@@ -239,6 +239,19 @@ producers/consumers should treat converted coefficients is a separate,
 open matter, not established or implied by the theorem itself. See
 `docs/laps/inverse-existence/`.
 
+The one-step approximation error is now also bounded **relative to the
+true preimage**, not just relative to the round-trip residual:
+`inverse_approx_error_vs_preimage` shows `‖U θ t y - z‖ ≤
+(|t|²·L θ R·M θ R)/(1-|t|·L θ R)` given a genuine preimage `z`
+(`D θ t z = y`) — and this theorem is deliberately independent of the
+existence proof (no Banach/`ContractingWith`/`CompleteSpace` machinery
+anywhere in it; `z` is supplied by hypothesis, not constructed). Only the
+packaging corollary, `inverse_approx_exists_unique_with_error`, depends on
+`D_exists_unique_preimage`, to attach the bound to the `z` that theorem
+already proves exists and is unique. Same standalone-fact caveat applies:
+neither theorem says anything about OpenCV/OpenTrackIO or the D-U/U-D
+direction. See `docs/laps/inverse-approx-error/`.
+
 **Progression** (chronological; each step below was accurate as a
 description of the state *at the time it was written* and has since been
 superseded by the next — read "Current status" above for what holds now):
@@ -255,7 +268,12 @@ superseded by the next — read "Current status" above for what holds now):
    See `docs/laps/inverse-injectivity/`.
 3. `D_exists_unique_preimage` closed the gap, applying Mathlib's Banach
    fixed-point theorem to those prerequisites to prove existence and
-   uniqueness directly — see "Current status" above.
+   uniqueness directly.
+4. `inverse_approx_error_vs_preimage`/`inverse_approx_exists_unique_with_error`
+   connected the approximate-inverse work (step 1 above) to the existence
+   result (step 3): the one-step approximation's error is now bounded
+   against the *true* preimage, with the bound itself proved independently
+   of the existence machinery — see "Current status" above.
 
 ---
 
