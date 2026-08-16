@@ -157,12 +157,17 @@ or OpenCV/OpenTrackIO coefficients specifically. See
 Injectivity of the forward map `D θ t` is now established on the disk
 under the contraction condition `|t| * L θ R < 1`
 (`D_eq_implies_eq`/`D_injective_on_disk`), along with the two prerequisites
-(self-mapping, contraction) a future Banach fixed-point argument would need
-to also prove *existence* of the true inverse
-(`inverse_step_maps_disk`/`inverse_step_lipschitz`). Existence itself
-remains open and is deferred to a separate task — injectivity is a
-necessary, not sufficient, condition for invertibility. See
-`docs/laps/inverse-injectivity/`.
+(self-mapping, contraction) a Banach fixed-point argument needs
+(`inverse_step_maps_disk`/`inverse_step_lipschitz`). See
+`docs/laps/inverse-injectivity/`. **Existence and uniqueness of the true
+inverse are now also established**: `D_exists_unique_preimage` proves that
+for every `y` in a buffer disk there is exactly one `z` in the disk with
+`D θ t z = y`, via Mathlib's Banach fixed-point theorem. This is a
+standalone fact about the polynomial Brown-Conrady model, independent of
+and not contingent on the D-U/U-D interoperability question above — its
+relevance to that question is separate and open, not established by this
+result. `|t| * L θ R < 1` remains a demonstrated *sufficient* condition,
+not shown necessary. See `docs/laps/inverse-existence/`.
 
 ---
 

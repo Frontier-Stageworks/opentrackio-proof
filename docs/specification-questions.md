@@ -241,10 +241,22 @@ shaped field). See `inverse_approximation/README.md` and
 disk whenever `|t| * L θ R < 1`, and `inverse_step_maps_disk`/
 `inverse_step_lipschitz` establish the two prerequisites (self-mapping,
 contraction) a Banach fixed-point argument would need to additionally prove
-*existence* of the true inverse. Existence itself remains open and is
-deferred to a separate task — these results establish necessary conditions
-for invertibility, not invertibility itself. See
-`docs/laps/inverse-injectivity/`.
+*existence* of the true inverse. See `docs/laps/inverse-injectivity/`.
+
+**Existence/uniqueness update**: `D_exists_unique_preimage` (in the same
+file, via Mathlib's Banach fixed-point theorem) now proves that for every
+`y` in a buffer disk, there is exactly one `z` in the disk with
+`D θ t z = y` — i.e. the polynomial Brown-Conrady map genuinely has a true
+local inverse on a rigorous, explicitly-characterized domain, not merely
+an approximate or bounded-error one. This establishes a rigorous domain
+where the polynomial model is truly invertible, **independent of and not
+contingent on how the OpenTrackIO maintainers answer the D-U/U-D
+question**: it is a standalone mathematical fact about the model, proved
+without reference to OpenCV, OpenTrackIO, units, or either JSON
+`distortion.model` direction. Its relevance to *this* question — whether it
+has any bearing on which direction real producers/consumers should treat
+converted coefficients — is a separate, open matter, not established or
+implied by the theorem itself. See `docs/laps/inverse-existence/`.
 
 ---
 

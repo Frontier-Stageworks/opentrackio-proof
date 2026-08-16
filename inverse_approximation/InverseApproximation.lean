@@ -1,17 +1,21 @@
 /-
   InverseApproximation.lean
 
-  A bounded-error first-order approximate inverse for a polynomial
-  (non-rational) Brown-Conrady-shaped displacement field, on a bounded
-  disk. Status: Layers 1-3 complete (boundedness, Lipschitz, first-order
-  composition-error estimate); Layer 4 prerequisites complete (injectivity
-  of the forward map, an invariant disk for the fixed-point iteration step,
-  and its contraction estimate); fixed-point existence/uniqueness itself
-  (the local inversion theorem) is deferred, not attempted here. See
-  README.md, docs/laps/bounded-inverse-approximation/, and
-  docs/laps/inverse-injectivity/ for full context, derivation, and scope.
+  A bounded-error first-order approximate inverse, and a local existence/
+  uniqueness theorem for the true inverse, for a polynomial (non-rational)
+  Brown-Conrady-shaped displacement field, on a bounded disk. Status:
+  Layers 1-3 complete (boundedness, Lipschitz, first-order
+  composition-error estimate); Layer 4 complete (injectivity of the
+  forward map, an invariant disk and contraction estimate for the
+  fixed-point iteration step, and — via Mathlib's Banach fixed-point
+  theorem — local existence and uniqueness of the true inverse,
+  `D_exists_unique_preimage`). See README.md,
+  docs/laps/bounded-inverse-approximation/, docs/laps/inverse-injectivity/,
+  and docs/laps/inverse-existence/ for full context, derivation, and scope.
   Motivated by, but does not resolve, docs/specification-questions.md
-  SQ-CV-07.
+  SQ-CV-07 — `D_exists_unique_preimage` is a standalone fact about the
+  polynomial model; its relevance to that interoperability question is a
+  separate, open matter.
 
   Deliberately independent of opencv_opentrackio_proofs/ and
   openlensio_semantics/: no imports from either, and this file is not
@@ -562,3 +566,69 @@ theorem inverse_step_lipschitz
     _ = |t| * ‖Φ θ a - Φ θ b‖ := smul_norm _ _
     _ ≤ |t| * (L θ R * ‖a - b‖) := by gcongr
     _ = |t| * L θ R * ‖a - b‖ := by ring
+
+/-─────────────────────────────────────────────────────────────────────────────
+  D_exists_unique_preimage — local existence and uniqueness of the true
+  inverse of D θ t on the buffered disk, via Mathlib's Banach fixed-point
+  theorem applied to inverseStep θ t y.
+
+  This is the theorem docs/laps/inverse-injectivity/ explicitly deferred
+  ("existence of the true inverse... is a separate, deferred task, not
+  attempted here"). It is a standalone mathematical fact about the
+  polynomial (non-rational) Brown-Conrady model — it does NOT resolve
+  docs/specification-questions.md SQ-CV-07 (the D-U/U-D interoperability
+  question); that relevance is a separate, open matter, not established by
+  this theorem.
+
+  q := |t| * L θ R < 1 remains a SUFFICIENT contraction threshold (not
+  shown necessary) for this local inversion result, together with the
+  self-map condition hy.
+─────────────────────────────────────────────────────────────────────────────-/
+
+theorem D_exists_unique_preimage
+    (θ : Coeffs) (R t : ℝ) (hR : 0 ≤ R)
+    (hcontract : |t| * L θ R < 1)
+    (y : ℂ) (hy : ‖y‖ + |t| * M θ R ≤ R) :
+    ∃! z : ℂ, ‖z‖ ≤ R ∧ D θ t z = y := by
+  have hM_nonneg : (0:ℝ) ≤ M θ R := by unfold M; positivity
+  have hyR : ‖y‖ ≤ R := by nlinarith [mul_nonneg (abs_nonneg t) hM_nonneg]
+  have hiff : ∀ z : ℂ, inverseStep θ t y z = z ↔ D θ t z = y := by
+    intro z
+    unfold inverseStep D
+    constructor <;> (intro h; simp only [Complex.real_smul] at h ⊢; linear_combination -h)
+  set s : Set ℂ := {z : ℂ | ‖z‖ ≤ R} with hs_def
+  have hclosed : IsClosed s := by
+    have hball : s = Metric.closedBall (0 : ℂ) R := by
+      ext z; simp [hs_def, Metric.mem_closedBall, dist_eq_norm]
+    rw [hball]; exact Metric.isClosed_closedBall
+  have hcomplete : IsComplete s := hclosed.isComplete
+  have hMapsTo : Set.MapsTo (inverseStep θ t y) s s := fun z hz =>
+    inverse_step_maps_disk θ R t hR y z hy hz
+  set K : NNReal := (|t| * L θ R).toNNReal with hK_def
+  have hK0 : (0:ℝ) ≤ |t| * L θ R := by
+    have hL_nonneg : (0:ℝ) ≤ L θ R := by unfold L; positivity
+    exact mul_nonneg (abs_nonneg t) hL_nonneg
+  have hKcoe : (K : ℝ) = |t| * L θ R := Real.coe_toNNReal _ hK0
+  have hKlt1 : K < 1 := by
+    rw [← NNReal.coe_lt_coe, hKcoe]; simpa using hcontract
+  have hLip : LipschitzWith K (hMapsTo.restrict (inverseStep θ t y) s s) := by
+    apply LipschitzWith.of_dist_le_mul
+    rintro ⟨a, ha⟩ ⟨b, hb⟩
+    simp only [Set.MapsTo.restrict, Subtype.dist_eq]
+    rw [hKcoe]
+    have := inverse_step_lipschitz θ R t hR y a b ha hb
+    simpa [dist_eq_norm] using this
+  have hContract : ContractingWith K (hMapsTo.restrict (inverseStep θ t y) s s) := ⟨hKlt1, hLip⟩
+  have hys : y ∈ s := hyR
+  have hedist : edist y (inverseStep θ t y y) ≠ ⊤ := edist_ne_top _ _
+  obtain ⟨z, hzs, hfz, _, _⟩ := hContract.exists_fixedPoint' hcomplete hMapsTo hys hedist
+  refine ⟨z, ⟨hzs, (hiff z).mp hfz⟩, ?_⟩
+  rintro w ⟨hws, hDw⟩
+  have hfw : inverseStep θ t y w = w := (hiff w).mpr hDw
+  have hzw : (⟨z, hzs⟩ : s) = (⟨w, hws⟩ : s) := by
+    apply hContract.fixedPoint_unique' (x := (⟨z, hzs⟩ : s)) (y := (⟨w, hws⟩ : s))
+    · show (hMapsTo.restrict (inverseStep θ t y) s s) ⟨z, hzs⟩ = ⟨z, hzs⟩
+      exact Subtype.ext hfz
+    · show (hMapsTo.restrict (inverseStep θ t y) s s) ⟨w, hws⟩ = ⟨w, hws⟩
+      exact Subtype.ext hfw
+  exact (congrArg Subtype.val hzw).symm

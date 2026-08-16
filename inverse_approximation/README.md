@@ -18,25 +18,25 @@ knowing something about the actual *inverse* of the distortion map, which
 has no closed form for the general Brown-Conrady model
 (`docs/limitations.md`, SQ-OL-03).
 
-This module is **layers 1–3, plus injectivity**, of a larger plan toward a
-bounded-error statement about an *approximate* inverse — without invoking
-any existence/uniqueness machinery for the *true* inverse. It proves: on a
-bounded disk, the naive first-order approximate inverse (subtract the same
-displacement rather than solving for it) has a composition error bounded by
-`L · M · t²`; the forward map `D θ t` is injective on the disk whenever
-`|t| · L θ R < 1`; and the fixed-point iteration step that a Banach
-argument would use is bounded and contracting — the two prerequisites such
-an argument needs, short of the argument itself. `t` is a
-distortion-strength parameter, `M` bounds the displacement field, and `L`
-bounds its Lipschitz constant — both explicit closed-form expressions in
-the polynomial coefficients and the disk radius.
+This module is **layers 1–4 complete**: a bounded-error statement about an
+*approximate* inverse, and a genuine local existence/uniqueness theorem for
+the *true* inverse, both on a bounded disk. It proves: the naive
+first-order approximate inverse (subtract the same displacement rather
+than solving for it) has a composition error bounded by `L · M · t²`; the
+forward map `D θ t` is injective on the disk whenever `|t| · L θ R < 1`;
+the fixed-point iteration step that a Banach argument uses is bounded and
+contracting; and — via Mathlib's Banach fixed-point theorem — for every `y`
+in a buffer disk there is exactly one `z` in the disk with `D θ t z = y`.
+`t` is a distortion-strength parameter, `M` bounds the displacement field,
+and `L` bounds its Lipschitz constant — both explicit closed-form
+expressions in the polynomial coefficients and the disk radius.
 
 ## Scope
 
-**Status**: Layers 1–3 complete (boundedness, Lipschitz, first-order
-composition-error estimate); Layer 4 prerequisites complete (injectivity,
-invariant disk, contraction estimate); fixed-point existence/uniqueness
-deferred.
+**Status**: Layers 1–4 complete — boundedness, Lipschitz, first-order
+composition-error estimate, injectivity, invariant disk, contraction
+estimate, and (via Mathlib's Banach fixed-point theorem) local existence
+and uniqueness of the true inverse (`D_exists_unique_preimage`).
 
 **In scope (this module):**
 - A boundedness estimate for the displacement field on a disk.
@@ -45,35 +45,31 @@ deferred.
   composition error.
 - Injectivity of the forward map `D θ t` on the disk, under a contraction
   condition `|t| * L θ R < 1`.
-- The two prerequisites (self-mapping, contraction) a future Banach
-  fixed-point argument would need to additionally prove *existence* of the
-  true inverse — not that existence proof itself.
+- The self-mapping and contraction properties of the fixed-point iteration
+  step `inverseStep θ t y`.
+- **Local existence and uniqueness of the true inverse of `D θ t` on a
+  buffer disk**, via Mathlib's Banach fixed-point theorem
+  (`ContractingWith.exists_fixedPoint'`) applied to `inverseStep θ t y`.
 
-**Explicitly out of scope (deferred, separate follow-on task):**
-- **Layer 4's existence/uniqueness theorem itself** — the *local inversion*
-  result: that `D θ t` (equivalently, the fixed point of `inverseStep θ t
-  y`) actually has a true inverse on the disk, via a Banach fixed-point
-  argument (Mathlib's `ContractingWith`, `CompleteSpace`, subtype/closed-
-  ball API integration). The two prerequisites such an argument would need
-  — `inverse_step_maps_disk`, `inverse_step_lipschitz` — are proved in this
-  module; the argument itself, and the existence/uniqueness conclusion, is
-  not. Injectivity (`D_eq_implies_eq`) is likewise a necessary, not
-  sufficient, condition for invertibility — larger distortions
-  (`|t| * L θ R ≥ 1`) may still be invertible; this module does not show
-  that either way. See "Terminology" below.
+**Explicitly out of scope (separate follow-on tasks):**
 - **Layer 5** — folding the `F`/mm/pixel unit-conversion machinery from
   `opencv_opentrackio_proofs/` back into this generic estimate.
 - **The D-U/U-D question itself.** This module does **not** resolve
-  SQ-CV-07 — it is scaffolding toward a possible future resolution, not the
-  resolution. See `docs/specification-questions.md` and
-  `docs/limitations.md` for the current, explicit status.
+  SQ-CV-07 — proving that the polynomial model has a true local inverse on
+  some rigorous domain is a standalone mathematical fact, not an answer to
+  which direction real OpenTrackIO producers/consumers should compute.
+  Its relevance to that interoperability question is a separate, open
+  matter. See `docs/specification-questions.md` and `docs/limitations.md`
+  for the current, explicit status.
 
 **Terminology**: `q := |t| * L θ R < 1` is a *sufficient contraction
 threshold*, not shown necessary — avoid calling it an "invertibility
-threshold" without qualification. What is proved is injectivity on the
-disk; together with the self-map condition, `q < 1` will be a sufficient
-local inversion condition for the deferred existence/uniqueness theorem,
-not a demonstrated necessary one.
+threshold" without qualification. `D_exists_unique_preimage` shows `q < 1`
+(together with the buffer/self-map condition) IS sufficient for local
+existence and uniqueness — that part is no longer merely anticipated, it's
+proved. What remains unshown is necessity: larger distortions
+(`|t| * L θ R ≥ 1`) may still be invertible; this module does not
+characterize that boundary either way.
 
 ## Independence from `Pipeline/`
 
@@ -81,8 +77,9 @@ This module is deliberately separate from `opencv_opentrackio_proofs/`. The
 boundedness/Lipschitz/composition-bound machinery here is generic to any
 polynomial Brown-Conrady-shaped field — it does not import
 `DistortionModel`, `OpenCVModel`, or any `Pipeline/*` file, and none of
-those files import this one. If layers 4–5 are pursued later, they build on
-this module, not on anything under `Pipeline/`.
+those files import this one. Layer 4 was built directly on this module,
+not on anything under `Pipeline/`; if layer 5 is pursued later, the same
+applies.
 
 ## Vector-space representation
 
@@ -106,13 +103,15 @@ All in the single file `InverseApproximation.lean`.
 | `D_injective_on_disk` | `Set.InjOn (D θ t) {z : ℂ \| ‖z‖ ≤ R}` — thin corollary of `D_eq_implies_eq` |
 | `inverse_step_maps_disk` | the fixed-point iteration step `inverseStep θ t y z = y - t • Φ θ z` maps the disk into itself, given the same buffer condition as `inverse_approx_error` |
 | `inverse_step_lipschitz` | `inverseStep θ t y` is itself a contraction on the disk, with constant `\|t\| · L θ R` — the same quantity `D_eq_implies_eq`'s `hcontract` uses |
+| `D_exists_unique_preimage` | `∃! z, ‖z‖ ≤ R ∧ D θ t z = y` for `y` in a buffer disk — **local existence and uniqueness of the true inverse** of `D θ t`, via Mathlib's Banach fixed-point theorem applied to `inverseStep θ t y` |
 
 `D_eq_implies_eq`/`D_injective_on_disk` establish injectivity of the
 forward map. `inverse_step_maps_disk`/`inverse_step_lipschitz` establish
 the self-mapping and contraction properties a Banach fixed-point argument
-would need to additionally prove *existence* of the true inverse — that
-existence proof is not attempted here (layer 4, deferred). Full derivation
-and review: `docs/laps/inverse-injectivity/`.
+needs. `D_exists_unique_preimage` completes the argument: existence and
+uniqueness of the true inverse, not just its prerequisites. Full derivation
+and review: `docs/laps/inverse-injectivity/` (injectivity, prerequisites)
+and `docs/laps/inverse-existence/` (existence/uniqueness).
 
 **Helper lemmas** (internal building blocks, not the main results):
 `radial_bounded`, `radial_lipschitz`, `normSq_lipschitz`,
@@ -134,3 +133,6 @@ across several of the theorems above).
 - `docs/laps/inverse-injectivity/` — `smul_norm`, `D_eq_implies_eq`,
   `D_injective_on_disk`, `inverseStep`, `inverse_step_maps_disk`,
   `inverse_step_lipschitz` (same artifact structure).
+- `docs/laps/inverse-existence/` — `D_exists_unique_preimage` (same
+  artifact structure; includes a pre-validated scratch architecture for the
+  Mathlib fixed-point/completeness API integration).
