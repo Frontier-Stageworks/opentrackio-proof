@@ -18,16 +18,23 @@ verified implementation) or explicitly marked as an inference or an open questio
 
 **SQ-CV-07 is not resolved by this investigation, and should not be closed by any single
 theorem candidate identified here.** The strongest finding is a *negative* one, established
-independently of this repository's Lean code: no finite-degree polynomial or rational
-coefficient-conversion rule can produce an *exact* inverse of a nontrivial Brown-Conrady
-map within the same function family — proved here by an elementary degree-counting
-argument (§7, Test A) and strengthened, for the realistic multi-coefficient case, by the
-Abel–Ruffini theorem (§7, Test D). This means the entire premise of "find the exact
-inverse-coefficient formula" is unsound in general; the only mathematically honest paths
-to native D→U interoperability are numerical inversion (which OpenLensIO's own spec
-already prescribes, Eq.11) or an independently-fitted native coefficient set (which the
-JSON schema's array-of-`Distortion`-objects structure already accommodates without
-requiring any inversion at all, §4).
+independently of this repository's Lean code: no finite-degree polynomial, and no rational
+function of any degree, can be an *exact* inverse of a nontrivial Brown-Conrady map within
+the same function family — proved here by an elementary degree-counting argument for the
+polynomial case (§7, Test A) and, separately, a rigorous extension to rational functions
+via degree-multiplicativity of rational-map composition (§7, "Test A, extended"), which
+applies without qualification to the realistic multi-coefficient radial model. (An earlier
+draft of this document additionally invoked the Abel–Ruffini theorem to claim no closed
+form exists *at all*, even via radicals; that specific claim required a Galois-group
+computation this investigation did not perform and has been withdrawn — see the correction
+in §7, Test D. It is not needed: the rational-function result above is what this
+repository's interoperability question actually depends on.) This means the premise of
+"find an exact Brown-Conrady-shaped rational inverse-coefficient formula" is unsound in
+general; the mathematically honest paths to native D→U interoperability remain numerical
+inversion (which OpenLensIO's own spec already prescribes, Eq.11) or an independently-
+fitted native coefficient set — understood as a calibrated *approximation*, not a proven
+exact inverse (§7, Test B correction) — which the JSON schema's array-of-`Distortion`-
+objects structure already accommodates without requiring any inversion at all (§4).
 
 Separately, and more narrowly: proposition **A** (forward mathematical equivalence,
 `opencv_openlensio_full_pipeline_pixel_corrected`) is established mathematically.
@@ -336,13 +343,12 @@ arithmetic.
   this rules out the simplest possible escape route (a lucky cancellation making the
   *whole* radial map simple to invert) in the most elementary nonzero case.
 - It does **not**, by itself, prove anything about the full rational (numerator/denominator)
-  model, about two-dimensional maps (where radial and tangential terms interact), or
-  about *rational* (as opposed to strictly polynomial) candidate inverses — composition
-  degree arguments for rational maps are more delicate (a nonconstant rational map in
-  lowest terms of degree `d` composed with one of degree `d'` generically has degree
-  `d·d'`, but "generically" matters: degenerate coefficient choices can collapse this).
-  This investigation does **not** claim to have proved the general rational case by this
-  argument alone — see Test D for what can and cannot be said about it.
+  model or about two-dimensional maps (where radial and tangential terms interact). It
+  also does not, *by the polynomial-degree argument alone*, cover *rational* (as opposed
+  to strictly polynomial) candidate inverses — a separate argument, using the degree of a
+  rational map rather than a polynomial, is needed and is given immediately below
+  (§7, "Test A, extended") — this is **not** the same statement as the plain polynomial
+  case and is presented as its own, separately justified result, not an immediate corollary.
 - **Local numerical invertibility coexists with this result without contradiction**
   because they are different kinds of claims. The Inverse Function Theorem gives a
   *local*, generally non-polynomial, non-rational function (often only a convergent power
@@ -352,6 +358,73 @@ arithmetic.
   near this point" (an analytic fact, via IFT or a contraction argument) are not in
   tension — the second does not produce a formula of the first kind, and the first does
   not deny the second.
+
+### Test A, extended — no exact RATIONAL FUNCTION inverse either (one dimension)
+
+The task brief specifically asked for this to be strengthened to rational functions, not
+only polynomials, and to have any extension beyond the simple cubic case justified
+precisely rather than asserted. This is done here using the degree of a rational map,
+not Galois theory or Abel–Ruffini (that theorem is explicitly NOT invoked for this
+claim — see the correction to the earlier draft's Test D below).
+
+**Fact used (standard, not re-derived from scratch here, but stated precisely so the
+reduction is checkable): for nonconstant rational functions `φ, ψ` over a field, writing
+each in lowest terms as a ratio of coprime polynomials, the degree of a rational function
+`deg(φ) := max(deg(numerator), deg(denominator))` is multiplicative under composition:
+`deg(ψ∘φ) = deg(ψ)·deg(φ)`.** This is the function-field-extension-degree fact
+`[K(x) : K(ψ(φ(x)))] = [K(x):K(φ(x))]·[K(φ(x)):K(ψ(φ(x)))] = deg(φ)·deg(ψ)`, valid
+whenever `φ` is nonconstant (so `φ(x)` is transcendental over the base field and the tower
+law applies cleanly) — it holds unconditionally for nonconstant `φ, ψ`, with no genericity
+or non-degeneracy caveat needed for the multiplicativity itself (unlike the Abel–Ruffini
+application removed below, which does carry such a caveat).
+
+**Application to `f(x) = x + a·x³`, `a≠0`.** As a rational function, `f = (x+ax³)/1`, so
+`deg(f) = max(3, 0) = 3`. Suppose a nonconstant rational function `g` satisfies
+`g(f(x)) = x` identically (a genuine rational-function identity, not merely agreement at
+sample points). Then `deg(g∘f) = deg(g)·deg(f) = 3·deg(g)`. But `g∘f` equals the identity
+function `x`, which has degree `max(1,0) = 1`. So `3·deg(g) = 1`, which has no solution
+with `deg(g)` a positive integer. If `g` is constant, `g∘f` is constant, which cannot
+equal the nonconstant function `x`. **Contradiction either way: no rational function `g`
+satisfies `g(f(x))=x` identically, for any `a≠0`.** This is strictly stronger than the
+polynomial-only result above (it rules out *all* rational candidates, not only polynomial
+ones), proved by the same style of elementary degree-counting, now using the degree of a
+rational map rather than a plain polynomial degree.
+
+**Extending to the actual (multi-coefficient, rational) Brown-Conrady radial map — stated
+precisely, with the reduction spelled out, not asserted.** Restrict attention to the pure
+radial map in one real variable `r ≥ 0` (tangential terms and the second dimension are not
+addressed by this argument — see the scope note below): `h(r) = r · N(r²)/D(r²)`, where
+`N(u) = 1+k1u+k2u²+k3u³` and `D(u) = 1+k4u+k5u²+k6u³`. As a rational function of `r`,
+`h(r) = [r·N(r²)] / D(r²)`. Write `n := deg_r(r·N(r²))` and `d := deg_r(D(r²))`
+(so `d ∈ {0,2,4,6}` depending on which of `k4,k5,k6` are the highest nonzero one, and
+similarly `n ∈ {1,3,5,7}`). **Precise, checkable condition for the argument to apply**:
+whenever `h`, in lowest terms, has `deg(h) = max(n,d) > 1` — i.e. whenever the radial map
+is not already degree ≤ 1 after cancellation (the only way `deg(h) ≤ 1` is if the
+coefficients are such that `h` collapses to an affine function of `r`, e.g. the all-zero
+case `h(r)=r`, or another coefficient choice producing an exact cancellation down to
+degree 1 in lowest terms — not separately characterized here, but a measure-zero/special
+condition on the coefficients, not the generic case) — the same degree-multiplicativity
+argument gives: no rational function `g` satisfies `g(h(r))=r` identically, since
+`deg(g)·deg(h) = 1` would again require `deg(g) = 1/deg(h) ∉ ℤ_{>0}` whenever
+`deg(h) > 1`. **This is the result that actually matters for this repository's
+interoperability question**: it directly rules out an exact rational-function (not merely
+polynomial) inverse for the radial part of the real, multi-coefficient OpenLensIO/OpenCV
+Brown-Conrady model, in every non-degenerate case, via a fully elementary and rigorously
+applicable argument — no Galois-theoretic machinery, and no unverified genericity
+assumption about a Galois group, is needed to reach this conclusion.
+
+**Scope of this extension — what it does and does not cover**, stated explicitly per the
+task's caution against over-generalizing: (a) it covers the **pure radial, one-dimensional
+reduction** of the model only — it says nothing by itself about the full two-dimensional
+map once tangential terms are included, where radial and tangential terms interact and the
+map is not a rational function of a single real variable in the same simple sense; (b) it
+establishes non-existence of an exact inverse *within the rational-function class*, not
+within any larger class (radicals, elementary functions, or other special functions) — see
+the corrected Test D below for why this document does not extend the claim further; (c)
+the degenerate/special coefficient cases where `deg(h) ≤ 1` are noted as exceptions, not
+separately enumerated or ruled out here — the argument applies to the generic, truly
+distorting case, which is the physically relevant one (a lens with `deg(h) ≤ 1` is, in
+the cases checked, barely distorting at all).
 
 ### Test B — wrong-direction coefficient consumption (exact rational arithmetic)
 
@@ -386,10 +459,26 @@ Normalized undistorted point `(x',y')=(1,1)`.
   from either of the below and not a candidate for recovering an undistorted point.
 - *Evaluating a separately-fitted inverse polynomial*: this is what OpenLensIO's **native**
   `U`, with its **own independently-calibrated** `k,p` (obtained by fitting a real D→U
-  calibration directly, not by converting OpenCV's forward coefficients), would correctly
-  do. This repository's `undistortPoint` (`DistortionModel.lean:51`) computes exactly this
-  operation, correctly, *given* native coefficients as input — the failure above is not a
-  bug in `undistortPoint`, it is a bug in supplying it the wrong coefficients.
+  calibration directly, not by converting OpenCV's forward coefficients), is *intended* to
+  approximate. **Correction, per adversarial review of the earlier draft of this
+  document**: a separately-fitted native `k,p` set is not thereby established to be the
+  *exact* functional inverse of anything — fitting is itself an approximation procedure
+  (least-squares or similar, against measured calibration data), not a proof of exact
+  inversion, and §7 Test A/"Test A, extended" above show an exact rational-function inverse
+  of a nontrivial Brown-Conrady map generally does not exist for it to exactly equal in the
+  first place. The correct, precisely-scoped claim is: a native, independently-fitted `k,p`
+  is a *directly evaluable, independently-calibrated approximation* to the true (generally
+  non-rational, non-closed-form) inverse — useful and intended for exactly this purpose,
+  but not proved here (or anywhere in this repository) to be exact, and categorically
+  different from both (i) reusing the *converted* `l,q` coefficients in the wrong role
+  (step 3's error, demonstrably wrong by the counterexample above) and (ii) numerically
+  inverting the actual forward function at evaluation time (the third bullet below). This
+  repository's `undistortPoint` (`DistortionModel.lean:51`) correctly *evaluates* `U` given
+  whatever native coefficients it is handed — that evaluation is not in question; what is
+  corrected here is only the earlier draft's unsupported suggestion that a native,
+  separately-fitted coefficient set is automatically the exact inverse of the converted
+  `l,q` forward map, rather than an independent approximation to a different, generally
+  non-closed-form target.
 - *Numerically inverting the actual forward function*: applying Newton's method or a
   fixed-point/contraction iteration to the **actual** forward map built in step 2 (not to
   `U`) would recover `ε'_u=(2,2)` exactly (by construction, since that forward map was
@@ -437,38 +526,67 @@ explicit about its caller-supplied or constructively-discharged hypothesis).
 
 ### Test D — are exact rational-model inverses ever possible?
 
+**Correction to an earlier draft of this document.** A previous version of this section
+invoked the Abel–Ruffini theorem to claim that the general multi-coefficient radial
+inverse has "no closed-form expression at all, not even via radicals." **That claim is
+withdrawn as unsupported.** Abel–Ruffini states that a *generic* degree-`n` (`n≥5`)
+polynomial — one whose Galois group over the field generated by its own coefficients is
+the full symmetric group `S_n` (or otherwise non-solvable) — has no root formula in
+radicals. The equation obtained from the Brown-Conrady radial map (`r·N(r²)=r_out·D(r²)`,
+a degree-≤7 polynomial equation in `r`) is **not** a generic degree-7 polynomial: it has a
+restricted, sparse structure (only odd powers of `r` appear, since `N`, `D` are polynomials
+in `r²`), and restricted polynomial families can have Galois groups strictly smaller than
+`S_n` — some such families remain solvable by radicals even at degree ≥5 (for example,
+polynomials of the form `x^n - c`, or other families with extra symmetry). **This document
+did not compute, bound, or otherwise establish the Galois group of the specific family
+`r·N(r²) - r_out·D(r²)` over the field generated by `k1,...,k6,r_out`**, and so citing
+Abel–Ruffini to conclude radical-unsolvability for this family was not justified — doing so
+correctly would require a separate, nontrivial algebraic argument (e.g. computing the
+Galois group directly, or exhibiting it as a specialization of a known non-solvable family
+in a way that provably preserves non-solvability) that this investigation has not carried
+out. The claim is downgraded to **insufficient evidence** pending that argument, not
+reinstated in a weaker form elsewhere in this document.
+
+**What is established instead, with no such gap**, is the strictly more relevant and fully
+rigorous result from "Test A, extended" above: no **rational function** (regardless of
+degree) is an exact inverse of the non-degenerate Brown-Conrady radial map, via
+degree-multiplicativity of rational-map composition — a classical, unconditionally-valid
+fact requiring no genericity assumption about any Galois group. This is the correct
+replacement for the withdrawn Abel–Ruffini claim, and it is actually the more directly
+relevant question for this repository's purposes: the interoperability question at stake
+(§5, Proposition C) is specifically whether an exact finite *Brown-Conrady-shaped rational*
+inverse-coefficient set exists — which "Test A, extended" settles — not the broader and
+separately-open question of whether some other closed form (radicals or otherwise) exists.
+
 - **Trivial case**: all coefficients zero — `U=D=`identity, trivially self-inverse within
   the family (`brown_conrady_zero_identity`, `DistortionModel.lean:78-92`, already proved
   in this repository, independent of this investigation).
-- **Single-nonzero-coefficient radial case** (`r↦r+k1r³`, i.e. Test A's `D` again):
-  this is a solvable cubic (Cardano's formula gives an exact *algebraic* — radical —
-  expression for the inverse, as a function of the output radius), but that expression is
-  **not** a polynomial or rational function, so it still does not produce "an exact
-  inverse within the same Brown-Conrady rational-function family" — only an exact
-  closed-form expression in a strictly larger function class (radicals).
-- **General multi-coefficient radial case** (`r ↦ r·N(r²)/D(r²)` with `N,D` up to degree 3
-  in `r²`, i.e. the actual OpenLensIO radial model): solving for `r` given a target output
-  radius is, after clearing denominators, a polynomial equation in `r` of degree up to 7.
-  By the **Abel–Ruffini theorem**, a generic polynomial equation of degree ≥5 has no
-  solution expressible by radicals in its coefficients. This gives a **strictly stronger**
-  negative result than the polynomial-degree argument alone, for the realistic
-  multi-coefficient case: for generic `k1,k2,k3,k4,k5,k6`, there is **no closed-form
-  expression at all** (not even via radicals, let alone a polynomial/rational one) for the
-  radial inverse — directly explaining, via a 19th-century theorem rather than an appeal
-  to authority, why OpenLensIO's own specification mandates numerical iteration (Eq.11).
-  **This Abel–Ruffini observation is additional to what Test A/the task's requested
-  argument established, clearly labeled as such, and is offered as a genuinely new,
-  rigorously justified strengthening — not a substitute for the simpler degree argument
-  the task specifically requested.**
+- **Single-nonzero-coefficient radial case** (`r↦r+k1r³`, i.e. Test A's `D` again): this
+  specific cubic *is* solvable by radicals (Cardano's formula), giving an exact algebraic
+  expression for the inverse as a function of the output radius — but that expression is
+  **not** a polynomial or rational function, so it still does not produce "an exact inverse
+  within the same Brown-Conrady rational-function family," only an exact closed-form
+  expression in the strictly larger class of radical expressions. This one case does not
+  generalize to the full multi-coefficient family — see the correction above.
+- **General multi-coefficient radial case**: whether a closed-form (radical or otherwise)
+  solution exists is genuinely **insufficient evidence** per this investigation — neither
+  established nor ruled out here, pending a proper Galois-theoretic argument not attempted.
+  What *is* established without qualification is "Test A, extended"'s rational-function
+  non-existence result, which does not depend on this open question at all.
 
-**Verdict on Test D**: a general exact finite-coefficient inverse-conversion rule
-(a formula producing `U`'s native `k,p` from OpenCV's forward `k,p`, valid for *all*
-coefficient choices) is **generically impossible**, not merely unproved — this is a
-rigorously justified impossibility result (degree-counting for the simplest case,
-Abel–Ruffini for the general case), not an absence-of-evidence claim. Special, non-generic
-coefficient choices (all-zero; single-coefficient cases solvable by radicals but still
-outside the rational-function family) are exceptions that do not rescue a *general*
-conversion rule.
+**Verdict on Test D**: a general exact finite rational-coefficient inverse-conversion rule
+(a formula producing `U`'s native `k,p`, as a Brown-Conrady-shaped **rational function**,
+from OpenCV's forward `k,p`, valid for all non-degenerate coefficient choices) is
+**rigorously impossible**, established via "Test A, extended"'s degree-multiplicativity
+argument — not merely unproved, and not dependent on Abel–Ruffini. Whether some *other*,
+non-rational closed form (radicals, or a named special function) exists for the general
+multi-coefficient case is **insufficient evidence** — genuinely open, not resolved in
+either direction by this document, and should not be cited as settled by either the
+withdrawn Abel–Ruffini argument or anything that replaces it above. Special, non-generic
+coefficient choices (all-zero; the single-coefficient case solvable by radicals but outside
+the rational-function family) remain exceptions that do not rescue a *general* rational
+conversion rule, which is the claim this repository's interoperability question actually
+turns on.
 
 ---
 
@@ -508,7 +626,24 @@ value (`LensModel.lean:68-73`) and the **already-proved** mathematical fact (A, 
 
 ### Candidate 2 — inverse conjugacy
 
-**Statement**: given forward maps related by coordinate conjugation,
+**STATUS UPDATE (post-dates the original Phase 5 analysis below): implemented.** See
+`audit/INVERSE_CONJUGACY_IMPLEMENTATION.md` for the full account. In summary:
+`opencv_openlensio_forward_point_corrected` (`Pipeline/ForwardConjugacy.lean`) now proves
+the two-dimensional composed-function conjugacy this candidate called for, derived from —
+not assumed as — the existing x/y pixel-level theorems (a new y-component theorem,
+`opencv_openlensio_full_pipeline_pixel_corrected_y`, was required and proved first); the
+abstract conjugacy-of-inverses identity (`conjugate_invOn`, `InverseConjugacy.lean`) and
+its specialization (`opencv_openlensio_inverse_conjugate`,
+`Pipeline/InverseConjugacyApplication.lean`) are also complete and kernel-checked. The
+specialization's `D_CV⁻¹`-existence hypothesis is taken exactly as this section anticipated
+— as an explicit, undischarged `Set.InvOn` hypothesis, not derived, since no injectivity
+theorem for `distortPointCV` exists in this repository. This closes the specific gap this
+candidate identified; it does **not** resolve SQ-CV-07, establish anything about
+OpenLensIO's native `U`, or construct any finite inverse-coefficient set — see the
+implementation document's explicit non-claims list. The analysis below is preserved as
+originally written (it remains an accurate account of why this candidate was chosen).
+
+**Original statement**: given forward maps related by coordinate conjugation,
 `D_OTI = S_F ∘ D_CV ∘ S_F⁻¹` (which is, in substance, what
 `opencv_openlensio_full_pipeline_pixel_corrected` already establishes, modulo it never
 being packaged as a composed-function equality — §4), and given that `D_CV⁻¹` exists on
@@ -657,7 +792,7 @@ expensive scope question first**.
 
 | Category | Applies to which finding |
 |---|---|
-| **1. Novel mathematical result** | The Abel–Ruffini application to the 6-coefficient radial inverse (§7, Test D) — a genuinely new, rigorous negative result not previously stated in this repository's artifacts, though built from a 200-year-old theorem, not a new mathematical discovery in itself. |
+| **1. Novel mathematical result** | The rational-function non-existence result for the multi-coefficient radial map ("Test A, extended," §7) — a genuinely new, rigorous negative result not previously stated in this repository's artifacts, built from the classical degree-multiplicativity of rational-map composition (standard, not newly discovered as a technique) applied correctly to this specific family. (A withdrawn earlier claim invoking Abel–Ruffini for a stronger, radicals-level impossibility was not rigorously established — see the Test D correction — and is not counted here.) |
 | **2. Useful new formal verification result** | Candidate 2, if implemented: the first Lean statement connecting a forward-conjugacy fact to an inverse-direction claim in this codebase. |
 | **3. Genuine standards-interpretation finding** | The schema's array-of-`Distortion`-objects structure as a zero-inversion resolution path (§3, §5.3) — a normative-reading finding about the standard itself, independent of any Lean proof. |
 | **4. Practical interoperability guarantee** | **None of the findings in this document establish one.** Proposition C remains unestablished; Candidate 3 (the only candidate that could approach a practical guarantee for the actual rational model) is explicitly not recommended as the next step. |
@@ -686,16 +821,19 @@ correctly stating it for *this* repository's specific objects and hypotheses, no
 abstract identity.
 
 **If the most valuable result is a negative finding, say so**: it is. **The most valuable
-finding in this entire investigation is the impossibility result of §7 (Test A/D): no
-general, exact, finite-coefficient conversion rule from forward (U→D) Brown-Conrady
-coefficients to native (D→U) Brown-Conrady coefficients can exist, for generic nonzero
-distortion.** This reframes SQ-CV-07 from "an open question awaiting either a formula or a
-maintainer clarification" to "a question whose exact-formula framing is provably
+finding in this entire investigation is the impossibility result of §7 ("Test A, extended"):
+no exact, finite, Brown-Conrady-shaped *rational-function* conversion rule from forward
+(U→D) coefficients to native (D→U) coefficients can exist, for any non-degenerate
+distortion.** (Whether some *other*, non-rational closed form exists is left as genuinely
+open — insufficient evidence, per the corrected Test D — not folded into this claim.) This
+reframes SQ-CV-07 from "an open question awaiting either a formula or a maintainer
+clarification" to "a question whose exact-rational-formula framing is provably
 unanswerable, and whose real resolution lies in either numerical methods (already
 prescribed by the spec) or a normative/operational decision about dual-direction data
 transmission (a standards question, not a mathematics question)." This is arguably more
 valuable than any single candidate theorem in §8, and is not contingent on proving any of
-them.
+them, and — unlike the withdrawn Abel–Ruffini claim — carries no unverified genericity
+assumption.
 
 ---
 
@@ -736,6 +874,10 @@ instructed.
 ---
 
 ## 12. Executive recommendation
+
+**STATUS UPDATE: this recommendation has been implemented** — see
+`audit/INVERSE_CONJUGACY_IMPLEMENTATION.md`. The text below is preserved as originally
+written, as the rationale that was acted on, not as an outstanding to-do.
 
 **The single most valuable next Lean theorem is the inverse-conjugacy statement of
 Candidate 2** (§8): given the already-proved forward conjugacy

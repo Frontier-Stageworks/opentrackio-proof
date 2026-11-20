@@ -1,6 +1,31 @@
 name = "opentrackio-proof"
 version = "0.1.0"
-defaultTargets = ["DistortionConversion", "PrincipalPointConversion", "PixelEquivalence", "HarnessAdapter"]
+defaultTargets = [
+  "InverseApproximation", "DistortionConversion", "PrincipalPointConversion",
+  "PixelEquivalence", "MutationTests", "MutationTestsY", "DistortionConversionCorrected",
+  "PipelineEquivalence", "InverseConjugacy",
+  "RationalValueWrappers", "JsonRawModel", "DecodeError", "ProtocolVersion",
+  "VersionDecoder", "ProtocolDecoder", "RationalDecoder", "NonemptyArrayDecoder",
+  "TimingEnumDecoders", "TransformModel", "TransformDecoder", "CameraModel",
+  "CameraDecoder", "LensModel", "LensDecoder", "SampleModel", "SampleDecoder",
+  "ErrorCorrectness", "VersionEncoder", "LeafEncoders", "TransformEncoder",
+  "GlobalStageEncoder", "TrackerEncoder", "PtpInfoEncoder", "NumericLiteralRoundtrip",
+  "LeafDecoders", "GlobalStageDecoder", "TrackerDecoder", "PtpInfoDecoder",
+  "TimecodeDecoder", "TimecodeEncoder", "SynchronizationDecoder", "SynchronizationEncoder",
+  "TimingDecoder", "TimingEncoder", "CameraEncoder", "LensSubEncoders", "LensEncoder",
+  "SampleEncoder", "WellFormedSampleJson", "NormalizationTheorems", "IntegrationSmoke",
+  "HarnessAdapter", "HarnessMain",
+  "CoordinateTypes", "LensSemantics", "SemanticBridge", "RadialPolynomial",
+  "DistortionModel", "DeltaSemantics", "ProjectionModel", "FovModel", "AngleOfView",
+  "ShaderCoords", "ExecutableSemanticOracle", "InjectivityModel"
+]
+# Every `[[lean_lib]]` target declared below MUST appear in this list. A target
+# registered but omitted here is silently excluded from plain `lake build` —
+# this list previously covered only 4 of 63 targets (see
+# audit/ADVERSARIAL_LEAN_AUDIT.md §2.1), meaning `lake build` never type-checked
+# most of the repository's headline theorems despite README.md documenting it
+# as the verification command. If you add a new `[[lean_lib]]` target, add its
+# name here in the same step — do not rely on remembering to do it later.
 
 [[lean_lib]]
 name = "InverseApproximation"
@@ -34,6 +59,10 @@ srcDir = "opencv_opentrackio_proofs"
 name = "PipelineEquivalence"
 srcDir = "opencv_opentrackio_proofs"
 globs = ["PipelineEquivalence", "Pipeline.+"]
+
+[[lean_lib]]
+name = "InverseConjugacy"
+srcDir = "opencv_opentrackio_proofs"
 
 [[lean_lib]]
 name = "RationalValueWrappers"
@@ -206,6 +235,17 @@ srcDir = "opentrackio_parser"
 [[lean_lib]]
 name = "HarnessAdapter"
 srcDir = "opentrackio_parser"
+
+[[lean_lib]]
+name = "HarnessMain"
+srcDir = "opentrackio_parser"
+# Type-checked as a library here (no native linking involved — that is a
+# separate, unrelated step only needed for `lake exe`/`lake build *:exe`,
+# which is independently blocked by the documented Lean 4.29.0/Darwin 25.3.0
+# linker incompatibility; see docs/limitations.md). This target exists only
+# so plain `lake build` verifies HarnessMain.lean compiles; the harness is
+# still run via `lake env lean --run opentrackio_parser/HarnessMain.lean`
+# (or scripts/opentrackio-harness.sh), not via `lake exe`.
 
 [[lean_lib]]
 name = "CoordinateTypes"

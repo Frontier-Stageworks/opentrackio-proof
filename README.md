@@ -205,4 +205,10 @@ lake update   # downloads Mathlib (~1 GB cache, one-time)
 lake build
 ```
 
-Expected: `Build completed successfully (N jobs).` where N is in the low thousands.
+Expected: `Build completed successfully (N jobs).` where N is around 8,400 (this is the
+default build; it type-checks every `[[lean_lib]]` target declared in `lakefile.toml`,
+including all of `opencv_opentrackio_proofs/` (both the as-published and corrected
+pipeline families), `openlensio_semantics/`, `opentrackio_parser/` (decoders and
+encoders), and `inverse_approximation/` — not a subset. If you add a new `[[lean_lib]]`
+target, add its name to `defaultTargets` in the same change, or it will silently be
+excluded from this command.
