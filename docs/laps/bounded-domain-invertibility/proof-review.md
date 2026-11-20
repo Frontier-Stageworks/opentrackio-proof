@@ -102,3 +102,31 @@ explicitly disclaimed in every new file's header and in the audit deliverable). 
 domain-correctness issue caught mid-session is exactly the kind of thing this review
 process exists to catch, and it was caught and fixed rather than silently weakened or
 left as a latent error.
+
+## F. Correction pass (adversarial re-review)
+
+A second adversarial reviewer (the user) correctly identified that `k1=k4` in both
+original examples collapses the radial factor `R(u)=(1+k1 u+...)/(1+k4 u+...)` to the
+identity (`≡1`), making Example 1 exactly the identity map and Example 2
+tangential-only. This was a genuine gap in this review's own first pass (§C above did not
+catch it). Fixed in `Pipeline/RationalDistortionExamples.lean`: new coefficients
+`k1=1/5, k4=1/20` for both examples, with explicit, machine-checked non-identity proofs
+(`example1_not_identity`, `example2_not_identity`, `example2_tangential_active`) rather
+than a bare nonzero-coefficient claim. Additionally, in the same pass: the end-to-end
+composition into `opencv_openlensio_inverse_conjugate` was upgraded from a scratch,
+non-committed type-check to a permanent, fully-resolved theorem
+(`example2_full_inverse_conjugate`), and the global `hden`/`hdenOTI` hypotheses were
+discharged outright (`hden_shared`, `hdenOTI_shared`, via `positivity`, since the chosen
+`k4, l2 > 0` with all other denominator coefficients zero make the denominators
+`≥1` for every real input, not just within the certified disk).
+
+Re-verified: `lake build` (plain, default targets) — 8396 jobs, exit 0 (unchanged count —
+this pass edited existing file content, added no new files). `#print axioms` on all ~37
+declarations in the 5-file slice — all depend only on `propext, Classical.choice,
+Quot.sound`. Word-boundary forbidden-construct scan — zero genuine matches. No
+established definition or previously-proved theorem statement (from the first pass) was
+altered; only `RationalDistortionExamples.lean`'s example instantiations and the audit
+document were changed.
+
+**Revised classification: Accepted**, with the identity-map defect in the examples now
+corrected and the review process's own miss of it recorded rather than hidden.

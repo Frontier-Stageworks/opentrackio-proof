@@ -145,3 +145,29 @@ Every declaration depends only on `propext, Classical.choice, Quot.sound` (confi
 `#print axioms` on all 31 new declarations). No existing committed file was modified
 (confirmed via `git status`). One genuine mathematical subtlety was caught and corrected
 mid-session (the `RDist_inverse_invOn` domain), not papered over.
+
+## Entry 6 — Correction pass: k1=k4 made the "pure radial" example the identity map
+
+**Confirmed error, independently re-derived before any fix was written.** With
+`k1=k4=1/10` (the original Example 1/2 coefficients) and `k2=k3=k5=k6=0`, the radial
+factor is `R(u) = (1+k1·u)/(1+k4·u) = (1+0.1u)/(1+0.1u) ≡ 1` for all `u ≥ 0` — not merely
+close to 1, but identically 1, since numerator and denominator are the same polynomial.
+With `p1=p2=0` (Example 1), `distortXCV = R(u)·x + 0 = x` and `distortYCV = y`: Example 1
+was exactly the identity map, which both the original Phase-3 task instructions and this
+correction's own instructions explicitly disallow as a nontrivial witness. Example 2
+(added `p1=1/100`, same `k1=k4`) therefore had R≡1 too, i.e. *tangential-only* distortion,
+not "radial and tangential" as the audit document claimed.
+
+Root cause: the coefficients were chosen to make `denomMargin`/`LPert` easy to bound by
+hand, without checking that `k1=k4` collapses the radial factor identically — an
+oversight in example DESIGN, not a flaw in any proved theorem (`Rfac_bounded`,
+`RDist_exists_unique_preimage`, etc. all remain correct and unaffected; only the
+*instantiation* was defective).
+
+Fix: new coefficients `k1=1/5, k4=1/20` (genuinely different, non-cancelling) for both
+examples, `p1=1/200` added for Example 2 only. Both `k4=1/20>0` with `k2=k3=k5=k6=0` makes
+the CV-side and (via `l=k/F²`) OTI-side denominators provably `≥1` for ALL real inputs —
+not just within a disk — closing task item 5 (global `hden`/`hdenOTI` discharge) as
+genuine proved lemmas (`by positivity`), not free hypotheses, for this calibration.
+Non-identity is proved explicitly at the witness point `(1,0)`, computing
+`distortXCV = 8/7 ≠ 1` exactly (`k1=1/5,k4=1/20`: `(1+1/5)/(1+1/20) = (6/5)/(21/20) = 8/7`).
