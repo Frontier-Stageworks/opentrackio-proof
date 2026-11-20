@@ -126,7 +126,7 @@ The pipeline iff is proved for the x-pixel coordinate only. The y-component is
 expected to be symmetric (p1 ↔ p2 swapped) but is not yet formalized.
 
 ### SQ-CV-06: Tangential conversion physical-semantics (F vs F²)
-**Status: open**
+**Status: submitted — sent to James Uren (Mo-Sys, james@mo-sys.com) by email 2026-08-15; awaiting response**
 
 The paper's stated tangential consistency condition — formalized faithfully
 as `tangential_q1_conversion`/`tangential_q2_conversion` in
@@ -175,7 +175,7 @@ its README.md for what would still be needed. See
 proof review.
 
 ### SQ-CV-07: Pipeline theorems prove same-direction (U→D) conjugacy, not native OpenLensIO (D→U) undistortion consumption
-**Status: open**
+**Status: submitted — sent to James Uren (Mo-Sys, james@mo-sys.com) by email 2026-08-15, as a follow-up to the SQ-CV-06 thread; awaiting response**
 
 `opencv_openlensio_full_pipeline_pixel_iff`, `_sufficiency`, and
 `_corrected` all compare OpenCV's forward-distortion formula (undistorted
