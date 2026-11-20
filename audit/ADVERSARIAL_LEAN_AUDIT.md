@@ -52,17 +52,30 @@ summary claims as fully verified as written:
    `docs/specification-questions.md`, and five files under `docs/maps/`). The actual count
    in `opencv_opentrackio_proofs/MutationTests.lean` is **34**. See §5.1.
 
-3. **(P1 — independently confirmed specification defect, not just repeated)** Direct
-   inspection of the primary source (`docs/OpenCV_to_OpenTrackIO.pdf`, the SMPTE RIS
-   conversion paper itself, not merely the repository's paraphrase of it) shows the
-   paper's own worked tangential-distortion derivation (p.3) is dimensionally inconsistent
-   with the coordinate relation the same paper states two paragraphs earlier (p.2,
-   `ε'_{x,d} = F·x''`). This independently corroborates — via a fresh re-derivation from
-   the primary source, not by trusting the repository's framing of it — the repository's
-   own SQ-CV-06 finding that the published tangential conversion `q₁ = p₁/F²` is likely a
-   paper-level defect and `q₁ = p₁/F` is dimensionally consistent with the paper's own
-   coordinate definitions. See §4 and §5.2. This remains open pending the maintainers'
-   response (sent 2026-08-15, per `docs/specification-questions.md` SQ-CV-06).
+3. **(P1 — confirmed internal inconsistency in the published derivation, precisely
+   scoped)** A hostile-review pass (§4.1) reconstructed both formulas from scratch against
+   *both* primary sources (`docs/OpenCV_to_OpenTrackIO.pdf` and, newly for this pass,
+   the authoritative base spec `docs/OpenLensIO_v1-0-1.pdf`), deliberately trying to find a
+   reading under which the published `q=p/F²` is correct. None was found. Two independent
+   derivation methods (direct substitution into the paper's own stated coordinate identity,
+   and function conjugation under coordinate scaling) and two hand-verifiable numeric
+   counterexamples all show the same result: `q=p/F` is what the paper's own
+   `ε'_{x,d}=F·x''` coordinate relation requires; `q=p/F²` produces pixel outputs
+   inconsistent with OpenCV's forward model whenever `F≠1` and tangential distortion is
+   nonzero. **This is reported as three distinct, non-conflatable claims** (§4.1.5): (i) an
+   established mathematical fact about the stated coordinate model, independent of either
+   document's authority; (ii) a demonstrated internal inconsistency in the conversion
+   paper's own tangential derivation relative to its own radial derivation and its own
+   stated coordinate identity — not a claim that OpenLensIO's native distortion model or
+   the OpenTrackIO standard as a whole is defective; and (iii) matters that remain
+   genuinely unresolved — the authors' possible undocumented intent, which (if either)
+   formula any real implementation uses (checked directly against two reference
+   implementations: **neither implements this conversion at all**), and, separately and
+   explicitly *not* resolved by this finding, how either coefficient convention relates to
+   OpenLensIO's *native* D→U undistortion model (SQ-CV-07 — same-direction coordinate
+   conjugacy and native inverse-model interoperability are different mathematical
+   obligations; see §4.1.5). See §4.1 and §5.2. Open pending the maintainers' response
+   (sent 2026-08-15, per `docs/specification-questions.md` SQ-CV-06/07).
 
 Two further P1-adjacent findings concern the parser:
 
@@ -482,9 +495,12 @@ necessary when the kernel-checked proof shows it is not used.
 
 Primary sources located and read directly (not inferred from repository paraphrase):
 `docs/OpenCV_to_OpenTrackIO.pdf` (3 pages, "Conversion of OpenCV to OpenTrackIO
-(OpenLensIO) lens calibration parameters," corrected 2025-09-02) and
-`docs/OpenLensIO_v1-0-1.pdf` (present but not deep-read for this pass — out of P0/P1 scope
-except where it bears on SQ-CV-06/07 below).
+(OpenLensIO) lens calibration parameters," corrected 2025-09-02) and, as of the
+hostile-review pass in §4.1, `docs/OpenLensIO_v1-0-1.pdf` in full (10 pages, "OpenLensIO
+Lens Model Version 1.0.0," 17 February 2025) — used as the authoritative source for the
+`U` function definition (Eq.16-17), the `ε'_u = F·x'` coordinate identity (Eq.9), and the
+units/direction of OpenLensIO's native `k,p` coefficients, rather than relying only on the
+conversion paper's restatement of these.
 
 | Claim | Normative source (equation) | Lean definition | Units/convention | Direction | Hidden assumptions | Status |
 |---|---|---|---|---|---|---|
@@ -496,92 +512,220 @@ except where it bears on SQ-CV-06/07 below).
 
 ### 4.1 Independent dimensional analysis: is `q=p/F²` or `q=p/F` consistent with the paper's own definitions?
 
-The task brief specifically asks for this to be checked by direct symbolic substitution
-rather than assumed. Worked below, using only the PDF's own stated definitions (not the
-repository's framing of them).
+This section was extended in a follow-up hostile-review pass whose explicit goal was to
+*disprove* the finding below — to reconstruct both formulas from scratch, consider every
+plausible alternative interpretation (specification error / convention difference /
+forward-inverse mismatch / repository misreading), and try especially hard to find a
+coherent reading under which the published `q=p/F²` is correct. It could not be found.
+The analysis below is organized into (a) an independently-reconstructed reading of both
+primary sources, (b) two independent derivations of the required scaling, (c) two
+hand-verifiable numeric counterexamples, (d) the alternative interpretations considered
+and why each was rejected, and (e) a precisely-scoped verdict. **No step below relies on
+the Lean proof as evidence** — every claim is re-derived from the two PDFs and ordinary
+algebra, independently of `DistortionConversionCorrected.lean`.
 
-The PDF defines (p.2): `ε'_{x,u} = F·x'` (undistorted screen coordinate) and
-`ε'_{x,d} = F·x''` (distorted screen coordinate), where `x''` is OpenCV's distorted
-normalized coordinate. OpenCV's `x''` decomposes as a **multiplicative radial** part plus
-an **additive tangential** part:
+#### 4.1.1 Independent reconstruction from both primary sources
+
+Two documents are authoritative here, not one. The conversion paper
+(`docs/OpenCV_to_OpenTrackIO.pdf`) states the coordinate relations used below; the base
+specification (`docs/OpenLensIO_v1-0-1.pdf`) defines the distortion formula those
+relations apply to, and was read in full for this pass (not merely cited secondhand).
+
+- **OpenCV** (p.1 of the conversion paper, cross-checked against the standard
+  `docs.opencv.org/.../calib3d` Brown-Conrady model, independently known, not sourced from
+  this repository): normalized pinhole coordinates `x'=X/Z, y'=Y/Z` (dimensionless);
+  forward distortion `x'' = R_cv(r)·x' + T_cv(x',y')`, `T_cv(x',y')=2p1x'y'+p2(r²+2x'²)`;
+  pixel mapping `u=fx·x''+cx` with `fx,cx` in pixels, applied *after* distortion.
+- **OpenLensIO** (`OpenLensIO_v1-0-1.pdf` §4.1, Eq.16-17 — the *authoritative* definition,
+  not the conversion paper's paraphrase of it):
+  `U(ε)_x = R(r)·εx + 2p1·εxεy + p2(r²+2εx²)`, `r=|ε|` in **mm**, with `p1,p2` explicitly
+  documented as having units `mm⁻²` (§4.1, units table). `U` is stated to map
+  **distorted→undistorted** (D→U) coordinates. The spec states explicitly (Eq.5, Eq.11)
+  that the forward map `U⁻¹` ("formerly named D") has **no closed form** — inversion
+  requires numerical iteration. The conversion paper's `l,q` are therefore not literally
+  `U⁻¹`'s exact coefficients; they are a same-*shape*, independently-parameterized
+  approximation to the forward map, evaluated at the undistorted screen point.
+- **The coordinate identification is authoritative, not the conversion paper's invention**:
+  OpenLensIO Eq.9 (base spec) defines `ε'_u = F·[x,y]_u` directly — the conversion paper's
+  `ε'_{x,u}=F·x'`, `ε'_{x,d}=F·x''` (p.2) are a restatement of this, not a separate,
+  weaker claim introduced only by the paper being audited.
+- **Direction check (resolves interpretation C up front, see §4.1.4):** both `R_cv(r)·x'+T_cv(x',y')`
+  (OpenCV) and `R_oti(r_u)·ε'_u+T_oti(ε'_u)` (the paper's `D`, same shape as OpenLensIO's
+  `U` in Eq.16-17 but evaluated at the *undistorted* argument) are forward, U→D
+  evaluations. There is no forward/inverse confusion in the comparison itself — both
+  sides apply the same formula shape in the same direction. What remains genuinely open
+  is a *different* question, addressed in §4.1.5 and unchanged by this section: whether a
+  real consumer reading `distortion.model="Brown-Conrady D-U"` (OpenLensIO's *native* `U`,
+  using a third, separate coefficient set in mm units) is doing the same thing a producer
+  who emitted `l,q` via this conversion intended.
+
+#### 4.1.2 Two independent re-derivations of the required scaling
+
+**Derivation 1 — direct substitution into the stated coordinate identity.** Requiring
+`ε'_{x,d} = F·x''` to hold for arbitrary, independently-chosen radial and tangential
+coefficients (both are free parameters of the model) forces it to hold termwise:
 
 ```
-x'' = R_cv(r)·x' + T_cv(x',y')      where T_cv(x',y') = 2p1·x'y' + p2·(r²+2x'²)
+R_oti(r_u)·F·x'     =  F·R_cv(r)·x'       ⟹  R_oti(r_u) = R_cv(r)                  (*)
+T_oti(F·x', F·y')   =  F·T_cv(x',y')                                                (**)
 ```
 
-and OpenTrackIO's `ε'_{x,d}` decomposes the same way in its own coordinates:
-
-```
-ε'_{x,d} = R_oti(r_u)·ε'_{x,u} + T_oti(ε'_{x,u}, ε'_{y,u})
-         = R_oti(r_u)·F·x' + T_oti(F·x', F·y')
-```
-
-For `ε'_{x,d} = F·x''` (the PDF's own stated relation) to hold **for every lens**, i.e.
-for arbitrary independent `R_cv` and `T_cv` pieces (radial and tangential coefficients are
-independent parameters), it must hold termwise:
-
-```
-R_oti(r_u)·F·x'            =  F·R_cv(r)·x'      ⟹  R_oti(r_u) = R_cv(r)   (*)
-T_oti(F·x', F·y')          =  F·T_cv(x',y')                                (**)
-```
-
-`(*)` is exactly what the PDF derives for the radial coefficients (p.2-3): the paper
-substitutes `r_u = F·r` into `R_oti` and matches it directly to `R_cv(r)` term-by-term
-(`k1·r² = l1·r_u²`, no extra `F` factor on either side beyond what `r_u=F·r` already
-contributes) — correctly consistent with `(*)`, since `R_oti` is dimensionless and the
-single explicit `F` in `ε'_{x,u}=F·x'` already accounts for everything.
-
-`(**)` requires `T_oti(F·x',F·y') = F·T_cv(x',y')` — **one explicit factor of `F` beyond
-what the coordinate substitution contributes**, because `T` is an *additive* displacement,
-not a multiplicative scale factor: substituting `r_u=F·r`-style arguments into `T_oti`
-does not, by itself, produce the needed overall factor of `F` the way it does for `R_oti`.
-
-Substituting `T_oti(ε_x,ε_y) = 2q1·ε_xε_y + q2(ε_x²+ε_y²+2ε_x²)` with `ε_x=Fx',ε_y=Fy'`:
-
-```
-T_oti(Fx',Fy') = F²·(2q1·x'y' + q2(x'²+y'²+2x'²)) = F²·T_cv^{q→p slot}(x',y')
-```
-
-So `(**)` becomes `F²·T_cv^{q}(x',y') = F·T_cv^{p}(x',y')`, and matching the linearly
-independent monomials `x'y'` and `(r²+2x'²)` gives `F²q1 = F·p1` and `F²q2 = F·p2`, i.e.
+`(*)` is exactly what the paper derives for radial coefficients (p.2-3: `k1r²=l1r_u²`,
+giving `l=k/F^{2n}`) — correct, because `R` is a dimensionless multiplicative factor and
+the single `F` already present in `ε'_u=F·x'` accounts for everything. `(**)` requires
+**one explicit additional factor of `F`** beyond what the coordinate substitution
+contributes, because `T` is an *additive* displacement, not a multiplicative scale.
+Substituting `T_oti(ε_x,ε_y)=2q1ε_xε_y+q2(ε_x²+ε_y²+2ε_x²)` with `ε_x=Fx',ε_y=Fy'` gives
+`T_oti(Fx',Fy') = F²·T_cv^{q→p slot}(x',y')`, so `(**)` becomes `F²q=F·p`, i.e.
 
 ```
 q1 = p1/F,   q2 = p2/F
 ```
 
-**— the repository's "corrected" formula, not the paper's own published `q=p/F²`.**
+**Derivation 2 — function conjugation under coordinate scaling** (a structurally
+different method, with no reference to pixels, `cx`, or focal length at all — a pure
+check of what "the same map, re-expressed in `F`-scaled coordinates" must mean). Define
+`g = S_F ∘ f ∘ S_F⁻¹` where `S_F(z)=Fz`, i.e. `g(y) = F·f(y/F)`. This is the generic,
+model-independent statement of "the same underlying distortion, described in coordinates
+`F` times larger." For the multiplicative radial part, `F·R(y/F)·(y/F) = R(y/F)·y`,
+reproducing `l=k/F^{2n}` directly. For the additive, homogeneous-degree-2 tangential part
+`T(x)`, `F·T(y/F) = F·(1/F²)·T(y) = T(y)/F` — so `g`'s tangential coefficient is
+`p/F`, matching Derivation 1 by a completely independent route.
 
-The PDF's own worked derivation (p.3) instead writes `p1·x'·y' = q1·ε'_{x,u}·ε'_{y,u}`
-directly — i.e. it imposes `T_oti(Fx',Fy') = T_cv(x',y')` (zero explicit extra factor of
-`F`, matching `(**)` with the right-hand side missing its `F`), which gives `q=p/F²`. This
-is dimensionally inconsistent with the paper's own `ε'_{x,d}=F·x''` relation once `x''` is
-correctly decomposed into its (multiplicative) radial and (additive) tangential parts: the
-paper appears to have applied the *same* "substitute-and-match" procedure it correctly
-used for the radial terms to the tangential terms as well, without accounting for the fact
-that an additive displacement term needs its own independent factor of `F` to remain
-consistent with the overall `ε'_d = F·x''` scaling, whereas the multiplicative radial
-factor does not (the `F` it needs is already supplied by the coordinate substitution
-itself).
+**Why the paper's own method is correct for radial and wrong for tangential.** The paper's
+actual method is literal value-matching (`k1r² = l1·r_u²`). This happens to work for the
+radial term because that term multiplies a coordinate (`εu=Fx'`) that itself already
+carries the missing `F`, so matching the bare term-value automatically makes the *full
+contribution* (term × coordinate) scale correctly. The tangential term is added directly,
+with no such implicit multiplication to supply the missing factor — so matching bare
+term-values leaves the contribution under-scaled by exactly one power of `F`. This is a
+specific, checkable structural reason, not a generic "something seems off."
 
-**This audit independently confirms, via direct substitution into the PDF's own equations
-— not by trusting the repository's restatement of its own claim — that the published
-`q=p/F²` formula is dimensionally inconsistent with the paper's own `ε'_{x,d}=F·x''`
-definition, and that `q=p/F` is what that definition requires.** This strengthens
-SQ-CV-06 from "the repository's own internal re-derivation disagrees with the paper" to
-"an independent re-derivation from the primary source, performed fresh for this audit,
-agrees with the repository's re-derivation and disagrees with the paper's worked
-example."
+**The `F=1` diagnostic.** The published (uncorrected) theorem's own necessary-and-sufficient
+condition, `ws/w = fx`, is algebraically identical to `F=1` (`F=(w/ws)fx`, so
+`ws/w=fx ⟺ F=1`). At `F=1`, `F²=F`, so the one-power-of-`F` discrepancy is numerically
+invisible. The paper's own worked focal-length derivation (p.2) never instantiates the
+distortion formula with concrete nonzero tangential coefficients at `F≠1` to cross-check
+— there is no point in the paper's own working where this discrepancy would have
+surfaced.
 
-**What this does NOT establish:** (a) whether the paper's authors intended something not
-captured in this three-page derivation (e.g. a different convention for how `q1,q2` are
-meant to be *consumed* downstream that would make `p/F²` correct in context despite this
-analysis); (b) which of `q=p/F²` or `q=p/F` real OpenTrackIO producers/consumers currently
-implement or expect, if either; (c) the separate, still-fully-open SQ-CV-07 question of
-whether either convention, once resolved, bears on the D-U vs. U-D direction question at
-all. These remain genuinely unverified and are not resolved by this audit — resolving
-them requires either an erratum from the paper's authors (outreach already sent, response
-pending as of this audit) or an independent reference-implementation comparison, as the
-repository itself states (`docs/specification-questions.md:165-174`).
+#### 4.1.3 Two hand-verifiable numeric counterexamples
+
+Computed directly from the published formulas (conversion paper p.1-3 and OpenLensIO
+Eq.16-17), not from the repository's Lean code, and checkable with a calculator.
+
+**Example 1.** `fx=10, cx=0, w=2, ws=4 ⟹ F=(w/ws)·fx=5`. Pure tangential lens:
+`p1=1, p2=0`, all radial coefficients `0`. Point `x'=1, y'=1`.
+- OpenCV: `x''=1·1+2·1·1·1=3`, `u_cv=fx·x''+cx=10·3=30`.
+- Corrected (`q1=p1/F=0.2`): `ε'_u=(5,5)`, `ε'_{d,x}=5+2(0.2)(25)=15`,
+  `ΔPx=(w/ws)(cx-ws/2)=(0.5)(-2)=-1`, `u_oti=(ws/w)(15-1)+ws/2=2·14+2=30`. **Matches `u_cv=30`.**
+- Published (`q1=p1/F²=0.04`): `ε'_{d,x}=5+2(0.04)(25)=7`, `u_oti=(2)(7-1)+2=14`.
+  **Does not match (`14≠30`).**
+
+**Example 2** (different coefficient, nonzero `cx`, different `F`). `fx=7, cx=4, w=3,
+ws=6 ⟹ F=3.5`. Pure tangential: `p2=1, p1=0`. Point `x'=2, y'=1` (`r²=5`).
+- OpenCV: `x''=2+1·(5+2·4)=15`, `u_cv=7·15+4=109`.
+- Corrected (`q2=p2/F=2/7`): `ε'_u=(7,3.5)`, `r_u²=61.25`,
+  `ε'_{d,x}=7+(2/7)(61.25+98)=52.5`, `ΔPx=(3/6)(4-3)=0.5`,
+  `u_oti=(6/3)(53.0)+3=109`. **Matches `u_cv=109`.**
+- Published (`q2=p2/F²=1/12.25`): `ε'_{d,x}=7+13=20`, `u_oti=(2)(20.5)+3=44`.
+  **Does not match (`44≠109`).**
+
+Both examples confirm the pattern predicted by §4.1.2: the corrected scaling reproduces
+OpenCV's pixel output exactly, unconditionally (including at `ws/w≠fx`, i.e. `F≠1`); the
+published scaling only reproduces it when `F=1`, where the discrepancy is invisible by
+construction.
+
+#### 4.1.4 Alternative interpretations considered and rejected
+
+Checked explicitly, in response to the instruction to try hard to make the published
+formula correct:
+
+- **B (coordinate-normalization / parameter-meaning difference).** Checked whether `ε'_u`
+  might use a different scale than `F·x'`, or whether OpenLensIO's `p1,p2` (native, mm⁻²,
+  used in `U`) might be the *same* numbers the conversion paper calls `q1,q2` under a
+  different unit convention that would rescue `F²`. Rejected: OpenLensIO Eq.9 gives
+  `ε'_u=F·x'` as the sole authoritative definition, with no alternative scale convention
+  stated anywhere in either document; and the conversion paper's own coefficient table
+  explicitly maps OpenCV's *forward* `k,p` onto `l,q` (not onto OpenLensIO's native,
+  undistortion-side `k,p`), so `l,q` and OpenLensIO's native `k,p` are deliberately
+  different coefficient sets for different functions, not a unit-relabeling of the same
+  numbers.
+- **C (forward/inverse convention mismatch).** Checked whether the comparison itself
+  might be comparing a forward map to an inverse map. Rejected for *this specific
+  derivation*: both sides of the comparison in §4.1.1-4.1.2 are U→D (forward)
+  evaluations, confirmed directly from OpenLensIO's own Eq.16-17 and the conversion
+  paper's stated purpose. This does **not** resolve the separate, still-open question of
+  whether the *resulting* `l,q` coefficients, if consumed via the JSON schema's
+  `distortion.model="Brown-Conrady D-U"` default (OpenLensIO's *native* `U`, a different
+  function using a different, unconverted coefficient set), behave as intended — see
+  §4.1.5 and the explicit non-resolution note below.
+- **D (repository misreading of the paper).** Checked whether this repository's own
+  transcription of the paper (`DistortionConversion.lean:1-43`) might itself be the error,
+  rather than the paper. Rejected: the transcription matches the PDF's stated equations
+  verbatim, including the structure of the per-term derivation; the inconsistency traced
+  above is present in the PDF's own text (p.2 vs. p.3), not introduced by the repository's
+  restatement of it.
+- **Cross-check against real implementations.** `ris-osvp-metadata-camdkit` (Python) and
+  `opentrackio-cpp` (C++) were both inspected directly (not via this repository). Neither
+  implements this conversion: both store `lens.distortion[].tangential` as an opaque
+  tuple/vector of numbers, with no code path that computes `l,q` from OpenCV `k,p` or
+  vice versa. **This is a genuine null result, not a confirmation either way** — there is
+  currently no production code anywhere in the ecosystem whose behavior would be affected
+  by resolving this question, and no implementation to check either formula against.
+
+No interpretation was found under which the published `q1=p1/F², q2=p2/F²` is consistent
+with the coordinate relations (`ε'_u=F·x'`, `ε'_{x,d}=F·x''`) that both primary-source
+documents state as authoritative.
+
+#### 4.1.5 Precisely scoped conclusions
+
+Three distinct claims must not be conflated, per explicit instruction for this pass:
+
+1. **Established mathematical finding (independent of either document's authorship, and
+   independent of the Lean proof).** Under the coordinate relationships both primary
+   sources state (`ε'_u=F·x'`, `ε'_{x,d}=F·x''`) and the same-direction (U→D) forward
+   Brown-Conrady interpretation both sources use for this comparison, the coefficient
+   scaling `q=p/F` is what the algebra requires; `q=p/F²` produces pixel outputs that
+   disagree with OpenCV's forward model whenever `F≠1` and tangential distortion is
+   nonzero (§4.1.3). This is a statement about the mathematics of the stated model, true
+   regardless of which document, if either, is "correct" by the standards of the
+   OpenTrackIO ecosystem.
+2. **Published-document finding.** The conversion paper's own worked tangential
+   derivation (p.3: `p1x'y' = q1ε'_{x,u}ε'_{y,u}`) is **internally inconsistent with its
+   own stated coordinate-scaling equations** (p.2: `ε'_{x,d}=F·x''`), under the
+   interpretation that both the paper's radial derivation and tangential derivation are
+   meant to establish the same kind of coordinate-conjugacy relationship (which the
+   paper's own radial derivation does correctly). This is a demonstrated inconsistency
+   *under the stated interpretation* of the document's two halves read together — it is
+   not a claim that the OpenTrackIO standard as a whole, or OpenLensIO's native
+   distortion model (`U`, Eq.16-17), contains an error; those are not in question here.
+3. **Still unresolved — not addressed by any of the above:**
+   - Whether the paper's authors intended an undocumented convention for `q1,q2` not
+     captured by the three-page derivation, for reasons this audit cannot see from the
+     document alone.
+   - Whether any production system implements `q=p/F²`, `q=p/F`, or neither — checked
+     directly against two reference implementations and found that **neither implements
+     this conversion at all** (§4.1.4), so this cannot currently be settled by
+     implementation survey.
+   - **How the U→D conversion this section analyzes relates to OpenLensIO's native D→U
+     model.** This is explicitly **not resolved** by this section and should not be read
+     as resolved: §4.1.1 establishes that the *comparison performed here* (OpenCV's
+     forward map vs. the paper's same-shape `l,q` forward map) is a same-direction,
+     coordinate-conjugacy comparison, free of forward/inverse confusion *as a comparison*.
+     It says nothing about whether coefficients produced this way, when consumed by a
+     real implementation applying OpenLensIO's *native* `U` (the D→U function, Eq.16-17,
+     using a separate mm-unit coefficient set never computed by this conversion), would
+     produce correct undistortion. Same-direction coordinate conjugacy and native
+     inverse-model interoperability are different mathematical obligations, and
+     establishing the first does not discharge the second (SQ-CV-07, still fully open,
+     pending maintainer response as of this audit).
+
+Resolving items under (3) requires either an erratum/clarification from the paper's
+authors (outreach already sent, response pending as of this audit — see
+`docs/specification-questions.md` SQ-CV-06/07) or a formal bridge theorem between the
+U→D coordinate-conjugacy result and OpenLensIO's native D→U undistortion function — see
+the end-of-audit note on what such a theorem would need to state.
 
 ---
 
@@ -628,7 +772,7 @@ original target and some were lost/renamed), or correct the count to 34 in all s
 locations. Given the number is cited as *evidence quantity* (not an arbitrary round
 number), the correction should be made promptly — it is easy to verify and easy to fix.
 
-### 5.2 SQ-CV-06 tangential conversion — see §4.1 (independently confirmed, not a new overclaim; the repository's own framing of this as "open" is accurate and appropriately hedged)
+### 5.2 SQ-CV-06 tangential conversion — see §4.1 (confirmed internal inconsistency under the stated interpretation, not a new repository overclaim; the repository's own framing of this as "open" — pending the OpenTrackIO ecosystem's resolution, not pending further mathematical analysis — remains accurate and appropriately hedged; see §4.1.5 for the precise three-way scoping of what is and is not established)
 
 ### 5.3 No other P0/P1-severity overclaims found in the headline theorem statements themselves
 
@@ -700,11 +844,17 @@ claimed global.
   equivalent was located in this pass; this audit did not exhaustively search for CI
   configuration outside the standard locations, so its absence is reported as "not found,"
   not "confirmed absent").
-- **`docs/OpenLensIO_v1-0-1.pdf`** was located but not deep-read for this pass (out of
-  P0/P1 scope beyond its bearing on SQ-CV-06/07 above); the overscan asymmetry (SQ-OL-02)
-  and denominator-nonzero silence (SQ-OL-01) claims about this document were taken from
-  the repository's own citation, not independently re-verified against the PDF text in
-  this pass.
+- **`docs/OpenLensIO_v1-0-1.pdf`** was read in full during the hostile-review pass
+  (§4.1), correcting the original pass's "not deep-read" note. A by-product check: SQ-OL-02's
+  claimed Eq.8/Eq.15 overscan asymmetry is directly visible in the text as read — Eq.8
+  (`ε_Ω=(1/Ω)U(ε_d-ΔC-ΔP)`) re-adds neither `ΔC` nor `ΔP` after applying `U`, while Eq.15
+  (`ε'_Ω'=(1/Ω')(U(ε_d-ΔC-ΔP)+ΔC)`) re-adds `ΔC` but not `ΔP` — confirming the repository's
+  characterization of an asymmetry, though *why* the two forms differ is not explained in
+  the document and remains open (SQ-OL-02, status: deferred, unchanged by this audit).
+  SQ-OL-01's denominator-nonzero silence was not independently re-checked beyond confirming
+  the `R` formula (Eq.17) itself states no domain restriction; a full audit of SQ-OL-01/02
+  remains out of scope for this P0/P1 pass, which was focused on the tangential-conversion
+  finding in §4.1.
 - **The "~100 public theorems" aggregate count** in `docs/opentrackio-proof-summary.md:7`
   was not independently re-verified against a precise "public" (non-`private`,
   non-helper) theorem census; a blunt `grep -c "^theorem |^lemma "` across the whole repo

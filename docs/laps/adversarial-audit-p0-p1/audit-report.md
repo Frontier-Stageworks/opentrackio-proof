@@ -31,7 +31,7 @@ same findings in the standard audit-report shape.
 | `docs/limitations.md` | present | accurate and unusually thorough; cross-checked against in-file claim-scope comments |
 | `docs/specification-questions.md` | present, uncommitted modification reviewed (status-field updates only, SQ-CV-06/07) | content audited in full |
 | `docs/OpenCV_to_OpenTrackIO.pdf` | present | read in full (3 pages); used for independent primary-source re-derivation, not taken on repository's word |
-| `docs/OpenLensIO_v1-0-1.pdf` | present | located, not deep-read this pass (out of P0/P1 scope beyond SQ-CV-06/07 bearing) |
+| `docs/OpenLensIO_v1-0-1.pdf` | present | read in full during the hostile-review follow-up (Eq.9, Eq.16-17 load-bearing for §4.1's tangential-conversion analysis); by-product confirms the Eq.8/Eq.15 overscan asymmetry (SQ-OL-02) is real as stated, though unexplained in the document; SQ-OL-01/02 not otherwise fully re-audited (out of this pass's scope) |
 | `opencv_opentrackio_proofs/Pipeline/PixelIff.lean` | present | `opencv_openlensio_full_pipeline_pixel_iff` fully inspected |
 | `opencv_opentrackio_proofs/Pipeline/PixelIffCorrected.lean` | present | `opencv_openlensio_full_pipeline_pixel_corrected`, `physical_pixel_agreement_scale_independent_example` fully inspected |
 | `opencv_opentrackio_proofs/DistortionConversion.lean` | present | paper transcription (lines 1-70) cross-checked against PDF |
@@ -164,19 +164,58 @@ Notes:
 | low | `PipelineEquivalence.lean`'s "compatibility re-export" does not import `Pipeline.PixelIffCorrected`, so `import PipelineEquivalence` alone does not bring the corrected-tangential theorem into scope | Add the missing import, or document the gap in the file's own header comment |
 | low | `README.md:43`'s one-sentence headline summary of the pipeline iff omits the `hp : p1≠0∨p2≠0` caveat that is present in the linked "Claim scope" paragraph and in `docs/limitations.md` | Inline the caveat alongside the headline sentence |
 
-Independently-confirmed, open specification question (not a repository defect — reported
-here because it was substantially strengthened by this audit's own primary-source
-re-derivation, not merely repeated from the repository's self-report):
+Confirmed internal inconsistency in the published derivation, precisely scoped (not a
+general repository defect, not a claim that the Lean proof is evidence of anything — a
+dedicated hostile-review pass re-derived this from scratch against both primary sources,
+independently of this repository's own framing, and explicitly tried to construct a
+reading under which the published formula is correct before concluding it could not):
 
-> Direct substitution into the primary source PDF's own stated coordinate relation
-> `ε'_{x,d} = F·x''` (`docs/OpenCV_to_OpenTrackIO.pdf`, p.2) shows that the paper's own
-> worked tangential-distortion derivation (`q1=p1/F²`, p.3) is dimensionally inconsistent
-> with that relation once `x''` is correctly decomposed into its multiplicative-radial and
-> additive-tangential parts; `q1=p1/F` is what the relation requires. This independently
-> corroborates SQ-CV-06 from a fresh reading of the primary source, not from trusting the
-> repository's restatement of its own claim. Full derivation in
+> **Reconstruction.** Both `docs/OpenCV_to_OpenTrackIO.pdf` (the conversion paper) and
+> `docs/OpenLensIO_v1-0-1.pdf` (the authoritative base spec, Eq.9 and Eq.16-17 — read in
+> full for this pass, not only cited secondhand) were used. Both sides of the comparison
+> are confirmed same-direction (U→D, forward) Brown-Conrady evaluations — no
+> forward/inverse confusion in the comparison itself.
+>
+> **Two independent derivations.** (1) Direct substitution into the paper's own stated
+> coordinate identity `ε'_{x,d}=F·x''` (p.2), decomposing `x''` into its
+> multiplicative-radial and additive-tangential parts, forces `q=p/F`, not the published
+> `q=p/F²`. (2) Function conjugation under coordinate scaling (`g=S_F∘f∘S_F⁻¹`,
+> `S_F(z)=Fz`) — a structurally different method referencing no pixel/focal-length
+> quantities at all — gives the same `q=p/F` result. A clean diagnostic: the paper's own
+> `ws/w=fx` condition is algebraically identical to `F=1`, exactly the regime where the
+> `F` vs. `F²` discrepancy is numerically invisible, explaining why the paper's own
+> worked example never surfaces it.
+>
+> **Two numeric counterexamples**, computed directly from the published formulas (not
+> from this repository's Lean code): `fx=10,cx=0,w=2,ws=4,F=5`, pure tangential `p1=1`,
+> point `(1,1)` → OpenCV pixel `30`; corrected `q=p/F` reproduces `30` exactly; published
+> `q=p/F²` gives `14`. A second example with different coefficients/`F`/nonzero `cx`
+> (`fx=7,cx=4,w=3,ws=6,F=3.5`, `p2=1`, point `(2,1)`) gives OpenCV pixel `109`; corrected
+> reproduces `109`; published gives `44`.
+>
+> **Alternatives considered and rejected** (coordinate-normalization difference,
+> forward/inverse mismatch, repository misreading of the paper) — none rescue the
+> published formula; see `audit/ADVERSARIAL_LEAN_AUDIT.md` §4.1.4. Checked directly
+> against two reference implementations (`ris-osvp-metadata-camdkit`,
+> `opentrackio-cpp`): **neither implements this conversion at all**, so no
+> implementation-survey evidence is available either way.
+>
+> **Three claims, not to be conflated** (full scoping in §4.1.5 of the audit file):
+> (i) an established mathematical fact about the stated coordinate model (`q=p/F` follows
+> from the model's own definitions; `q=p/F²` does not); (ii) a demonstrated internal
+> inconsistency in the conversion paper's own tangential derivation relative to its own
+> radial derivation and its own coordinate identity — not a claim that OpenLensIO's native
+> distortion model or the OpenTrackIO standard generally is defective; (iii) still
+> unresolved: the authors' possible undocumented intent, which formula (if either) any
+> production system uses, and — explicitly **not** addressed by this finding — how either
+> convention relates to OpenLensIO's *native* D→U undistortion function (`U`, Eq.16-17,
+> a separate coefficient set never computed by this conversion). Same-direction coordinate
+> conjugacy and native inverse-model interoperability are different mathematical
+> obligations (SQ-CV-07, fully open).
+>
+> Full derivation, both counterexamples, and the rejected-alternatives analysis:
 > `audit/ADVERSARIAL_LEAN_AUDIT.md` §4.1. Status remains open pending maintainer response
-> (outreach sent 2026-08-15, per `docs/specification-questions.md`).
+> (outreach sent 2026-08-15, per `docs/specification-questions.md` SQ-CV-06/07).
 
 ## Notes
 
